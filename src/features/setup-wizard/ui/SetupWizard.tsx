@@ -10,6 +10,7 @@ import { parseAnyFormat } from "@/entities/game/lib/csv-parser";
 import { AIClient } from "@/entities/ai-provider/api/client";
 import type { AIProviderConfig, AIProviderType, Game, SetupAnswers } from "@/shared/types";
 import { DEFAULT_MODELS, DEALBREAKER_OPTIONS } from "@/shared/types";
+import { Icon } from "@/shared/ui";
 
 const STEPS = [
   { id: 1, label: "AI Provider" },
@@ -18,7 +19,7 @@ const STEPS = [
   { id: 4, label: "Review" },
 ] as const;
 
-function defaultSetupAnswers(): SetupAnswers {
+export function defaultSetupAnswers(): SetupAnswers {
   return {
     playStyle: "singleplayer",
     storyImportance: 3,
@@ -28,6 +29,7 @@ function defaultSetupAnswers(): SetupAnswers {
     puzzleImportance: 3,
     strategyImportance: 3,
     dealbreakers: [],
+    customDealbreakers: [],
     voiceActingPreference: "preferred",
     difficultyPreference: "moderate",
     idealLength: "medium",
@@ -43,6 +45,7 @@ function defaultAiConfig(): AIProviderConfig {
     apiKey: "",
     model: DEFAULT_MODELS.anthropic[0] ?? "",
     baseUrl: "",
+    extendedThinking: false,
   };
 }
 
@@ -450,7 +453,7 @@ function ProgressStepper({ currentStep }: { currentStep: number }) {
           <StepItem key={s.id}>
             <StepTrack>
               <StepCircle $state={state} aria-current={state === "current" ? "step" : undefined}>
-                {stepNum < currentStep ? "✓" : stepNum}
+                {stepNum < currentStep ? <Icon name="check" size={14} /> : stepNum}
               </StepCircle>
               {!isLast ? <StepLine $filled={stepNum < currentStep} aria-hidden /> : null}
             </StepTrack>
@@ -466,7 +469,7 @@ function ProgressStepper({ currentStep }: { currentStep: number }) {
 
 const ProviderGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: ${({ theme }) => theme.spacing.sm};
 
   @media (max-width: 640px) {
@@ -517,6 +520,105 @@ const ProviderDesc = styled.div`
   font-size: 0.75rem;
   color: ${({ theme }) => theme.colors.textMuted};
   line-height: 1.4;
+`;
+
+/* ——— Toggle switch ——— */
+
+const ToggleRow = styled.label`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.md};
+  cursor: pointer;
+  user-select: none;
+`;
+
+const ToggleTrack = styled.div<{ $on: boolean }>`
+  position: relative;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: ${({ theme, $on }) => ($on ? theme.colors.accent : theme.colors.border)};
+  transition: background ${({ theme }) => theme.transition.fast};
+`;
+
+const ToggleThumb = styled.div<{ $on: boolean }>`
+  position: absolute;
+  top: 2px;
+  left: ${({ $on }) => ($on ? "22px" : "2px")};
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: ${({ theme }) => theme.colors.text};
+  transition: left ${({ theme }) => theme.transition.fast};
+`;
+
+const ToggleLabel = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+`;
+
+const ToggleTitle = styled.span`
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+const ToggleDesc = styled.span`
+  font-size: 0.75rem;
+  color: ${({ theme }) => theme.colors.textMuted};
+  line-height: 1.4;
+`;
+
+/* ——— Help guide ——— */
+
+const HelpToggle = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.xs};
+  padding: 0;
+  border: none;
+  background: none;
+  color: ${({ theme }) => theme.colors.accent};
+  font-size: 0.8125rem;
+  font-weight: 500;
+  font-family: ${({ theme }) => theme.font.sans};
+  cursor: pointer;
+  margin-top: ${({ theme }) => theme.spacing.xs};
+
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+const HelpPanel = styled.div`
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  padding: ${({ theme }) => theme.spacing.md};
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  color: ${({ theme }) => theme.colors.textSecondary};
+
+  a {
+    color: ${({ theme }) => theme.colors.accent};
+    &:hover { text-decoration: underline; }
+  }
+`;
+
+const HelpStepList = styled.ol`
+  margin: ${({ theme }) => theme.spacing.sm} 0 0;
+  padding-left: 1.25rem;
+`;
+
+const HelpStepItem = styled.li`
+  margin-bottom: ${({ theme }) => theme.spacing.sm};
+`;
+
+const HelpHeading = styled.strong`
+  color: ${({ theme }) => theme.colors.text};
 `;
 
 /* ——— Step 2: option cards & chips ——— */
@@ -681,6 +783,47 @@ const PillBtn = styled.button<{ $selected: boolean }>`
   }
 `;
 
+/* ——— Custom dealbreakers ——— */
+
+const CustomDealbreakersRow = styled.div`
+  display: flex;
+  gap: ${({ theme }) => theme.spacing.sm};
+  align-items: stretch;
+`;
+
+const CustomChipWrap = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${({ theme }) => theme.spacing.sm};
+  margin-top: ${({ theme }) => theme.spacing.sm};
+`;
+
+const CustomChip = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.xs};
+  padding: ${({ theme }) => `${theme.spacing.xs} ${theme.spacing.md}`};
+  font-size: 0.8125rem;
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: 1px solid ${({ theme }) => theme.colors.accent};
+  background: ${({ theme }) => theme.colors.accentMuted};
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+const RemoveBtn = styled.button`
+  background: none;
+  border: none;
+  color: ${({ theme }) => theme.colors.textMuted};
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.error};
+  }
+`;
+
 /* ——— Step 3: dropzone ——— */
 
 const DropZone = styled.div<{ $active: boolean }>`
@@ -793,6 +936,145 @@ const InstructionsTextArea = styled.textarea<{ $readOnly?: boolean }>`
 
 /* ——— Step content components ——— */
 
+function ApiKeyGuide({ provider }: { provider: AIProviderType }) {
+  const [open, setOpen] = useState(false);
+
+  if (provider === "custom") return null;
+
+  const guides: Record<Exclude<AIProviderType, "custom">, React.ReactNode> = {
+    anthropic: (
+      <HelpPanel>
+        <HelpHeading>How to get an Anthropic (Claude) API key</HelpHeading>
+        <HelpStepList>
+          <HelpStepItem>
+            Go to{" "}
+            <a href="https://console.anthropic.com/" target="_blank" rel="noreferrer">
+              console.anthropic.com
+            </a>{" "}
+            and click <strong>Sign up</strong>. You can use your Google account or email.
+          </HelpStepItem>
+          <HelpStepItem>
+            Once logged in, click <strong>API Keys</strong> in the left sidebar (or go to{" "}
+            <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noreferrer">
+              Settings &rarr; API Keys
+            </a>
+            ).
+          </HelpStepItem>
+          <HelpStepItem>
+            Click <strong>Create Key</strong>, give it a name (e.g. &quot;GameFit&quot;), and click{" "}
+            <strong>Create</strong>.
+          </HelpStepItem>
+          <HelpStepItem>
+            Copy the key that starts with <code>sk-ant-...</code> and paste it above.{" "}
+            <em>You won&apos;t be able to see it again</em>, so save it somewhere safe.
+          </HelpStepItem>
+          <HelpStepItem>
+            You&apos;ll need to add credit to your account. Go to{" "}
+            <a href="https://console.anthropic.com/settings/billing" target="_blank" rel="noreferrer">
+              Settings &rarr; Billing
+            </a>{" "}
+            and add a payment method. $5–10 is plenty to get started.
+          </HelpStepItem>
+        </HelpStepList>
+        <div style={{ marginTop: 8 }}>
+          <strong>Recommended model:</strong> <code>claude-sonnet-4-6</code> — fast, smart,
+          and affordable ($3/M input tokens). Use <code>claude-opus-4-6</code> for the most
+          intelligent analysis ($5/M input tokens).
+        </div>
+      </HelpPanel>
+    ),
+    openai: (
+      <HelpPanel>
+        <HelpHeading>How to get an OpenAI API key</HelpHeading>
+        <HelpStepList>
+          <HelpStepItem>
+            Go to{" "}
+            <a href="https://platform.openai.com/signup" target="_blank" rel="noreferrer">
+              platform.openai.com
+            </a>{" "}
+            and create an account (or sign in with Google / Microsoft / Apple).
+          </HelpStepItem>
+          <HelpStepItem>
+            In the dashboard, click your profile icon (top-right) and select{" "}
+            <strong>API Keys</strong>, or go directly to{" "}
+            <a href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer">
+              platform.openai.com/api-keys
+            </a>
+            .
+          </HelpStepItem>
+          <HelpStepItem>
+            Click <strong>Create new secret key</strong>, name it (e.g. &quot;GameFit&quot;), and
+            click <strong>Create</strong>.
+          </HelpStepItem>
+          <HelpStepItem>
+            Copy the key that starts with <code>sk-...</code> and paste it above.{" "}
+            <em>This is shown only once</em>, so save it somewhere safe.
+          </HelpStepItem>
+          <HelpStepItem>
+            You&apos;ll need to add credit. Go to{" "}
+            <a
+              href="https://platform.openai.com/account/billing"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Billing
+            </a>{" "}
+            and add a payment method. $5–10 is more than enough to start.
+          </HelpStepItem>
+        </HelpStepList>
+        <div style={{ marginTop: 8 }}>
+          <strong>Recommended model:</strong> <code>gpt-5.4</code> — the latest and most capable
+          frontier model. Use <code>gpt-5.4-mini</code> for a cheaper, faster alternative, or{" "}
+          <code>gpt-5.4-nano</code> for the cheapest option.
+        </div>
+      </HelpPanel>
+    ),
+    google: (
+      <HelpPanel>
+        <HelpHeading>How to get a Google (Gemini) API key</HelpHeading>
+        <HelpStepList>
+          <HelpStepItem>
+            Go to{" "}
+            <a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer">
+              aistudio.google.com/apikey
+            </a>{" "}
+            and sign in with your Google account.
+          </HelpStepItem>
+          <HelpStepItem>
+            Click <strong>Create API key</strong>. You may be asked to select a Google Cloud project
+            — if you don&apos;t have one, it will create one for you automatically.
+          </HelpStepItem>
+          <HelpStepItem>
+            Copy the generated key and paste it above. It starts with <code>AIza...</code>.
+          </HelpStepItem>
+          <HelpStepItem>
+            Google offers a generous free tier for Gemini. For higher usage, you can enable billing
+            in your{" "}
+            <a href="https://console.cloud.google.com/billing" target="_blank" rel="noreferrer">
+              Google Cloud Console
+            </a>
+            .
+          </HelpStepItem>
+        </HelpStepList>
+        <div style={{ marginTop: 8 }}>
+          <strong>Recommended model:</strong> <code>gemini-3.1-pro</code> — the most advanced,
+          great for complex analysis. Use <code>gemini-3-flash</code> for frontier-class performance
+          at a fraction of the cost, or <code>gemini-2.5-flash</code> for the best budget option.
+        </div>
+      </HelpPanel>
+    ),
+  };
+
+  return (
+    <div>
+      <HelpToggle type="button" onClick={() => setOpen(!open)}>
+        {open ? "▾ Hide" : "▸ How do I get an API key?"} step-by-step guide
+      </HelpToggle>
+      {open ? guides[provider] : null}
+    </div>
+  );
+}
+
 function StepAiProvider({
   config,
   setConfig,
@@ -816,7 +1098,7 @@ function StepAiProvider({
     setConfig((c) => ({
       ...c,
       type,
-      model: type === "custom" ? c.model || "gpt-4o" : (DEFAULT_MODELS[type][0] ?? ""),
+      model: type === "custom" ? "" : (DEFAULT_MODELS[type][0] ?? ""),
       baseUrl: type === "custom" ? c.baseUrl : "",
     }));
   };
@@ -825,7 +1107,7 @@ function StepAiProvider({
     <FieldGroup>
       <div>
         <SectionTitle>AI provider</SectionTitle>
-        <SectionHint>Connect an API so GameFit can run analyses on your library.</SectionHint>
+        <SectionHint>Choose a provider and connect your API key. GameFit supports all major AI providers.</SectionHint>
         <ProviderGrid>
           <ProviderCard
             type="button"
@@ -833,7 +1115,7 @@ function StepAiProvider({
             onClick={() => setType("anthropic")}
           >
             <ProviderName>Anthropic</ProviderName>
-            <ProviderDesc>Claude models via the Anthropic API.</ProviderDesc>
+            <ProviderDesc>Claude Sonnet 4.6, Opus 4.6, Haiku 4.5</ProviderDesc>
           </ProviderCard>
           <ProviderCard
             type="button"
@@ -841,7 +1123,15 @@ function StepAiProvider({
             onClick={() => setType("openai")}
           >
             <ProviderName>OpenAI</ProviderName>
-            <ProviderDesc>ChatGPT-class models via OpenAI.</ProviderDesc>
+            <ProviderDesc>GPT-5.4, GPT-5, o3, and more</ProviderDesc>
+          </ProviderCard>
+          <ProviderCard
+            type="button"
+            $selected={config.type === "google"}
+            onClick={() => setType("google")}
+          >
+            <ProviderName>Google</ProviderName>
+            <ProviderDesc>Gemini 3.1 Pro, 3 Flash, 2.5 Pro</ProviderDesc>
           </ProviderCard>
           <ProviderCard
             type="button"
@@ -849,7 +1139,7 @@ function StepAiProvider({
             onClick={() => setType("custom")}
           >
             <ProviderName>Custom</ProviderName>
-            <ProviderDesc>OpenAI-compatible endpoint (local or hosted).</ProviderDesc>
+            <ProviderDesc>Any OpenAI-compatible endpoint</ProviderDesc>
           </ProviderCard>
         </ProviderGrid>
       </div>
@@ -861,7 +1151,15 @@ function StepAiProvider({
             id="gf-api-key"
             type={showKey ? "text" : "password"}
             autoComplete="off"
-            placeholder="sk-… or your key"
+            placeholder={
+              config.type === "anthropic"
+                ? "sk-ant-…"
+                : config.type === "openai"
+                  ? "sk-…"
+                  : config.type === "google"
+                    ? "AIza…"
+                    : "Your API key"
+            }
             value={config.apiKey}
             onChange={(e) => setConfig((c) => ({ ...c, apiKey: e.target.value }))}
           />
@@ -869,6 +1167,7 @@ function StepAiProvider({
             {showKey ? "Hide" : "Show"}
           </IconButton>
         </PasswordWrap>
+        <ApiKeyGuide provider={config.type} />
       </div>
 
       {config.type === "custom" ? (
@@ -900,23 +1199,29 @@ function StepAiProvider({
         ) : (
           <TextInput
             id="gf-model"
-            placeholder="e.g. gpt-4o, llama-3, …"
+            placeholder="e.g. llama-3, mistral-large, …"
             value={config.model}
             onChange={(e) => setConfig((c) => ({ ...c, model: e.target.value }))}
           />
         )}
       </div>
 
+      <ToggleRow onClick={() => setConfig((c) => ({ ...c, extendedThinking: !c.extendedThinking }))}>
+        <ToggleTrack $on={!!config.extendedThinking}>
+          <ToggleThumb $on={!!config.extendedThinking} />
+        </ToggleTrack>
+        <ToggleLabel>
+          <ToggleTitle>Think More mode</ToggleTitle>
+          <ToggleDesc>
+            The AI will reason more deeply before responding — produces more thorough analysis but
+            takes longer and costs more per request.
+          </ToggleDesc>
+        </ToggleLabel>
+      </ToggleRow>
+
       <NoteBox>
-        API keys stay in your browser (stored locally with the app). Get keys from{" "}
-        <a href="https://console.anthropic.com/" target="_blank" rel="noreferrer">
-          Anthropic Console
-        </a>{" "}
-        or{" "}
-        <a href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer">
-          OpenAI Platform
-        </a>
-        . For custom endpoints, use a server that accepts OpenAI-style chat requests.
+        Your API key stays in your browser and is never sent to any server other than your chosen AI
+        provider. Each provider charges per request — typically a few cents per game analysis.
       </NoteBox>
 
       <InlineActions>
@@ -926,13 +1231,13 @@ function StepAiProvider({
       </InlineActions>
       {testStatus === "ok" ? <StatusPill $ok>Connection succeeded</StatusPill> : null}
       {testStatus === "err" ? (
-        <StatusPill>Connection failed — you can still continue</StatusPill>
+        <StatusPill>Connection failed — check your key and try again</StatusPill>
       ) : null}
     </FieldGroup>
   );
 }
 
-function StepPreferences({
+export function StepPreferences({
   answers,
   setAnswers,
 }: {
@@ -1026,6 +1331,63 @@ function StepPreferences({
             </Chip>
           ))}
         </ChipGrid>
+
+        <div style={{ marginTop: 16 }}>
+          <Label>Custom dealbreakers</Label>
+          <SectionHint style={{ margin: "0 0 8px" }}>
+            Add your own — press Enter or click Add after each one.
+          </SectionHint>
+          <CustomDealbreakersRow>
+            <TextInput
+              id="gf-custom-dealbreaker"
+              placeholder="e.g. No underwater levels"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  const val = (e.target as HTMLInputElement).value.trim();
+                  if (val && !answers.customDealbreakers.includes(val)) {
+                    setAnswers((a) => ({ ...a, customDealbreakers: [...a.customDealbreakers, val] }));
+                    (e.target as HTMLInputElement).value = "";
+                  }
+                }
+              }}
+            />
+            <Btn
+              type="button"
+              $variant="secondary"
+              onClick={() => {
+                const input = document.getElementById("gf-custom-dealbreaker") as HTMLInputElement;
+                const val = input?.value.trim();
+                if (val && !answers.customDealbreakers.includes(val)) {
+                  setAnswers((a) => ({ ...a, customDealbreakers: [...a.customDealbreakers, val] }));
+                  input.value = "";
+                }
+              }}
+            >
+              Add
+            </Btn>
+          </CustomDealbreakersRow>
+          {answers.customDealbreakers.length > 0 && (
+            <CustomChipWrap>
+              {answers.customDealbreakers.map((d) => (
+                <CustomChip key={d}>
+                  {d}
+                  <RemoveBtn
+                    type="button"
+                    onClick={() =>
+                      setAnswers((a) => ({
+                        ...a,
+                        customDealbreakers: a.customDealbreakers.filter((x) => x !== d),
+                      }))
+                    }
+                  >
+                    ×
+                  </RemoveBtn>
+                </CustomChip>
+              ))}
+            </CustomChipWrap>
+          )}
+        </div>
       </div>
 
       <div>
@@ -1269,7 +1631,9 @@ function StepReview({
       ? "Anthropic (Claude)"
       : aiConfig.type === "openai"
         ? "OpenAI"
-        : "Custom endpoint";
+        : aiConfig.type === "google"
+          ? "Google (Gemini)"
+          : "Custom endpoint";
 
   return (
     <FieldGroup>
@@ -1277,6 +1641,7 @@ function StepReview({
       <SummaryList>
         <SummaryItem>
           <strong>Provider:</strong> {providerLabel} · model {aiConfig.model || "—"}
+          {aiConfig.extendedThinking ? " · Think More enabled" : ""}
         </SummaryItem>
         <SummaryItem>
           <strong>Games:</strong> {importedGames.length} imported
@@ -1394,6 +1759,7 @@ export function SetupWizard() {
       ...(aiConfig.type === "custom" && aiConfig.baseUrl?.trim()
         ? { baseUrl: aiConfig.baseUrl.trim() }
         : {}),
+      extendedThinking: !!aiConfig.extendedThinking,
     };
     setAIProvider(cfg);
     setSetupAnswers(answers);

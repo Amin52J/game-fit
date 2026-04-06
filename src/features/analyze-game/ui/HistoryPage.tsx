@@ -4,7 +4,8 @@ import React, { useCallback, useMemo, useState } from "react";
 import styled, { keyframes } from "styled-components";
 import { useApp } from "@/app/providers/AppProvider";
 import type { AnalysisResult } from "@/shared/types";
-import { AnalysisMarkdown } from "./ResultCard";
+import { AnalysisMarkdown, ThemedStructuredResult, HistoryPreview } from "./ResultCard";
+import { parseResponseSections } from "@/features/analyze-game/lib/response-parser";
 import { Button } from "@/shared/ui/Button";
 
 const fadeUp = keyframes`
@@ -152,18 +153,12 @@ const DeleteBtn = styled.button`
   }
 `;
 
-const PreviewBody = styled.div`
+const PreviewContent = styled.div`
   padding: ${({ theme }) => `${theme.spacing.md} ${theme.spacing.lg}`};
 `;
 
-const PreviewText = styled.p`
-  margin: 0;
-  font-family: ${({ theme }) => theme.font.sans};
-  font-size: 0.875rem;
-  line-height: 1.55;
-  color: ${({ theme }) => theme.colors.textSecondary};
-  white-space: pre-wrap;
-  word-break: break-word;
+const PreviewBody = styled.div`
+  padding: ${({ theme }) => `0 ${theme.spacing.lg} ${theme.spacing.md}`};
 `;
 
 const ExpandHint = styled.span`
@@ -191,8 +186,6 @@ const EmptyState = styled.div`
   border-radius: ${({ theme }) => theme.radius.lg};
 `;
 
-const PREVIEW_MAX = 220;
-
 function formatPrice(price: number, currencyCode: string | undefined): string {
   const code = currencyCode || "USD";
   try {
@@ -216,10 +209,14 @@ function formatDate(ts: number): string {
   }
 }
 
-function truncatePreview(text: string): string {
-  const t = text.trim();
-  if (t.length <= PREVIEW_MAX) return t;
-  return `${t.slice(0, PREVIEW_MAX).trim()}…`;
+function ExpandedContent({ response }: { response: string }) {
+  const sections = useMemo(() => parseResponseSections(response), [response]);
+  const hasStructure = sections.filter((s) => s.key !== "preamble").length >= 3;
+
+  if (hasStructure) {
+    return <ThemedStructuredResult sections={sections} isStreaming={false} />;
+  }
+  return <AnalysisMarkdown source={response} />;
 }
 
 export function HistoryPage() {
@@ -235,19 +232,32 @@ export function HistoryPage() {
     setExpandedId((prev) => (prev === id ? null : id));
   }, []);
 
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [confirmClearAll, setConfirmClearAll] = useState(false);
+
   const handleDelete = useCallback(
     (e: React.MouseEvent, id: string) => {
       e.stopPropagation();
-      deleteAnalysis(id);
-      setExpandedId((prev) => (prev === id ? null : prev));
+      if (confirmDeleteId === id) {
+        deleteAnalysis(id);
+        setExpandedId((prev) => (prev === id ? null : prev));
+        setConfirmDeleteId(null);
+      } else {
+        setConfirmDeleteId(id);
+      }
     },
-    [deleteAnalysis],
+    [deleteAnalysis, confirmDeleteId],
   );
 
   const handleClearAll = useCallback(() => {
-    clearHistory();
-    setExpandedId(null);
-  }, [clearHistory]);
+    if (confirmClearAll) {
+      clearHistory();
+      setExpandedId(null);
+      setConfirmClearAll(false);
+    } else {
+      setConfirmClearAll(true);
+    }
+  }, [clearHistory, confirmClearAll]);
 
   const currency = state.setupAnswers?.currency;
 
@@ -267,8 +277,14 @@ export function HistoryPage() {
       <HeaderRow>
         <Title>Analysis history</Title>
         <Actions>
-          <Button type="button" variant="danger" size="md" onClick={handleClearAll}>
-            Clear all
+          <Button
+            type="button"
+            variant="danger"
+            size="md"
+            onClick={handleClearAll}
+            onBlur={() => setConfirmClearAll(false)}
+          >
+            {confirmClearAll ? "Are you sure?" : "Clear all"}
           </Button>
         </Actions>
       </HeaderRow>
@@ -290,25 +306,25 @@ export function HistoryPage() {
                 <DeleteBtn
                   type="button"
                   onClick={(e) => handleDelete(e, item.id)}
+                  onBlur={() => setConfirmDeleteId(null)}
                   aria-label={`Delete analysis for ${item.gameName}`}
                 >
-                  Delete
+                  {confirmDeleteId === item.id ? "Sure?" : "Delete"}
                 </DeleteBtn>
               </CardHeader>
 
               {!expanded ? (
                 <CardMain type="button" onClick={() => toggle(item.id)}>
+                  <PreviewContent>
+                    <HistoryPreview response={item.response} />
+                  </PreviewContent>
                   <PreviewBody>
-                    <PreviewText>{truncatePreview(item.response)}</PreviewText>
-                    <ExpandHint>
-                      Click to {item.response.length > PREVIEW_MAX ? "expand" : "view"} full
-                      analysis
-                    </ExpandHint>
+                    <ExpandHint>Click to view full analysis</ExpandHint>
                   </PreviewBody>
                 </CardMain>
               ) : (
                 <ExpandedSection>
-                  <AnalysisMarkdown source={item.response} />
+                  <ExpandedContent response={item.response} />
                 </ExpandedSection>
               )}
             </HistoryCard>

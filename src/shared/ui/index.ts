@@ -8,3 +8,5 @@ export { Select } from "./Select";
 export { Slider } from "./Slider";
 export { Badge } from "./Badge";
 export { Tabs, TabList, Tab, TabPanels, TabPanel } from "./Tabs";
+export { Icon } from "./Icon";
+export type { IconName } from "./Icon";

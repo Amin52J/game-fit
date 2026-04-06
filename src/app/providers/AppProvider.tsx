@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useContext, useCallback, useEffect, useReducer } from "react";
+import React, { createContext, useContext, useCallback, useEffect, useReducer, useState } from "react";
 import type {
   AppState,
   AIProviderConfig,
@@ -66,6 +66,7 @@ function reducer(state: AppState, action: Action): AppState {
 
 interface AppContextValue {
   state: AppState;
+  hydrated: boolean;
   dispatch: React.Dispatch<Action>;
   setAIProvider: (config: AIProviderConfig) => void;
   setGames: (games: Game[]) => void;
@@ -85,10 +86,12 @@ const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     const saved = loadState();
     dispatch({ type: "INIT", payload: saved });
+    setHydrated(true);
   }, []);
 
   useEffect(() => {
@@ -149,6 +152,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     <AppContext.Provider
       value={{
         state,
+        hydrated,
         dispatch,
         setAIProvider,
         setGames,

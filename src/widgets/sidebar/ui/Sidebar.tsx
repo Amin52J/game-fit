@@ -1,19 +1,22 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import styled, { css } from "styled-components";
 import { useApp } from "@/app/providers/AppProvider";
+import { Icon } from "@/shared/ui";
+import type { IconName } from "@/shared/ui";
 
 const MOBILE_MAX = "767px";
 
-const NAV_ITEMS = [
-  { href: "/analyze", label: "Analyze", icon: "🔍" },
-  { href: "/library", label: "Library", icon: "📚" },
-  { href: "/history", label: "History", icon: "📋" },
-  { href: "/settings", label: "Settings", icon: "⚙️" },
-] as const;
+const NAV_ITEMS: readonly { href: string; label: string; icon: IconName }[] = [
+  { href: "/analyze", label: "Analyze", icon: "search" },
+  { href: "/library", label: "Library", icon: "library" },
+  { href: "/history", label: "History", icon: "history" },
+  { href: "/settings", label: "Settings", icon: "settings" },
+];
 
 function isNavActive(pathname: string, href: string): boolean {
   if (pathname === href) return true;
@@ -57,9 +60,8 @@ const LogoBlock = styled(Link)`
   }
 `;
 
-const LogoEmoji = styled.span`
-  font-size: 1.75rem;
-  line-height: 1;
+const LogoIcon = styled(Image)`
+  border-radius: 6px;
   filter: drop-shadow(0 0 8px ${({ theme }) => theme.colors.accentGlow});
 `;
 
@@ -121,10 +123,11 @@ const NavLink = styled(Link)<{ $active: boolean }>`
 `;
 
 const NavIcon = styled.span`
-  font-size: 1.125rem;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 1.5rem;
-  text-align: center;
+  height: 1.5rem;
 `;
 
 const Footer = styled.div`
@@ -283,7 +286,7 @@ export function Sidebar() {
       <Backdrop $visible={mobileOpen} aria-hidden onClick={closeMobile} />
       <SidebarRoot $open={mobileOpen} aria-label="Main navigation">
         <LogoBlock href="/analyze" onClick={closeMobile}>
-          <LogoEmoji aria-hidden>🎮</LogoEmoji>
+          <LogoIcon src="/icon.svg" alt="" width={32} height={32} aria-hidden />
           <LogoText>GameFit</LogoText>
         </LogoBlock>
         <Nav>
@@ -294,7 +297,7 @@ export function Sidebar() {
               $active={isNavActive(pathname, href)}
               onClick={closeMobile}
             >
-              <NavIcon aria-hidden>{icon}</NavIcon>
+              <NavIcon><Icon name={icon} size={18} /></NavIcon>
               {label}
             </NavLink>
           ))}

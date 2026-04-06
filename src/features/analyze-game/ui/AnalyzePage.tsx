@@ -39,7 +39,8 @@ function errorMessage(err: unknown): string {
 }
 
 export function AnalyzePage() {
-  const { analyze, isLoading, isStreaming, streamedText, result, error, reset } = useAnalysis();
+  const { analyze, isLoading, isStreaming, streamedText, result, error, reset, stop } =
+    useAnalysis();
   const [session, setSession] = useState<{ gameName: string; price: number } | null>(null);
 
   const handleSubmit = useCallback(
@@ -65,7 +66,13 @@ export function AnalyzePage() {
     <Page>
       <AnalyzeForm onSubmit={handleSubmit} isLoading={isLoading} />
 
-      {session || result ? (
+      {(isStreaming || isLoading) ? (
+        <Toolbar>
+          <Button type="button" variant="secondary" size="md" onClick={stop}>
+            Stop Analysis
+          </Button>
+        </Toolbar>
+      ) : (session || result) ? (
         <Toolbar>
           <Button type="button" variant="secondary" size="md" onClick={handleNewAnalysis}>
             New Analysis

@@ -151,12 +151,13 @@ function currencyPrefixFromSettings(currencyCode: string | undefined): string {
 }
 
 export function AnalyzeForm({ onSubmit, isLoading }: AnalyzeFormProps) {
-  const { state } = useApp();
+  const { state, hydrated } = useApp();
   const [gameName, setGameName] = useState("");
   const [priceRaw, setPriceRaw] = useState("");
   const [touched, setTouched] = useState(false);
 
   const hasProvider = Boolean(state.aiProvider);
+  const showProviderError = hydrated && !hasProvider;
   const currencyPrefix = currencyPrefixFromSettings(state.setupAnswers?.currency);
 
   const priceNum = priceRaw.trim() === "" ? NaN : Number(priceRaw);
@@ -182,7 +183,7 @@ export function AnalyzeForm({ onSubmit, isLoading }: AnalyzeFormProps) {
 
   return (
     <FormRoot onSubmit={handleSubmit} noValidate>
-      {!hasProvider ? (
+      {showProviderError ? (
         <ErrorBanner role="alert">
           Configure an AI provider in settings before running an analysis.
         </ErrorBanner>
@@ -195,10 +196,11 @@ export function AnalyzeForm({ onSubmit, isLoading }: AnalyzeFormProps) {
           name="gameName"
           type="text"
           autoComplete="off"
+          autoFocus
           placeholder="e.g. Hollow Knight"
           value={gameName}
           onChange={(e) => setGameName(e.target.value)}
-          disabled={isLoading || !hasProvider}
+          disabled={isLoading || showProviderError}
           $invalid={nameInvalid}
           aria-invalid={nameInvalid || undefined}
         />
@@ -219,7 +221,7 @@ export function AnalyzeForm({ onSubmit, isLoading }: AnalyzeFormProps) {
             placeholder="0.00"
             value={priceRaw}
             onChange={(e) => setPriceRaw(e.target.value)}
-            disabled={isLoading || !hasProvider}
+            disabled={isLoading || showProviderError}
             aria-invalid={priceInvalid || undefined}
           />
         </PriceRow>
@@ -232,7 +234,7 @@ export function AnalyzeForm({ onSubmit, isLoading }: AnalyzeFormProps) {
         size="lg"
         fullWidth
         isLoading={isLoading}
-        disabled={!hasProvider}
+        disabled={showProviderError}
       >
         Analyze
       </Button>

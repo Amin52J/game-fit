@@ -42,8 +42,12 @@ interface AppShellProps {
 }
 
 export function AppShell({ children }: AppShellProps) {
-  const { state } = useApp();
+  const { state, hydrated } = useApp();
   const setupDone = state.isSetupComplete;
+
+  if (!hydrated) {
+    return <ShellRoot />;
+  }
 
   return (
     <ShellRoot>

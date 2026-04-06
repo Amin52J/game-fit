@@ -5,18 +5,49 @@ export interface Game {
   score: number | null;
 }
 
-export type AIProviderType = "anthropic" | "openai" | "custom";
+export type AIProviderType = "anthropic" | "openai" | "google" | "custom";
 
 export interface AIProviderConfig {
   type: AIProviderType;
   apiKey: string;
   model: string;
   baseUrl?: string;
+  extendedThinking?: boolean;
 }
 
 export const DEFAULT_MODELS: Record<AIProviderType, string[]> = {
-  anthropic: ["claude-sonnet-4-20250514", "claude-3-5-haiku-20241022", "claude-3-opus-20240229"],
-  openai: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "o1", "o3-mini"],
+  anthropic: [
+    "claude-sonnet-4-6",
+    "claude-opus-4-6",
+    "claude-haiku-4-5",
+    "claude-sonnet-4-5",
+    "claude-opus-4-5",
+    "claude-sonnet-4-0",
+    "claude-opus-4-0",
+  ],
+  openai: [
+    "gpt-5.4",
+    "gpt-5.4-mini",
+    "gpt-5.4-nano",
+    "gpt-5-mini",
+    "gpt-5-nano",
+    "gpt-5",
+    "gpt-5.2",
+    "gpt-5.1",
+    "gpt-4.1",
+    "gpt-4.1-mini",
+    "gpt-4.1-nano",
+    "o3",
+    "o4-mini",
+  ],
+  google: [
+    "gemini-3.1-pro",
+    "gemini-3-flash",
+    "gemini-3.1-flash-lite",
+    "gemini-2.5-pro",
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+  ],
   custom: [],
 };
 
@@ -29,6 +60,7 @@ export interface SetupAnswers {
   puzzleImportance: number;
   strategyImportance: number;
   dealbreakers: string[];
+  customDealbreakers: string[];
   voiceActingPreference: "essential" | "preferred" | "indifferent" | "fine_with_text";
   difficultyPreference: "easy" | "moderate" | "challenging" | "soulslike";
   idealLength: "short" | "medium" | "long" | "any";

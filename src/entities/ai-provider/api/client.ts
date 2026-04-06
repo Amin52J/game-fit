@@ -18,15 +18,16 @@ export class AIClient {
     instructions: string,
     games: Game[],
     onStream?: (chunk: string) => void,
+    signal?: AbortSignal,
   ): Promise<string> {
     const libraryData = this.formatLibrary(games);
     const systemPrompt = instructions;
     const userMessage = `Here is my game library:\n\n${libraryData}\n\n---\n\nAnalyze this game for me: **${gameName}** at **€${price}**\n\nProvide the full analysis with Enjoyment Score, confidence, verified matches from my library, Red-Line Risk, target price, and all reasoning.`;
 
     if (onStream) {
-      return this.streamRequest(systemPrompt, userMessage, onStream);
+      return this.streamRequest(systemPrompt, userMessage, onStream, signal);
     }
-    return this.request(systemPrompt, userMessage);
+    return this.request(systemPrompt, userMessage, signal);
   }
 
   private formatLibrary(games: Game[]): string {
@@ -35,14 +36,16 @@ export class AIClient {
     return lines.join("\n");
   }
 
-  private async request(system: string, user: string): Promise<string> {
+  private async request(system: string, user: string, signal?: AbortSignal): Promise<string> {
     switch (this.config.type) {
       case "anthropic":
-        return this.anthropicRequest(system, user);
+        return this.anthropicRequest(system, user, signal);
       case "openai":
-        return this.openaiRequest(system, user);
+        return this.openaiRequest(system, user, signal);
+      case "google":
+        return this.googleRequest(system, user, signal);
       case "custom":
-        return this.customRequest(system, user);
+        return this.customRequest(system, user, signal);
     }
   }
 
@@ -50,20 +53,42 @@ export class AIClient {
     system: string,
     user: string,
     onStream: (chunk: string) => void,
+    signal?: AbortSignal,
   ): Promise<string> {
     switch (this.config.type) {
       case "anthropic":
-        return this.anthropicStream(system, user, onStream);
+        return this.anthropicStream(system, user, onStream, signal);
       case "openai":
-        return this.openaiStream(system, user, onStream);
+        return this.openaiStream(system, user, onStream, signal);
+      case "google":
+        return this.googleStream(system, user, onStream, signal);
       case "custom":
-        return this.customStream(system, user, onStream);
+        return this.customStream(system, user, onStream, signal);
     }
   }
 
   // --- Anthropic ---
 
-  private async anthropicRequest(system: string, user: string): Promise<string> {
+  private buildAnthropicBody(system: string, user: string, stream = false) {
+    const body: Record<string, unknown> = {
+      model: this.config.model,
+      system,
+      messages: [{ role: "user", content: user }],
+    };
+
+    if (this.config.extendedThinking) {
+      body.thinking = { type: "enabled", budget_tokens: 10000 };
+      body.max_tokens = 16000;
+    } else {
+      body.max_tokens = 4096;
+      body.temperature = 0.2;
+    }
+
+    if (stream) body.stream = true;
+    return body;
+  }
+
+  private async anthropicRequest(system: string, user: string, signal?: AbortSignal): Promise<string> {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -72,25 +97,23 @@ export class AIClient {
         "anthropic-version": "2023-06-01",
         "anthropic-dangerous-direct-browser-access": "true",
       },
-      body: JSON.stringify({
-        model: this.config.model,
-        max_tokens: 4096,
-        system,
-        messages: [{ role: "user", content: user }],
-      }),
+      body: JSON.stringify(this.buildAnthropicBody(system, user)),
+      signal,
     });
     if (!res.ok) {
       const err = await res.text();
       throw new Error(`Anthropic API error (${res.status}): ${err}`);
     }
     const data = await res.json();
-    return data.content?.[0]?.text || "";
+    const textBlock = data.content?.find((b: { type: string }) => b.type === "text");
+    return textBlock?.text || "";
   }
 
   private async anthropicStream(
     system: string,
     user: string,
     onStream: (chunk: string) => void,
+    signal?: AbortSignal,
   ): Promise<string> {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -100,13 +123,8 @@ export class AIClient {
         "anthropic-version": "2023-06-01",
         "anthropic-dangerous-direct-browser-access": "true",
       },
-      body: JSON.stringify({
-        model: this.config.model,
-        max_tokens: 4096,
-        stream: true,
-        system,
-        messages: [{ role: "user", content: user }],
-      }),
+      body: JSON.stringify(this.buildAnthropicBody(system, user, true)),
+      signal,
     });
     if (!res.ok) {
       const err = await res.text();
@@ -150,7 +168,23 @@ export class AIClient {
 
   // --- OpenAI ---
 
-  private async openaiRequest(system: string, user: string): Promise<string> {
+  private buildOpenAIBody(messages: Message[], stream = false) {
+    const body: Record<string, unknown> = {
+      model: this.config.model,
+      messages,
+      max_tokens: 4096,
+      temperature: 0.2,
+    };
+
+    if (this.config.extendedThinking) {
+      body.reasoning_effort = "high";
+    }
+
+    if (stream) body.stream = true;
+    return body;
+  }
+
+  private async openaiRequest(system: string, user: string, signal?: AbortSignal): Promise<string> {
     const messages: Message[] = [
       { role: "system", content: system },
       { role: "user", content: user },
@@ -161,11 +195,8 @@ export class AIClient {
         "Content-Type": "application/json",
         Authorization: `Bearer ${this.config.apiKey}`,
       },
-      body: JSON.stringify({
-        model: this.config.model,
-        messages,
-        max_tokens: 4096,
-      }),
+      body: JSON.stringify(this.buildOpenAIBody(messages)),
+      signal,
     });
     if (!res.ok) {
       const err = await res.text();
@@ -179,6 +210,7 @@ export class AIClient {
     system: string,
     user: string,
     onStream: (chunk: string) => void,
+    signal?: AbortSignal,
   ): Promise<string> {
     const messages: Message[] = [
       { role: "system", content: system },
@@ -190,12 +222,8 @@ export class AIClient {
         "Content-Type": "application/json",
         Authorization: `Bearer ${this.config.apiKey}`,
       },
-      body: JSON.stringify({
-        model: this.config.model,
-        messages,
-        max_tokens: 4096,
-        stream: true,
-      }),
+      body: JSON.stringify(this.buildOpenAIBody(messages, true)),
+      signal,
     });
     if (!res.ok) {
       const err = await res.text();
@@ -235,9 +263,81 @@ export class AIClient {
     return full;
   }
 
+  // --- Google (Gemini via OpenAI-compatible endpoint) ---
+
+  private googleBaseUrl =
+    "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+
+  private async googleRequest(system: string, user: string, signal?: AbortSignal): Promise<string> {
+    const messages: Message[] = [
+      { role: "system", content: system },
+      { role: "user", content: user },
+    ];
+    const body: Record<string, unknown> = {
+      model: this.config.model,
+      messages,
+      max_tokens: 4096,
+      temperature: 0.2,
+    };
+    if (this.config.extendedThinking) {
+      body.reasoning_effort = "high";
+    }
+    const res = await fetch(this.googleBaseUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.config.apiKey}`,
+      },
+      body: JSON.stringify(body),
+      signal,
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Google API error (${res.status}): ${err}`);
+    }
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content || "";
+  }
+
+  private async googleStream(
+    system: string,
+    user: string,
+    onStream: (chunk: string) => void,
+    signal?: AbortSignal,
+  ): Promise<string> {
+    const messages: Message[] = [
+      { role: "system", content: system },
+      { role: "user", content: user },
+    ];
+    const body: Record<string, unknown> = {
+      model: this.config.model,
+      messages,
+      max_tokens: 4096,
+      temperature: 0.2,
+      stream: true,
+    };
+    if (this.config.extendedThinking) {
+      body.reasoning_effort = "high";
+    }
+    const res = await fetch(this.googleBaseUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.config.apiKey}`,
+      },
+      body: JSON.stringify(body),
+      signal,
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Google API error (${res.status}): ${err}`);
+    }
+    return this.readOpenAISSE(res, onStream);
+  }
+
   // --- Custom ---
 
-  private async customRequest(system: string, user: string): Promise<string> {
+  private async customRequest(system: string, user: string, signal?: AbortSignal): Promise<string> {
     const url = this.config.baseUrl;
     if (!url) throw new Error("Custom provider requires a base URL");
 
@@ -255,7 +355,9 @@ export class AIClient {
         model: this.config.model,
         messages,
         max_tokens: 4096,
+        temperature: 0.2,
       }),
+      signal,
     });
     if (!res.ok) {
       const err = await res.text();
@@ -274,8 +376,9 @@ export class AIClient {
     system: string,
     user: string,
     onStream: (chunk: string) => void,
+    signal?: AbortSignal,
   ): Promise<string> {
-    return this.customRequest(system, user);
+    return this.customRequest(system, user, signal);
   }
 }
 
