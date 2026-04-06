@@ -5,7 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import styled, { css } from "styled-components";
-import { useApp } from "@/app/providers/AppProvider";
+import { useAuth } from "@/app/providers/AuthProvider";
 import { Icon } from "@/shared/ui";
 import type { IconName } from "@/shared/ui";
 
@@ -27,7 +27,10 @@ const SidebarRoot = styled.aside<{ $open: boolean }>`
   display: flex;
   flex-direction: column;
   width: 240px;
-  min-height: 100%;
+  height: 100vh;
+  height: 100dvh;
+  position: sticky;
+  top: 0;
   background: ${({ theme }) => theme.colors.surface};
   border-right: 1px solid ${({ theme }) => theme.colors.border};
   flex-shrink: 0;
@@ -39,7 +42,8 @@ const SidebarRoot = styled.aside<{ $open: boolean }>`
     left: 0;
     top: 0;
     bottom: 0;
-    min-height: 100vh;
+    height: 100vh;
+    height: 100dvh;
     box-shadow: ${({ theme }) => theme.shadow.lg};
     transform: translateX(${({ $open }) => ($open ? "0" : "-100%")});
   }
@@ -136,7 +140,7 @@ const Footer = styled.div`
   margin-top: auto;
 `;
 
-const ResetButton = styled.button`
+const FooterBtn = styled.button`
   width: 100%;
   padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
   font-family: ${({ theme }) => theme.font.sans};
@@ -161,6 +165,32 @@ const ResetButton = styled.button`
     outline: 2px solid ${({ theme }) => theme.colors.accent};
     outline-offset: 2px;
   }
+`;
+
+const UserBlock = styled.div`
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
+  margin-bottom: ${({ theme }) => theme.spacing.xs};
+  overflow: hidden;
+`;
+
+const UserName = styled.div`
+  font-family: ${({ theme }) => theme.font.sans};
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.text};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+`;
+
+const UserEmail = styled.div`
+  font-family: ${({ theme }) => theme.font.sans};
+  font-size: 0.7rem;
+  color: ${({ theme }) => theme.colors.textMuted};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 const Backdrop = styled.div<{ $visible: boolean }>`
@@ -245,7 +275,7 @@ const MenuBar = styled.span`
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { resetApp } = useApp();
+  const { user, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
@@ -262,16 +292,6 @@ export function Sidebar() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [mobileOpen, closeMobile]);
-
-  const handleReset = () => {
-    if (
-      typeof window !== "undefined" &&
-      window.confirm("Reset GameFit? This clears your library, history, and setup.")
-    ) {
-      resetApp();
-      closeMobile();
-    }
-  };
 
   return (
     <>
@@ -303,9 +323,15 @@ export function Sidebar() {
           ))}
         </Nav>
         <Footer>
-          <ResetButton type="button" onClick={handleReset}>
-            Reset App
-          </ResetButton>
+          {user && (
+            <UserBlock>
+              <UserName>{user.user_metadata?.full_name || user.email?.split("@")[0]}</UserName>
+              <UserEmail>{user.email}</UserEmail>
+            </UserBlock>
+          )}
+          <FooterBtn type="button" onClick={() => { signOut(); closeMobile(); }}>
+            Log Out
+          </FooterBtn>
         </Footer>
       </SidebarRoot>
     </>

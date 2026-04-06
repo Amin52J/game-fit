@@ -4,11 +4,14 @@ import { useMutation } from "@tanstack/react-query";
 import { AIClient } from "@/entities/ai-provider/api/client";
 import { useApp } from "@/app/providers/AppProvider";
 import type { AnalysisResult } from "@/shared/types";
+import { sessionCache } from "./session-cache";
 
 export function useAnalysis() {
   const { state, addAnalysis } = useApp();
-  const [streamedText, setStreamedText] = useState("");
+  const cached = sessionCache.get();
+  const [streamedText, setStreamedText] = useState(cached.streamedText);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [cachedResult, setCachedResult] = useState<AnalysisResult | null>(cached.result);
   const abortRef = useRef<AbortController | null>(null);
 
   const mutation = useMutation({
@@ -20,6 +23,7 @@ export function useAnalysis() {
 
       const client = new AIClient(state.aiProvider);
       setStreamedText("");
+      sessionCache.set({ streamedText: "" });
       setIsStreaming(true);
 
       const response = await client.analyze(
@@ -27,7 +31,13 @@ export function useAnalysis() {
         price,
         state.instructions,
         state.games,
-        (chunk) => setStreamedText((prev) => prev + chunk),
+        (chunk) => {
+          setStreamedText((prev) => {
+            const next = prev + chunk;
+            sessionCache.set({ streamedText: next });
+            return next;
+          });
+        },
         abortController.signal,
       );
 
@@ -43,6 +53,8 @@ export function useAnalysis() {
       };
 
       addAnalysis(result);
+      setCachedResult(result);
+      sessionCache.set({ result, streamedText: response });
       return result;
     },
     onError: () => {
@@ -60,17 +72,21 @@ export function useAnalysis() {
   const reset = useCallback(() => {
     setStreamedText("");
     setIsStreaming(false);
+    setCachedResult(null);
     abortRef.current?.abort();
     abortRef.current = null;
     mutation.reset();
+    sessionCache.clear();
   }, [mutation]);
+
+  const result = mutation.data ?? cachedResult;
 
   return {
     analyze: mutation.mutate,
     isLoading: mutation.isPending,
     isStreaming,
     streamedText,
-    result: mutation.data,
+    result,
     error: mutation.error,
     reset,
     stop,

@@ -2,7 +2,9 @@
 
 import type { ReactNode } from "react";
 import styled from "styled-components";
+import { useAuth } from "@/app/providers/AuthProvider";
 import { useApp } from "@/app/providers/AppProvider";
+import { AuthPage } from "@/features/auth";
 import { Sidebar } from "@/widgets/sidebar";
 
 const ShellRoot = styled.div`
@@ -42,8 +44,17 @@ interface AppShellProps {
 }
 
 export function AppShell({ children }: AppShellProps) {
+  const { user, loading: authLoading } = useAuth();
   const { state, hydrated } = useApp();
   const setupDone = state.isSetupComplete;
+
+  if (authLoading) {
+    return <ShellRoot />;
+  }
+
+  if (!user) {
+    return <AuthPage />;
+  }
 
   if (!hydrated) {
     return <ShellRoot />;

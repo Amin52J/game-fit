@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import StyledComponentsRegistry from "@/app/providers/StyledComponentsRegistry";
 import QueryProvider from "@/app/providers/QueryProvider";
+import { AuthProvider } from "@/app/providers/AuthProvider";
 import { AppProvider } from "@/app/providers/AppProvider";
 import { AppShell } from "@/widgets/app-shell";
 
@@ -25,9 +26,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <StyledComponentsRegistry>
           <QueryProvider>
-            <AppProvider>
-              <AppShell>{children}</AppShell>
-            </AppProvider>
+            <AuthProvider>
+              <AppProvider>
+                <AppShell>{children}</AppShell>
+              </AppProvider>
+            </AuthProvider>
           </QueryProvider>
         </StyledComponentsRegistry>
       </body>

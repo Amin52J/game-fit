@@ -3,6 +3,7 @@
 import React, { useCallback, useState } from "react";
 import styled from "styled-components";
 import { useApp } from "@/app/providers/AppProvider";
+import { sessionCache } from "@/features/analyze-game/model/session-cache";
 import { Button } from "@/shared/ui/Button";
 
 const FormRoot = styled.form`
@@ -152,8 +153,9 @@ function currencyPrefixFromSettings(currencyCode: string | undefined): string {
 
 export function AnalyzeForm({ onSubmit, isLoading }: AnalyzeFormProps) {
   const { state, hydrated } = useApp();
-  const [gameName, setGameName] = useState("");
-  const [priceRaw, setPriceRaw] = useState("");
+  const cached = sessionCache.get();
+  const [gameName, setGameName] = useState(cached.gameName);
+  const [priceRaw, setPriceRaw] = useState(cached.priceRaw);
   const [touched, setTouched] = useState(false);
 
   const hasProvider = Boolean(state.aiProvider);
@@ -199,7 +201,7 @@ export function AnalyzeForm({ onSubmit, isLoading }: AnalyzeFormProps) {
           autoFocus
           placeholder="e.g. Hollow Knight"
           value={gameName}
-          onChange={(e) => setGameName(e.target.value)}
+          onChange={(e) => { setGameName(e.target.value); sessionCache.set({ gameName: e.target.value }); }}
           disabled={isLoading || showProviderError}
           $invalid={nameInvalid}
           aria-invalid={nameInvalid || undefined}
@@ -220,7 +222,7 @@ export function AnalyzeForm({ onSubmit, isLoading }: AnalyzeFormProps) {
             step="0.01"
             placeholder="0.00"
             value={priceRaw}
-            onChange={(e) => setPriceRaw(e.target.value)}
+            onChange={(e) => { setPriceRaw(e.target.value); sessionCache.set({ priceRaw: e.target.value }); }}
             disabled={isLoading || showProviderError}
             aria-invalid={priceInvalid || undefined}
           />

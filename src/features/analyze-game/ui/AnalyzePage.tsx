@@ -3,6 +3,7 @@
 import React, { useCallback, useState } from "react";
 import styled from "styled-components";
 import { useAnalysis } from "@/features/analyze-game/model/useAnalysis";
+import { sessionCache } from "@/features/analyze-game/model/session-cache";
 import { AnalyzeForm } from "./AnalyzeForm";
 import { ResultCard } from "./ResultCard";
 import { Button } from "@/shared/ui/Button";
@@ -41,11 +42,15 @@ function errorMessage(err: unknown): string {
 export function AnalyzePage() {
   const { analyze, isLoading, isStreaming, streamedText, result, error, reset, stop } =
     useAnalysis();
-  const [session, setSession] = useState<{ gameName: string; price: number } | null>(null);
+  const cached = sessionCache.get();
+  const [session, setSession] = useState<{ gameName: string; price: number } | null>(
+    cached.result ? { gameName: cached.result.gameName, price: cached.result.price } : null,
+  );
 
   const handleSubmit = useCallback(
     (gameName: string, price: number) => {
       setSession({ gameName, price });
+      sessionCache.set({ gameName, priceRaw: String(price) });
       analyze({ gameName, price });
     },
     [analyze],

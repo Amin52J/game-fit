@@ -4,7 +4,6 @@ import styled from "styled-components";
 import { useApp } from "@/app/providers/AppProvider";
 import { generateInstructions } from "@/features/setup-wizard/lib/prompt-generator";
 import { StepPreferences, defaultSetupAnswers } from "@/features/setup-wizard/ui/SetupWizard";
-import { exportData, importData, clearData } from "@/shared/lib/storage";
 import type { AIProviderConfig, AIProviderType, SetupAnswers } from "@/shared/types";
 import { DEFAULT_MODELS } from "@/shared/types";
 import { Icon } from "@/shared/ui";
@@ -159,12 +158,6 @@ const BtnRow = styled.div`
   gap: ${({ theme }) => theme.spacing.sm};
   flex-wrap: wrap;
   margin-top: ${({ theme }) => theme.spacing.md};
-`;
-
-const Divider = styled.hr`
-  border: none;
-  border-top: 1px solid ${({ theme }) => theme.colors.border};
-  margin: ${({ theme }) => theme.spacing.lg} 0;
 `;
 
 const ToggleRow = styled.label`
@@ -374,45 +367,9 @@ export function SettingsPage() {
     showToast("Instructions regenerated from your preferences");
   };
 
-  const handleExport = () => {
-    const data = exportData();
-    const blob = new Blob([data], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "gamefit-backup.json";
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast("Data exported");
-  };
-
-  const handleImport = () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".json";
-    input.onchange = () => {
-      const file = input.files?.[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          importData(reader.result as string);
-          showToast("Data imported — reload the page to see changes");
-          setTimeout(() => window.location.reload(), 1500);
-        } catch (e) {
-          showToast("Invalid backup file", "error");
-        }
-      };
-      reader.readAsText(file);
-    };
-    input.click();
-  };
-
   const handleReset = () => {
     if (confirm("This will delete ALL your data (library, settings, history). Are you sure?")) {
-      clearData();
       resetApp();
-      window.location.reload();
     }
   };
 
@@ -655,22 +612,8 @@ export function SettingsPage() {
       </Section>
 
       <Section>
-        <SectionTitle>Data Management</SectionTitle>
-        <SectionDesc>Export, import, or reset your GameFit data.</SectionDesc>
-
-        <BtnRow>
-          <Btn $variant="secondary" onClick={handleExport}>
-            Export Backup
-          </Btn>
-          <Btn $variant="secondary" onClick={handleImport}>
-            Import Backup
-          </Btn>
-        </BtnRow>
-
-        <Divider />
-
         <SectionTitle style={{ color: "#ef4444" }}>Danger Zone</SectionTitle>
-        <SectionDesc>Permanently delete all data and start over.</SectionDesc>
+        <SectionDesc>Permanently delete all your data (library, history, preferences) and start over.</SectionDesc>
         <BtnRow>
           <Btn $variant="danger" onClick={handleReset}>
             Reset Everything

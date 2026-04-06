@@ -8,7 +8,8 @@ import type {
   AnalysisResult,
 } from "@/shared/types";
 import { INITIAL_STATE } from "@/shared/types";
-import { loadState, saveState } from "@/shared/lib/storage";
+import { useAuth } from "./AuthProvider";
+import * as db from "@/shared/api/db";
 
 type Action =
   | { type: "INIT"; payload: AppState }
@@ -85,67 +86,85 @@ interface AppContextValue {
 const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    const saved = loadState();
-    dispatch({ type: "INIT", payload: saved });
-    setHydrated(true);
-  }, []);
-
-  useEffect(() => {
-    if (state !== INITIAL_STATE) {
-      saveState(state);
+    if (!user) {
+      dispatch({ type: "INIT", payload: INITIAL_STATE });
+      setHydrated(false);
+      return;
     }
-  }, [state]);
+    let cancelled = false;
+    setHydrated(false);
+    db.loadUserState().then((loaded) => {
+      if (!cancelled) {
+        dispatch({ type: "INIT", payload: loaded });
+        setHydrated(true);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [user]);
 
   const setAIProvider = useCallback((config: AIProviderConfig) => {
     dispatch({ type: "SET_AI_PROVIDER", payload: config });
+    db.saveAIProvider(config);
   }, []);
 
   const setGames = useCallback((games: Game[]) => {
     dispatch({ type: "SET_GAMES", payload: games });
+    db.saveAllGames(games);
   }, []);
 
   const addGame = useCallback((game: Game) => {
     dispatch({ type: "ADD_GAME", payload: game });
+    db.insertGame(game);
   }, []);
 
   const updateGame = useCallback((game: Game) => {
     dispatch({ type: "UPDATE_GAME", payload: game });
+    db.updateGame(game);
   }, []);
 
   const deleteGame = useCallback((id: string) => {
     dispatch({ type: "DELETE_GAME", payload: id });
+    db.deleteGame(id);
   }, []);
 
   const setInstructions = useCallback((instructions: string) => {
     dispatch({ type: "SET_INSTRUCTIONS", payload: instructions });
+    db.saveInstructions(instructions);
   }, []);
 
   const setSetupAnswers = useCallback((answers: SetupAnswers) => {
     dispatch({ type: "SET_SETUP_ANSWERS", payload: answers });
+    db.saveSetupAnswers(answers);
   }, []);
 
   const completeSetup = useCallback(() => {
     dispatch({ type: "COMPLETE_SETUP" });
+    db.saveSetupComplete(true);
   }, []);
 
   const addAnalysis = useCallback((result: AnalysisResult) => {
     dispatch({ type: "ADD_ANALYSIS", payload: result });
+    db.insertAnalysis(result);
   }, []);
 
   const deleteAnalysis = useCallback((id: string) => {
     dispatch({ type: "DELETE_ANALYSIS", payload: id });
+    db.deleteAnalysis(id);
   }, []);
 
   const clearHistory = useCallback(() => {
     dispatch({ type: "CLEAR_HISTORY" });
+    db.clearHistory();
   }, []);
 
   const resetApp = useCallback(() => {
     dispatch({ type: "RESET" });
+    db.resetUserData();
   }, []);
 
   return (
