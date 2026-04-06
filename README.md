@@ -62,3 +62,7 @@ Or connect your GitHub repo to Cloudflare Pages with build command `npm run buil
 ## Data Privacy
 
 All data (API keys, game library, preferences) is stored locally in your browser's localStorage. Nothing is sent to any server except the AI provider you configure.
+
+## License
+
+This project is licensed under the [PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) license. You are free to use, study, and share the software for any noncommercial purpose. Commercial use (selling, reselling, offering as a paid service) is not permitted. See [LICENSE](./LICENSE) for full terms.
