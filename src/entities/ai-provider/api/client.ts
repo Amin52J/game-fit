@@ -17,12 +17,13 @@ export class AIClient {
     price: number,
     instructions: string,
     games: Game[],
+    currencySymbol: string,
     onStream?: (chunk: string) => void,
     signal?: AbortSignal,
   ): Promise<string> {
     const libraryData = this.formatLibrary(games);
     const systemPrompt = instructions;
-    const userMessage = `Here is my game library:\n\n${libraryData}\n\n---\n\nAnalyze this game for me: **${gameName}** at **€${price}**\n\nProvide the full analysis with Enjoyment Score, confidence, verified matches from my library, Red-Line Risk, target price, and all reasoning.`;
+    const userMessage = `Here is my game library:\n\n${libraryData}\n\n---\n\nAnalyze this game for me: **${gameName}** at **${currencySymbol}${price}**\n\nProvide the full analysis with Enjoyment Score, confidence, verified matches from my library, Red-Line Risk, target price, and all reasoning.`;
 
     if (onStream) {
       return this.streamRequest(systemPrompt, userMessage, onStream, signal);
@@ -385,7 +386,7 @@ export class AIClient {
 export async function testConnection(config: AIProviderConfig): Promise<boolean> {
   const client = new AIClient(config);
   try {
-    const result = await client.analyze("Test", 0, "Reply with exactly: OK", []);
+    const result = await client.analyze("Test", 0, "Reply with exactly: OK", [], "€");
     return result.length > 0;
   } catch {
     return false;

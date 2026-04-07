@@ -1729,7 +1729,7 @@ export function SetupWizard() {
         ...(aiConfig.type === "custom" ? { baseUrl: aiConfig.baseUrl?.trim() } : {}),
       };
       const client = new AIClient(cfg);
-      await client.analyze("Connection test", 0, "Reply with exactly: OK", []);
+      await client.analyze("Connection test", 0, "Reply with exactly: OK", [], "€");
       setTestStatus("ok");
     } catch {
       setTestStatus("err");

@@ -35,7 +35,10 @@ export function parseResponseSections(text: string): ParsedSection[] {
       sections.push({ heading: part.trim(), content: "", key: normalizeKey(part.trim()) });
     } else {
       const heading = part.slice(0, newlineIdx).trim();
-      const content = part.slice(newlineIdx + 1).trim();
+      const content = part
+        .slice(newlineIdx + 1)
+        .replace(/(\n|^)---+\s*$/g, "")
+        .trim();
       sections.push({ heading, content, key: normalizeKey(heading) });
     }
   }
@@ -81,6 +84,7 @@ export function extractMetrics(sections: ParsedSection[]): ExtractedMetrics {
         .split("\n")
         .map((l) => l.trim())
         .filter(Boolean)
+        .filter((l) => !/^-{3,}$/.test(l))
         .join(" ")
         .replace(/\*{1,2}/g, "")
         .trim();

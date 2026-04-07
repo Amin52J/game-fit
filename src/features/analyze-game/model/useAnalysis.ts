@@ -6,6 +6,20 @@ import { useApp } from "@/app/providers/AppProvider";
 import type { AnalysisResult } from "@/shared/types";
 import { sessionCache } from "./session-cache";
 
+function resolveCurrencySymbol(code: string | undefined): string {
+  if (!code) return "€";
+  try {
+    const parts = new Intl.NumberFormat("en", {
+      style: "currency",
+      currency: code,
+      currencyDisplay: "narrowSymbol",
+    }).formatToParts(0);
+    return parts.find((p) => p.type === "currency")?.value ?? code;
+  } catch {
+    return code;
+  }
+}
+
 export function useAnalysis() {
   const { state, addAnalysis } = useApp();
   const cached = sessionCache.get();
@@ -31,6 +45,7 @@ export function useAnalysis() {
         price,
         state.instructions,
         state.games,
+        resolveCurrencySymbol(state.setupAnswers?.currency),
         (chunk) => {
           setStreamedText((prev) => {
             const next = prev + chunk;

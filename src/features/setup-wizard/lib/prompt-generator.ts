@@ -15,7 +15,7 @@ export function generateInstructions(answers: SetupAnswers): string {
   sections.push(buildQualityRules(answers));
   sections.push(buildRedLineRisk(answers));
   sections.push(buildTargetPriceRules(answers));
-  sections.push(buildRefundGuard());
+  sections.push(buildRefundGuard(answers));
   sections.push(buildOutputFormat(answers));
 
   if (answers.additionalNotes.trim()) {
@@ -268,28 +268,71 @@ function buildTargetPriceRules(a: SetupAnswers): string {
 
   return `## Target Price (${region}, ${symbol})
 
-Internally compute a PriceScore P from the Enjoyment Score and Red-Line Risk, then map it to a target price.
+Compute the target price using the Enjoyment Score S, Red-Line Risk R, Score Confidence C, and the game's listed price (fullprice). Follow this exact procedure.
+
+**Step 1 — Internal PriceScore P:**
+Start P = S.
+If R = Medium → P = S − 5.
+If R = High → P = S − 15.
+If (C = Low or Very Low) and R ≠ None → P = P − 5.
+If P < 0, clamp to 0.
+
+**Step 2 — Determine pricing score Q:**
+Check whether the refund guard applies (see Refund Guard rules).
+- If the refund guard applies: Q = S (use the raw Enjoyment Score). The refund safety net already mitigates the financial risk, so the user should not have to wait for a deeper sale.
+- If the refund guard does NOT apply: Q = P.
+
+**Step 3 — Map Q to target price:**
+| Q range | Target price |
+|---------|-------------|
+| Q < 55 | Don't buy |
+| 55 ≤ Q < 65 | fullprice ÷ 3 − 5 |
+| 65 ≤ Q < 70 | fullprice ÷ 3 |
+| 70 ≤ Q < 75 | fullprice ÷ 3 + 5 |
+| 75 ≤ Q < 80 | max(fullprice ÷ 2, fullprice ÷ 3 + 5) |
+| 80 ≤ Q < 85 | fullprice ÷ 2 + 10 |
+| Q ≥ 85 | Full price |
+
+Round the result to the nearest whole number in ${symbol}.
+
+**Step 4 — Output the result as a single value.**
 
 CRITICAL RULE — The ## Target Price section body MUST contain ONLY a single short value and absolutely nothing else. No sentences, no reasoning, no explanation, no dashes, no separators. Always use the currency symbol "${symbol}" (not the code). Pick exactly one of these formats:
 
-${symbol}50
-${symbol}50–55
+${symbol}22
+${symbol}30
 Don't buy
 Full price
 
 Example of CORRECT output:
 ## Target Price
-${symbol}45–55
+${symbol}22
 
 Example of WRONG output (DO NOT do this):
 ## Target Price
-Wait for a sale around ${symbol}45–55. At ${symbol}80 this is overpriced...`;
+Wait for a sale around ${symbol}22. At ${symbol}80 this is overpriced...`;
 }
 
-function buildRefundGuard(): string {
+function buildRefundGuard(a: SetupAnswers): string {
+  const symbol = currencySymbol(a.currency || "EUR");
+
   return `## Refund Guard
 
-Always include this section. If the game carries a High red-line risk, or a Medium risk with low confidence, state "Recommended" and recommend buying on a platform with easy refunds (e.g. Steam's 2 h / 14 d policy) and what to test early. If no guard is needed, state "Not required" and briefly explain why (e.g. low risk, high confidence). Keep it concise.`;
+Use the refund guard only for real risk. Always include this section.
+
+**Apply a strict refund guard if:**
+- R = High, OR
+- R = Medium AND (P < 75 OR C ≤ Medium)
+
+**Do NOT apply a refund guard if:**
+- R = None, OR
+- R = Medium AND P ≥ 75 AND C ≥ High
+
+**When the refund guard applies:**
+State "Recommended" and prefer platforms with clear refund policies (e.g. Steam's 2h / 14d). If no refund-safe option exists, the acceptable buy price is ${symbol}10 lower than the target price. Recommend an early 60–90 minute test focused on movement, pacing, navigation and systems; if they feel wrong, treat the result as "refund / don't buy" regardless of score.
+
+**When the refund guard does NOT apply:**
+State "Not required" and briefly explain why (e.g. low risk, high confidence).`;
 }
 
 function getPersonalizedSections(a: SetupAnswers): string[] {
