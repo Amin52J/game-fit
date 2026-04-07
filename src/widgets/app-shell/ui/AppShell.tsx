@@ -5,9 +5,11 @@ import styled from "styled-components";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { useApp } from "@/app/providers/AppProvider";
 import { AuthPage } from "@/features/auth";
+import { LandingOrAuth } from "@/features/landing/ui/LandingPage";
 import { Sidebar } from "@/widgets/sidebar";
 import { KeepAlivePages } from "./KeepAlivePages";
 import { AuthLoadingSkeleton, HydrationSkeleton } from "./AppShellSkeleton";
+import { UpdateNotification } from "@/features/updater/ui/UpdateNotification";
 
 const ShellRoot = styled.div`
   display: flex;
@@ -56,7 +58,9 @@ export function AppShell({ children }: AppShellProps) {
   }
 
   if (!user) {
-    return <AuthPage />;
+    const isTauri =
+      typeof window !== "undefined" && "__TAURI__" in window;
+    return isTauri ? <AuthPage /> : <LandingOrAuth />;
   }
 
   if (!hydrated) {
@@ -69,6 +73,7 @@ export function AppShell({ children }: AppShellProps) {
       <Main $fullWidth={!setupDone}>
         {setupDone ? <KeepAlivePages /> : children}
       </Main>
+      <UpdateNotification />
     </ShellRoot>
   );
 }

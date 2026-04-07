@@ -42,6 +42,53 @@ npm run build
 npm run tauri:build
 ```
 
+## Building & Releasing the Windows App
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (v18+)
+- [Rust](https://rustup.rs/) (stable)
+- [Visual Studio Build Tools 2022](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022) with the **C++ desktop development** workload
+
+### Build
+
+```powershell
+npm install
+npm run tauri:build
+```
+
+The installers will be generated at:
+- `src-tauri/target/release/bundle/nsis/GameFit_<version>_x64-setup.exe` (recommended)
+- `src-tauri/target/release/bundle/msi/GameFit_<version>_x64_en-US.msi`
+
+### Releasing a New Version
+
+1. Bump the version in `package.json` — the pre-commit hook automatically syncs it to `src-tauri/tauri.conf.json` and `UpdateNotification.tsx`.
+
+2. Commit and push your changes.
+
+3. Deploy the web app:
+   ```bash
+   npm run cf:deploy
+   ```
+
+4. Build the Windows app:
+   ```powershell
+   npm run tauri:build
+   ```
+
+5. Create a GitHub release:
+   ```powershell
+   gh release create v<version> `
+     "src-tauri/target/release/bundle/nsis/GameFit_<version>_x64-setup.exe" `
+     "src-tauri/target/release/bundle/msi/GameFit_<version>_x64_en-US.msi" `
+     --title "v<version> - Release title" `
+     --notes "Release notes here" `
+     --latest
+   ```
+
+Existing desktop app users will see an update notification on next launch linking them to the new release.
+
 ## Deploy to Cloudflare Pages
 
 ```bash
