@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import styled, { keyframes } from "styled-components";
 
 const REPO = "Amin52J/game-fit";
-const CURRENT_VERSION = "1.3.0";
+const CURRENT_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "0.0.0";
 const RELEASES_URL = `https://github.com/${REPO}/releases/latest`;
 const API_URL = `https://api.github.com/repos/${REPO}/releases/latest`;
 const DISMISS_KEY = "gamefit_update_dismissed";

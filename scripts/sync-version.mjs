@@ -2,8 +2,9 @@
 
 /**
  * Reads the version from package.json and writes it into
- * src-tauri/tauri.conf.json and src/features/updater/ui/UpdateNotification.tsx.
+ * src-tauri/tauri.conf.json and src-tauri/Cargo.toml.
  * Intended to run as a pre-commit hook so only package.json needs to be bumped.
+ * UpdateNotification.tsx reads the version via NEXT_PUBLIC_APP_VERSION at build time.
  */
 
 import { readFileSync, writeFileSync } from "fs";
@@ -29,26 +30,6 @@ if (tauriUpdated !== tauriRaw) {
   writeFileSync(tauriPath, tauriUpdated, "utf-8");
   changed = true;
   console.log(`sync-version: tauri.conf.json → ${version}`);
-}
-
-// --- UpdateNotification.tsx ---
-const updaterPath = resolve(
-  root,
-  "src",
-  "features",
-  "updater",
-  "ui",
-  "UpdateNotification.tsx",
-);
-const updaterRaw = readFileSync(updaterPath, "utf-8");
-const updaterUpdated = updaterRaw.replace(
-  /(const CURRENT_VERSION\s*=\s*")([^"]+)(")/,
-  `$1${version}$3`,
-);
-if (updaterUpdated !== updaterRaw) {
-  writeFileSync(updaterPath, updaterUpdated, "utf-8");
-  changed = true;
-  console.log(`sync-version: UpdateNotification.tsx → ${version}`);
 }
 
 // --- Cargo.toml ---
