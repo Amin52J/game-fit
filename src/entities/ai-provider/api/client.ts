@@ -79,8 +79,8 @@ export class AIClient {
     };
 
     if (this.config.extendedThinking) {
-      body.thinking = { type: "enabled", budget_tokens: 10000 };
-      body.max_tokens = 16000;
+      body.thinking = { type: "adaptive" };
+      body.max_tokens = 32000;
     } else {
       body.max_tokens = 4096;
       body.temperature = 0.2;
@@ -174,13 +174,15 @@ export class AIClient {
     const body: Record<string, unknown> = {
       model: this.config.model,
       messages,
-      max_tokens: 4096,
-      temperature: 0.2,
       tools: [{ type: "web_search_preview" }],
     };
 
     if (this.config.extendedThinking) {
       body.reasoning_effort = "high";
+      body.max_completion_tokens = 32000;
+    } else {
+      body.max_tokens = 4096;
+      body.temperature = 0.2;
     }
 
     if (stream) body.stream = true;
@@ -279,11 +281,13 @@ export class AIClient {
     const body: Record<string, unknown> = {
       model: this.config.model,
       messages,
-      max_tokens: 4096,
-      temperature: 0.2,
     };
     if (this.config.extendedThinking) {
       body.reasoning_effort = "high";
+      body.max_tokens = 32000;
+    } else {
+      body.max_tokens = 4096;
+      body.temperature = 0.2;
     }
     const res = await fetch(this.googleBaseUrl, {
       method: "POST",
@@ -315,12 +319,14 @@ export class AIClient {
     const body: Record<string, unknown> = {
       model: this.config.model,
       messages,
-      max_tokens: 4096,
-      temperature: 0.2,
       stream: true,
     };
     if (this.config.extendedThinking) {
       body.reasoning_effort = "high";
+      body.max_tokens = 32000;
+    } else {
+      body.max_tokens = 4096;
+      body.temperature = 0.2;
     }
     const res = await fetch(this.googleBaseUrl, {
       method: "POST",
