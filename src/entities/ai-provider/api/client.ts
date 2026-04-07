@@ -138,6 +138,14 @@ export class AIClient {
     return this.readAnthropicSSE(res, onStream, onThinking);
   }
 
+  private extractLatestThought(text: string): string {
+    const lines = text.split("\n").filter((l) => l.trim().length > 0);
+    if (lines.length === 0) return "Thinking\u2026";
+    const last = lines[lines.length - 1].trim();
+    if (last.length > 150) return last.slice(0, 147) + "\u2026";
+    return last;
+  }
+
   private async readAnthropicSSE(
     res: Response,
     onStream: (chunk: string) => void,
@@ -147,6 +155,7 @@ export class AIClient {
     const decoder = new TextDecoder();
     let full = "";
     let buffer = "";
+    let thinkingAccum = "";
 
     while (true) {
       const { done, value } = await reader.read();
@@ -163,13 +172,17 @@ export class AIClient {
           if (evt.type === "content_block_start" && onThinking) {
             const block = evt.content_block;
             if (block?.type === "thinking") {
-              onThinking("Reasoning...");
+              thinkingAccum = "";
             } else if (block?.type === "server_tool_use" || block?.type === "tool_use") {
-              const label = block.name === "web_search" ? "Searching the web..." : `Running ${block.name}...`;
+              const label = block.name === "web_search" ? "Searching the web\u2026" : `Running ${block.name}\u2026`;
               onThinking(label);
             }
           }
           if (evt.type === "content_block_delta") {
+            if (evt.delta?.type === "thinking_delta" && evt.delta.thinking && onThinking) {
+              thinkingAccum += evt.delta.thinking;
+              onThinking(this.extractLatestThought(thinkingAccum));
+            }
             if (evt.delta?.text) {
               full += evt.delta.text;
               onStream(evt.delta.text);
@@ -262,6 +275,7 @@ export class AIClient {
     const decoder = new TextDecoder();
     let full = "";
     let buffer = "";
+    let thinkingAccum = "";
 
     while (true) {
       const { done, value } = await reader.read();
@@ -276,8 +290,10 @@ export class AIClient {
         try {
           const evt = JSON.parse(json);
           const delta = evt.choices?.[0]?.delta;
-          if ((delta?.reasoning_content || delta?.reasoning) && onThinking) {
-            onThinking("Reasoning...");
+          const reasoning = delta?.reasoning_content || delta?.reasoning;
+          if (reasoning && onThinking) {
+            thinkingAccum += reasoning;
+            onThinking(this.extractLatestThought(thinkingAccum));
           }
           if (delta?.content) {
             full += delta.content;
