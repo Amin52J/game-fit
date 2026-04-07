@@ -4,7 +4,7 @@
  * Reads the version from package.json and writes it into
  * src-tauri/tauri.conf.json and src-tauri/Cargo.toml.
  * Intended to run as a pre-commit hook so only package.json needs to be bumped.
- * UpdateNotification.tsx reads the version via NEXT_PUBLIC_APP_VERSION at build time.
+ * UpdateNotification.tsx reads the version at runtime via Tauri's getVersion() API.
  */
 
 import { readFileSync, writeFileSync } from "fs";

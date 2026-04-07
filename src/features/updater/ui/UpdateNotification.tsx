@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import styled, { keyframes } from "styled-components";
 
 const REPO = "Amin52J/game-fit";
-const CURRENT_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "0.0.0";
 const RELEASES_URL = `https://github.com/${REPO}/releases/latest`;
 const API_URL = `https://api.github.com/repos/${REPO}/releases/latest`;
 const DISMISS_KEY = "gamefit_update_dismissed";
@@ -106,6 +105,7 @@ const Btn = styled.button<{ $primary?: boolean }>`
 
 export function UpdateNotification() {
   const [latestVersion, setLatestVersion] = useState<string | null>(null);
+  const [currentVersion, setCurrentVersion] = useState<string | null>(null);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
@@ -121,13 +121,18 @@ export function UpdateNotification() {
 
     const timer = setTimeout(async () => {
       try {
+        const { getVersion } = await import("@tauri-apps/api/app");
+        const appVersion = await getVersion();
+        if (cancelled) return;
+
         const res = await fetch(API_URL, {
           headers: { Accept: "application/vnd.github.v3+json" },
         });
         if (!res.ok || cancelled) return;
         const data = await res.json();
         const tag: string = data.tag_name ?? "";
-        if (compareVersions(tag, CURRENT_VERSION) > 0) {
+        if (compareVersions(tag, appVersion) > 0) {
+          setCurrentVersion(appVersion);
           setLatestVersion(tag.replace(/^v/, ""));
         }
       } catch {
@@ -141,7 +146,7 @@ export function UpdateNotification() {
     };
   }, []);
 
-  if (!latestVersion || dismissed) return null;
+  if (!latestVersion || !currentVersion || dismissed) return null;
 
   const handleDismiss = () => {
     sessionStorage.setItem(DISMISS_KEY, latestVersion);
@@ -159,7 +164,7 @@ export function UpdateNotification() {
       </Title>
       <Body>
         Version {latestVersion} is available. You are currently on{" "}
-        {CURRENT_VERSION}.
+        {currentVersion}.
       </Body>
       <Actions>
         <Btn onClick={handleDismiss}>Later</Btn>
