@@ -409,7 +409,7 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
       </Nav>
 
       <Hero>
-        <HeroBadge>AI-Powered Game Recommendations</HeroBadge>
+        <HeroBadge>Your Personal AI-Powered Game Reviewer</HeroBadge>
         <HeroTitle>Find out if a game is right for you before you buy</HeroTitle>
         <HeroSub>
           GameFit analyzes any game against your personal library and taste
