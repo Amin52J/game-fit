@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useMemo, useState } from "react";
-import styled, { css } from "styled-components";
+import styled, { css, keyframes } from "styled-components";
 import { useDropzone } from "react-dropzone";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/app/providers/AppProvider";
@@ -125,12 +125,21 @@ const Subtitle = styled.p`
   line-height: 1.5;
 `;
 
+const stepSlideIn = keyframes`
+  from { opacity: 0; transform: translateX(12px); }
+  to   { opacity: 1; transform: translateX(0); }
+`;
+
 const Card = styled.div`
   background: ${({ theme }) => theme.colors.surfaceElevated};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radius.xl};
   padding: ${({ theme }) => theme.spacing.xl};
   box-shadow: ${({ theme }) => theme.shadow.lg};
+`;
+
+const StepContent = styled.div`
+  animation: ${stepSlideIn} 250ms ease;
 `;
 
 const SectionTitle = styled.h2`
@@ -201,7 +210,7 @@ const TextInput = styled.input`
 `;
 
 const SelectInput = styled.select`
-  ${BaseField}
+  ${BaseField};
   cursor: pointer;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238888a8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
@@ -211,7 +220,7 @@ const SelectInput = styled.select`
 `;
 
 const TextAreaField = styled.textarea`
-  ${BaseField}
+  ${BaseField};
   min-height: 120px;
   resize: vertical;
   line-height: 1.5;
@@ -429,6 +438,7 @@ const StepLine = styled.div<{ $filled: boolean }>`
   background: ${({ theme, $filled }) => ($filled ? theme.colors.accent : theme.colors.border)};
   align-self: center;
   min-width: 8px;
+  transition: background ${({ theme }) => theme.transition.normal};
 `;
 
 const StepLabel = styled.span<{ $active: boolean }>`
@@ -504,6 +514,10 @@ const ProviderCard = styled.button<{ $selected: boolean }>`
       box-shadow: 0 0 0 3px ${theme.colors.accentMuted};
     `}
 
+  &:active {
+    transform: scale(0.97);
+  }
+
   &:focus-visible {
     outline: 2px solid ${({ theme }) => theme.colors.accent};
     outline-offset: 2px;
@@ -550,7 +564,7 @@ const ToggleThumb = styled.div<{ $on: boolean }>`
   height: 20px;
   border-radius: 50%;
   background: ${({ theme }) => theme.colors.text};
-  transition: left ${({ theme }) => theme.transition.fast};
+  transition: left 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
 `;
 
 const ToggleLabel = styled.div`
@@ -646,10 +660,17 @@ const OptionCard = styled.button<{ $selected: boolean }>`
   text-align: center;
   transition:
     border-color ${({ theme }) => theme.transition.fast},
-    background ${({ theme }) => theme.transition.fast};
+    background ${({ theme }) => theme.transition.fast},
+    transform ${({ theme }) => theme.transition.fast},
+    box-shadow ${({ theme }) => theme.transition.fast};
 
   &:hover {
     background: ${({ theme }) => theme.colors.surfaceHover};
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.97);
   }
 
   &:focus-visible {
@@ -925,7 +946,7 @@ const InstructionsHeader = styled.div`
 `;
 
 const InstructionsTextArea = styled.textarea<{ $readOnly?: boolean }>`
-  ${BaseField}
+  ${BaseField};
   min-height: 280px;
   font-family: ${({ theme }) => theme.font.mono};
   font-size: 0.8125rem;
@@ -1780,42 +1801,44 @@ export function SetupWizard() {
         <Card>
           <ProgressStepper currentStep={step} />
 
-          {step === 1 ? (
-            <>
-              <StepAiProvider
-                config={aiConfig}
-                setConfig={setAiConfig}
-                showKey={showKey}
-                setShowKey={setShowKey}
-                testStatus={testStatus}
-                testLoading={testLoading}
-                onTest={runTestConnection}
+          <StepContent key={step}>
+            {step === 1 ? (
+              <>
+                <StepAiProvider
+                  config={aiConfig}
+                  setConfig={setAiConfig}
+                  showKey={showKey}
+                  setShowKey={setShowKey}
+                  testStatus={testStatus}
+                  testLoading={testLoading}
+                  onTest={runTestConnection}
+                />
+                {step1Error ? <StatusPill style={{ marginTop: 16 }}>{step1Error}</StatusPill> : null}
+              </>
+            ) : null}
+            {step === 2 ? <StepPreferences answers={answers} setAnswers={setAnswers} /> : null}
+            {step === 3 ? (
+              <StepImportLibrary
+                importedGames={importedGames}
+                setImportedGames={setImportedGames}
+                pasteText={pasteText}
+                setPasteText={setPasteText}
+                parseError={parseError}
+                setParseError={setParseError}
               />
-              {step1Error ? <StatusPill style={{ marginTop: 16 }}>{step1Error}</StatusPill> : null}
-            </>
-          ) : null}
-          {step === 2 ? <StepPreferences answers={answers} setAnswers={setAnswers} /> : null}
-          {step === 3 ? (
-            <StepImportLibrary
-              importedGames={importedGames}
-              setImportedGames={setImportedGames}
-              pasteText={pasteText}
-              setPasteText={setPasteText}
-              parseError={parseError}
-              setParseError={setParseError}
-            />
-          ) : null}
-          {step === 4 ? (
-            <StepReview
-              aiConfig={aiConfig}
-              importedGames={importedGames}
-              answers={answers}
-              instructionsDraft={instructionsDraft}
-              setInstructionsDraft={setInstructionsDraft}
-              editingInstructions={editingInstructions}
-              setEditingInstructions={setEditingInstructions}
-            />
-          ) : null}
+            ) : null}
+            {step === 4 ? (
+              <StepReview
+                aiConfig={aiConfig}
+                importedGames={importedGames}
+                answers={answers}
+                instructionsDraft={instructionsDraft}
+                setInstructionsDraft={setInstructionsDraft}
+                editingInstructions={editingInstructions}
+                setEditingInstructions={setEditingInstructions}
+              />
+            ) : null}
+          </StepContent>
 
           <NavRow>
             <div>

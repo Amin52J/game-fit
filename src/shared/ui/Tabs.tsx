@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useCallback, useContext, useId, useMemo } from "react";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 
 type TabsContextValue = {
   value: string;
@@ -48,10 +48,17 @@ const TabButton = styled.button<{ $active: boolean }>`
   cursor: pointer;
   transition:
     color ${({ theme }) => theme.transition.fast},
-    border-color ${({ theme }) => theme.transition.fast};
+    border-color ${({ theme }) => theme.transition.fast},
+    background ${({ theme }) => theme.transition.fast};
 
   &:hover {
     color: ${({ theme }) => theme.colors.text};
+    background: ${({ theme }) => theme.colors.accentMuted};
+    border-radius: ${({ theme }) => theme.radius.sm} ${({ theme }) => theme.radius.sm} 0 0;
+  }
+
+  &:active {
+    transform: scale(0.97);
   }
 
   &:focus-visible {
@@ -70,11 +77,17 @@ const TabPanelsRoot = styled.div`
   min-height: 0;
 `;
 
+const panelFadeIn = keyframes`
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+`;
+
 const Panel = styled.div`
   font-family: ${({ theme }) => theme.font.sans};
   font-size: 0.875rem;
   line-height: 1.5;
   color: ${({ theme }) => theme.colors.text};
+  animation: ${panelFadeIn} 200ms ease;
 `;
 
 export interface TabsProps {

@@ -6,6 +6,8 @@ import { useAuth } from "@/app/providers/AuthProvider";
 import { useApp } from "@/app/providers/AppProvider";
 import { AuthPage } from "@/features/auth";
 import { Sidebar } from "@/widgets/sidebar";
+import { KeepAlivePages } from "./KeepAlivePages";
+import { AuthLoadingSkeleton, HydrationSkeleton } from "./AppShellSkeleton";
 
 const ShellRoot = styled.div`
   display: flex;
@@ -31,6 +33,7 @@ const Main = styled.main<{ $fullWidth: boolean }>`
   flex: 1;
   min-width: 0;
   overflow-y: auto;
+  scrollbar-gutter: stable;
   padding: ${({ theme }) => theme.spacing.lg};
 
   @media (max-width: 767px) {
@@ -49,7 +52,7 @@ export function AppShell({ children }: AppShellProps) {
   const setupDone = state.isSetupComplete;
 
   if (authLoading) {
-    return <ShellRoot />;
+    return <AuthLoadingSkeleton />;
   }
 
   if (!user) {
@@ -57,13 +60,15 @@ export function AppShell({ children }: AppShellProps) {
   }
 
   if (!hydrated) {
-    return <ShellRoot />;
+    return <HydrationSkeleton />;
   }
 
   return (
     <ShellRoot>
       {setupDone ? <Sidebar /> : null}
-      <Main $fullWidth={!setupDone}>{children}</Main>
+      <Main $fullWidth={!setupDone}>
+        {setupDone ? <KeepAlivePages /> : children}
+      </Main>
     </ShellRoot>
   );
 }

@@ -1,6 +1,5 @@
 "use client";
-import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import React, { useState, useMemo, useCallback } from "react";
 import styled from "styled-components";
 import { useApp } from "@/app/providers/AppProvider";
 import { parseAnyFormat, gamesToCSV } from "@/entities/game/lib/csv-parser";
@@ -63,9 +62,13 @@ const Btn = styled.button<{ $variant?: "primary" | "secondary" | "danger" }>`
   cursor: pointer;
   transition: all ${({ theme }) => theme.transition.fast};
 
-  &:hover {
+  &:hover:not(:disabled) {
     opacity: 0.85;
     transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0) scale(0.97);
   }
 `;
 
@@ -79,10 +82,13 @@ const SearchBar = styled.input`
   color: ${({ theme }) => theme.colors.text};
   font-size: 0.9rem;
   outline: none;
-  transition: border-color ${({ theme }) => theme.transition.fast};
+  transition:
+    border-color ${({ theme }) => theme.transition.fast},
+    box-shadow ${({ theme }) => theme.transition.fast};
 
   &:focus {
     border-color: ${({ theme }) => theme.colors.accent};
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.accentMuted};
   }
 
   &::placeholder {
@@ -197,6 +203,11 @@ const FilterChip = styled.button<{ $active: boolean }>`
   &:hover {
     border-color: ${({ theme }) => theme.colors.accent};
     color: ${({ theme }) => theme.colors.text};
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.95);
   }
 `;
 
@@ -269,10 +280,19 @@ const IconBtn = styled.button`
   cursor: pointer;
   padding: 4px;
   font-size: 1rem;
-  transition: color ${({ theme }) => theme.transition.fast};
+  border-radius: ${({ theme }) => theme.radius.sm};
+  transition:
+    color ${({ theme }) => theme.transition.fast},
+    background ${({ theme }) => theme.transition.fast},
+    transform ${({ theme }) => theme.transition.fast};
 
   &:hover {
     color: ${({ theme }) => theme.colors.text};
+    background: ${({ theme }) => theme.colors.surfaceHover};
+  }
+
+  &:active {
+    transform: scale(0.9);
   }
 `;
 
@@ -329,84 +349,40 @@ function matchesRanges(score: number | null, activeRanges: Set<string>): boolean
 
 export function GameLibrary() {
   const { state, setGames, updateGame, deleteGame } = useApp();
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
 
-  const search = searchParams.get("q") ?? "";
-  const page = Math.max(0, parseInt(searchParams.get("page") ?? "1", 10) - 1);
-  const sortField = (searchParams.get("sort") as SortField) || "score";
-  const sortDir = (searchParams.get("dir") as SortDir) || "desc";
-  const activeRanges = useMemo(() => {
-    const raw = searchParams.get("ranges");
-    return new Set(raw ? raw.split(",") : []);
-  }, [searchParams]);
+  const [inputValue, setInputValue] = useState("");
+  const [page, setPage] = useState(0);
+  const [sortField, setSortField] = useState<SortField>("score");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [activeRanges, setActiveRanges] = useState<Set<string>>(new Set());
 
-  const [inputValue, setInputValue] = useState(search);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    setInputValue(search);
-  }, [search]);
-
-  const updateParams = useCallback(
-    (updates: Record<string, string | null>) => {
-      const params = new URLSearchParams(searchParams.toString());
-      for (const [key, value] of Object.entries(updates)) {
-        if (value === null || value === "") {
-          params.delete(key);
-        } else {
-          params.set(key, value);
-        }
-      }
-      const qs = params.toString();
-      router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
-    },
-    [searchParams, router, pathname],
-  );
-
-  const setSearch = useCallback(
-    (q: string) => {
-      setInputValue(q);
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => {
-        updateParams({ q: q || null, page: null });
-      }, 300);
-    },
-    [updateParams],
-  );
-
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
+  const setSearch = useCallback((q: string) => {
+    setInputValue(q);
+    setPage(0);
   }, []);
-
-  const setPage = useCallback(
-    (p: number) => updateParams({ page: p > 0 ? String(p + 1) : null }),
-    [updateParams],
-  );
 
   const toggleSort = useCallback(
     (field: SortField) => {
       if (sortField === field) {
-        updateParams({ dir: sortDir === "asc" ? "desc" : "asc", page: null });
+        setSortDir((d) => (d === "asc" ? "desc" : "asc"));
       } else {
-        updateParams({ sort: field, dir: field === "score" ? "desc" : "asc", page: null });
+        setSortField(field);
+        setSortDir(field === "score" ? "desc" : "asc");
       }
+      setPage(0);
     },
-    [sortField, sortDir, updateParams],
+    [sortField],
   );
 
-  const toggleRange = useCallback(
-    (key: string) => {
-      const next = new Set(activeRanges);
+  const toggleRange = useCallback((key: string) => {
+    setActiveRanges((prev) => {
+      const next = new Set(prev);
       if (next.has(key)) next.delete(key);
       else next.add(key);
-      updateParams({ ranges: next.size > 0 ? [...next].join(",") : null, page: null });
-    },
-    [activeRanges, updateParams],
-  );
+      return next;
+    });
+    setPage(0);
+  }, []);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editScore, setEditScore] = useState("");
@@ -570,6 +546,11 @@ export function GameLibrary() {
           placeholder="Search games..."
           value={inputValue}
           onChange={(e) => setSearch(e.target.value)}
+          autoComplete="off"
+          data-1p-ignore
+          data-lpignore="true"
+          data-form-type="other"
+          name="library-search"
         />
         <FilterBar>
           <FilterLabel>Score:</FilterLabel>

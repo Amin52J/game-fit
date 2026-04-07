@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import styled from "styled-components";
 import { useApp } from "@/app/providers/AppProvider";
 import { sessionCache } from "@/features/analyze-game/model/session-cache";
@@ -153,10 +154,18 @@ function currencyPrefixFromSettings(currencyCode: string | undefined): string {
 
 export function AnalyzeForm({ onSubmit, isLoading }: AnalyzeFormProps) {
   const { state, hydrated } = useApp();
+  const pathname = usePathname();
+  const nameRef = useRef<HTMLInputElement>(null);
   const cached = sessionCache.get();
   const [gameName, setGameName] = useState(cached.gameName);
   const [priceRaw, setPriceRaw] = useState(cached.priceRaw);
   const [touched, setTouched] = useState(false);
+
+  useEffect(() => {
+    if (pathname === "/" || pathname === "/analyze") {
+      nameRef.current?.focus();
+    }
+  }, [pathname]);
 
   const hasProvider = Boolean(state.aiProvider);
   const showProviderError = hydrated && !hasProvider;
@@ -194,11 +203,11 @@ export function AnalyzeForm({ onSubmit, isLoading }: AnalyzeFormProps) {
       <FieldBlock>
         <Label htmlFor="analyze-game-name">Game name</Label>
         <GameNameField
+          ref={nameRef}
           id="analyze-game-name"
           name="gameName"
           type="text"
           autoComplete="off"
-          autoFocus
           placeholder="e.g. Hollow Knight"
           value={gameName}
           onChange={(e) => { setGameName(e.target.value); sessionCache.set({ gameName: e.target.value }); }}

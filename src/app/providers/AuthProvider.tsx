@@ -30,7 +30,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { data: { subscription } } = sb.auth.onAuthStateChange((_event, s) => {
       setSession(s);
-      setUser(s?.user ?? null);
+      setUser((prev) => {
+        const next = s?.user ?? null;
+        if (prev?.id === next?.id) return prev;
+        return next;
+      });
       setLoading(false);
     });
 

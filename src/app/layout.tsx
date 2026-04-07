@@ -3,6 +3,7 @@ import StyledComponentsRegistry from "@/app/providers/StyledComponentsRegistry";
 import QueryProvider from "@/app/providers/QueryProvider";
 import { AuthProvider } from "@/app/providers/AuthProvider";
 import { AppProvider } from "@/app/providers/AppProvider";
+import { NavigationProvider } from "@/app/providers/NavigationProvider";
 import { AppShell } from "@/widgets/app-shell";
 
 export const metadata: Metadata = {
@@ -28,7 +29,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <QueryProvider>
             <AuthProvider>
               <AppProvider>
-                <AppShell>{children}</AppShell>
+                <NavigationProvider>
+                  <AppShell>{children}</AppShell>
+                </NavigationProvider>
               </AppProvider>
             </AuthProvider>
           </QueryProvider>

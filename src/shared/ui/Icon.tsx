@@ -17,7 +17,9 @@ export type IconName =
   | "alert-triangle"
   | "info"
   | "sort-asc"
-  | "sort-desc";
+  | "sort-desc"
+  | "view-list"
+  | "view-detail";
 
 interface IconProps {
   name: IconName;
@@ -185,6 +187,26 @@ const paths: Record<IconName, React.ReactNode> = {
   "sort-desc": (
     <path
       d="m3 16 4 4 4-4M7 20V4"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="none"
+    />
+  ),
+  "view-list": (
+    <path
+      d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="none"
+    />
+  ),
+  "view-detail": (
+    <path
+      d="M3 3h18v8H3zM3 14h18v7H3z"
       stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"

@@ -8,6 +8,11 @@ export const GlobalStyle = createGlobalStyle`
     padding: 0;
   }
 
+  html {
+    scrollbar-gutter: stable;
+    scroll-behavior: smooth;
+  }
+
   html, body {
     height: 100%;
     font-family: ${({ theme }) => theme.font.sans};
@@ -39,10 +44,20 @@ export const GlobalStyle = createGlobalStyle`
   a {
     color: ${({ theme }) => theme.colors.accent};
     text-decoration: none;
+    transition: color ${({ theme }) => theme.transition.fast};
   }
 
   ::selection {
     background: ${({ theme }) => theme.colors.accentMuted};
     color: ${({ theme }) => theme.colors.text};
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 `;

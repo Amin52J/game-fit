@@ -123,11 +123,21 @@ const StyledButton = styled.button<{
     border-color ${({ theme }) => theme.transition.fast},
     color ${({ theme }) => theme.transition.fast},
     opacity ${({ theme }) => theme.transition.fast},
-    filter ${({ theme }) => theme.transition.fast};
+    filter ${({ theme }) => theme.transition.fast},
+    transform ${({ theme }) => theme.transition.fast},
+    box-shadow ${({ theme }) => theme.transition.fast};
 
   ${({ theme, $size }) => sizeStyles(theme, $size)}
   ${({ theme, $variant }) => variantStyles(theme, $variant)}
   width: ${({ $fullWidth }) => ($fullWidth ? "100%" : "auto")};
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0) scale(0.97);
+  }
 
   &:disabled {
     cursor: not-allowed;

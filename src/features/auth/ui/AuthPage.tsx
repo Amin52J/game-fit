@@ -9,6 +9,11 @@ const fadeIn = keyframes`
   to { opacity: 1; transform: translateY(0); }
 `;
 
+const fadeSwitch = keyframes`
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+`;
+
 const Page = styled.div`
   min-height: 100vh;
   display: flex;
@@ -73,12 +78,17 @@ const TabBtn = styled.button<{ $active: boolean }>`
   &:hover {
     background: ${({ theme, $active }) => ($active ? theme.colors.accentHover : theme.colors.surfaceHover)};
   }
+
+  &:active {
+    transform: scale(0.97);
+  }
 `;
 
 const Form = styled.form`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.md};
+  animation: ${fadeSwitch} 200ms ease;
 `;
 
 const Label = styled.label`
@@ -105,10 +115,13 @@ const Input = styled.input`
   font-size: 0.9rem;
   font-family: ${({ theme }) => theme.font.sans};
   outline: none;
-  transition: border-color ${({ theme }) => theme.transition.fast};
+  transition:
+    border-color ${({ theme }) => theme.transition.fast},
+    box-shadow ${({ theme }) => theme.transition.fast};
 
   &:focus {
     border-color: ${({ theme }) => theme.colors.accent};
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.accentMuted};
   }
 
   &::placeholder {
@@ -129,8 +142,13 @@ const SubmitBtn = styled.button`
   transition: all ${({ theme }) => theme.transition.fast};
   margin-top: ${({ theme }) => theme.spacing.xs};
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: ${({ theme }) => theme.colors.accentHover};
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
   }
 
   &:disabled {
@@ -180,9 +198,14 @@ const SocialBtn = styled.button`
   cursor: pointer;
   transition: all ${({ theme }) => theme.transition.fast};
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: ${({ theme }) => theme.colors.surfaceHover};
     border-color: ${({ theme }) => theme.colors.borderLight};
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0) scale(0.97);
   }
 
   &:disabled {

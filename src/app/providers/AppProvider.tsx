@@ -90,8 +90,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
   const [hydrated, setHydrated] = useState(false);
 
+  const userId = user?.id ?? null;
+
   useEffect(() => {
-    if (!user) {
+    if (!userId) {
       dispatch({ type: "INIT", payload: INITIAL_STATE });
       setHydrated(false);
       return;
@@ -105,7 +107,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
     });
     return () => { cancelled = true; };
-  }, [user]);
+  }, [userId]);
 
   const setAIProvider = useCallback((config: AIProviderConfig) => {
     dispatch({ type: "SET_AI_PROVIDER", payload: config });

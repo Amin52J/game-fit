@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { useApp } from "@/app/providers/AppProvider";
 import { generateInstructions } from "@/features/setup-wizard/lib/prompt-generator";
 import { StepPreferences, defaultSetupAnswers } from "@/features/setup-wizard/ui/SetupWizard";
@@ -150,6 +150,11 @@ const Btn = styled.button<{ $variant?: "primary" | "secondary" | "danger" | "gho
 
   &:hover {
     opacity: 0.85;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.97);
   }
 `;
 
@@ -187,7 +192,7 @@ const ToggleThumb = styled.div<{ $on: boolean }>`
   height: 20px;
   border-radius: 50%;
   background: ${({ theme }) => theme.colors.text};
-  transition: left ${({ theme }) => theme.transition.fast};
+  transition: left 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
 `;
 
 const ToggleLabel = styled.span`
@@ -281,14 +286,35 @@ const InstructionsPreview = styled.div`
   }
 `;
 
+const toastSlideIn = keyframes`
+  from { opacity: 0; transform: translateX(-50%) translateY(-12px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+`;
+
 const Toast = styled.div<{ $type: "success" | "error" }>`
-  padding: 10px 16px;
+  position: fixed;
+  top: ${({ theme }) => theme.spacing.lg};
+  left: calc(50% + 120px);
+  transform: translateX(-50%);
+  z-index: 900;
+  padding: 10px 24px;
   border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ theme, $type }) =>
-    $type === "success" ? theme.colors.successMuted : theme.colors.errorMuted};
+  background: ${({ $type }) =>
+    $type === "success" ? "rgba(34, 197, 94, 0.12)" : "rgba(239, 68, 68, 0.12)"};
+  border: 1px solid ${({ theme, $type }) =>
+    $type === "success" ? theme.colors.success : theme.colors.error};
   color: ${({ theme, $type }) => ($type === "success" ? theme.colors.success : theme.colors.error)};
   font-size: 0.85rem;
-  margin-bottom: ${({ theme }) => theme.spacing.md};
+  font-weight: 500;
+  box-shadow: ${({ theme }) => theme.shadow.md};
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: ${toastSlideIn} 250ms ease;
+  pointer-events: none;
+
+  @media (max-width: 767px) {
+    left: 50%;
+  }
 `;
 
 export function SettingsPage() {

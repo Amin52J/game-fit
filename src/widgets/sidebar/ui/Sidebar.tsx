@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import styled, { css } from "styled-components";
 import { useAuth } from "@/app/providers/AuthProvider";
+import { useNavigation } from "@/app/providers/NavigationProvider";
 import { Icon } from "@/shared/ui";
 import type { IconName } from "@/shared/ui";
 
@@ -20,6 +20,7 @@ const NAV_ITEMS: readonly { href: string; label: string; icon: IconName }[] = [
 
 function isNavActive(pathname: string, href: string): boolean {
   if (pathname === href) return true;
+  if (href === "/analyze" && pathname === "/") return true;
   return pathname.startsWith(`${href}/`);
 }
 
@@ -116,11 +117,17 @@ const NavLink = styled(Link)<{ $active: boolean }>`
     color ${({ theme }) => theme.transition.fast},
     background ${({ theme }) => theme.transition.fast},
     border-color ${({ theme }) => theme.transition.fast},
-    box-shadow ${({ theme }) => theme.transition.fast};
+    box-shadow ${({ theme }) => theme.transition.fast},
+    transform ${({ theme }) => theme.transition.fast};
 
   &:hover {
     color: ${({ theme }) => theme.colors.text};
     background: ${({ theme }) => theme.colors.surfaceHover};
+    transform: translateX(2px);
+  }
+
+  &:active {
+    transform: translateX(2px) scale(0.98);
   }
 
   ${({ $active }) => $active && navLinkActive}
@@ -154,11 +161,16 @@ const FooterBtn = styled.button`
   text-align: left;
   transition:
     color ${({ theme }) => theme.transition.fast},
-    background ${({ theme }) => theme.transition.fast};
+    background ${({ theme }) => theme.transition.fast},
+    transform ${({ theme }) => theme.transition.fast};
 
   &:hover {
     color: ${({ theme }) => theme.colors.textSecondary};
     background: ${({ theme }) => theme.colors.surfaceHover};
+  }
+
+  &:active {
+    transform: scale(0.98);
   }
 
   &:focus-visible {
@@ -274,7 +286,7 @@ const MenuBar = styled.span`
 `;
 
 export function Sidebar() {
-  const pathname = usePathname();
+  const { activePath, setIntent } = useNavigation();
   const { user, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -282,7 +294,7 @@ export function Sidebar() {
 
   useEffect(() => {
     closeMobile();
-  }, [pathname, closeMobile]);
+  }, [activePath, closeMobile]);
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -314,8 +326,11 @@ export function Sidebar() {
             <NavLink
               key={href}
               href={href}
-              $active={isNavActive(pathname, href)}
-              onClick={closeMobile}
+              $active={isNavActive(activePath, href)}
+              onClick={() => {
+                setIntent(href);
+                closeMobile();
+              }}
             >
               <NavIcon><Icon name={icon} size={18} /></NavIcon>
               {label}
