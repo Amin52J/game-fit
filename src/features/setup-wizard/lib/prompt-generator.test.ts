@@ -12,6 +12,7 @@ function makeAnswers(overrides: Partial<SetupAnswers> = {}): SetupAnswers {
     puzzleImportance: 2,
     strategyImportance: 2,
     dealbreakers: ["grind", "always_online", "bad_controls"],
+    customDealbreakers: [],
     voiceActingPreference: "preferred",
     difficultyPreference: "moderate",
     idealLength: "medium",
@@ -89,10 +90,10 @@ describe("prompt-generator", () => {
     expect(result).toContain("Wayfinding");
   });
 
-  it("includes pricing section with correct currency", () => {
+  it("does not include target price section (pricing is client-side)", () => {
     const result = generateInstructions(makeAnswers({ currency: "USD", region: "US" }));
-    expect(result).toContain("USD");
-    expect(result).toContain("US");
+    expect(result).not.toContain("## Target Price");
+    expect(result).toContain("pricing is computed separately");
   });
 
   it("includes additional notes when provided", () => {

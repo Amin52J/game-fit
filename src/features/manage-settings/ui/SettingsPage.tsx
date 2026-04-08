@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import styled, { keyframes } from "styled-components";
 import { useApp } from "@/app/providers/AppProvider";
 import { generateInstructions } from "@/features/setup-wizard/lib/prompt-generator";
@@ -339,12 +339,12 @@ export function SettingsPage() {
   const [tasteAnswers, setTasteAnswers] = useState<SetupAnswers>(
     () => ({ ...defaultSetupAnswers(), ...state.setupAnswers }),
   );
+  const [prevTasteSnapshot, setPrevTasteSnapshot] = useState<SetupAnswers | null>(null);
 
-  useEffect(() => {
-    if (!isEditingTaste) return;
-    const newInst = generateInstructions(tasteAnswers);
-    setEditableInstructions(newInst);
-  }, [tasteAnswers, isEditingTaste]);
+  if (isEditingTaste && tasteAnswers !== prevTasteSnapshot) {
+    setPrevTasteSnapshot(tasteAnswers);
+    setEditableInstructions(generateInstructions(tasteAnswers));
+  }
 
   const showToast = (msg: string, type: "success" | "error" = "success") => {
     setToast({ msg, type });

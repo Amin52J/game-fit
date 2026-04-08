@@ -289,12 +289,14 @@ export function Sidebar() {
   const { activePath, setIntent } = useNavigation();
   const { user, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [lastActivePath, setLastActivePath] = useState(activePath);
+
+  if (activePath !== lastActivePath) {
+    setLastActivePath(activePath);
+    setMobileOpen(false);
+  }
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
-
-  useEffect(() => {
-    closeMobile();
-  }, [activePath, closeMobile]);
 
   useEffect(() => {
     if (!mobileOpen) return;

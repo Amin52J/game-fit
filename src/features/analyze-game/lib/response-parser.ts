@@ -11,6 +11,7 @@ export interface ExtractedMetrics {
   confidence: string | null;
   riskLevel: RiskLevel;
   targetPrice: string | null;
+  refundRecommended: boolean;
 }
 
 function normalizeKey(heading: string): string {
@@ -52,6 +53,7 @@ export function extractMetrics(sections: ParsedSection[]): ExtractedMetrics {
     confidence: null,
     riskLevel: "unknown",
     targetPrice: null,
+    refundRecommended: false,
   };
 
   for (const s of sections) {
@@ -79,6 +81,11 @@ export function extractMetrics(sections: ParsedSection[]): ExtractedMetrics {
       else if (/\bNone\b/.test(s.content)) metrics.riskLevel = "none";
     }
 
+    if (s.key.includes("refund-guard")) {
+      metrics.refundRecommended = /\brecommended\b/i.test(s.content)
+        && !/\bnot required\b/i.test(s.content);
+    }
+
     if (s.key.includes("target-price")) {
       const raw = s.content
         .split("\n")
@@ -93,6 +100,42 @@ export function extractMetrics(sections: ParsedSection[]): ExtractedMetrics {
   }
 
   return metrics;
+}
+
+/**
+ * Deterministic client-side target price computation.
+ * Uses a continuous linear formula — no bands, no cliffs.
+ */
+export function computeTargetPrice(
+  score: number,
+  riskLevel: RiskLevel,
+  confidence: string | null,
+  fullPrice: number,
+  refundRecommended: boolean,
+): { value: number | null; label: string } {
+  let A = score;
+  if (riskLevel === "medium") A -= 5;
+  else if (riskLevel === "high") A -= 10;
+
+  const conf = confidence?.toLowerCase() ?? "";
+  if ((conf === "low" || conf === "very low") && riskLevel !== "none") A -= 5;
+
+  if (refundRecommended && A < score) {
+    A += (score - A) * 0.3;
+  }
+
+  A = Math.max(0, A);
+
+  if (A < 45) return { value: null, label: "Don't buy" };
+  if (A >= 85) return { value: fullPrice, label: formatPriceValue(fullPrice) };
+
+  const fraction = (A - 45) / 40;
+  const price = Math.round(fullPrice * (0.15 + 0.85 * fraction));
+  return { value: price, label: formatPriceValue(price) };
+}
+
+function formatPriceValue(price: number): string {
+  return `${price}`;
 }
 
 const KNOWN_SECTION_KEYS = new Set([
@@ -128,4 +171,19 @@ export function isKnownSection(key: string): boolean {
     if (key.includes(k)) return true;
   }
   return false;
+}
+
+const INTERNAL_PATTERNS = [
+  "scoring-procedure",
+  "internal-calculation",
+  "methodology",
+  "calculation",
+  "step-by-step",
+  "anchor-games",
+  "penalty-checklist",
+  "base-score",
+];
+
+export function isInternalSection(key: string): boolean {
+  return INTERNAL_PATTERNS.some((p) => key.includes(p));
 }

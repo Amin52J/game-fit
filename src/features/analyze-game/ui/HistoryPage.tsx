@@ -14,6 +14,8 @@ import {
 } from "@/features/analyze-game/lib/response-parser";
 import { Button } from "@/shared/ui/Button";
 import { Icon } from "@/shared/ui";
+import { useNavigation } from "@/app/providers/NavigationProvider";
+import { sessionCache } from "@/features/analyze-game/model/session-cache";
 
 /* ——— Constants ——— */
 
@@ -355,6 +357,37 @@ const DeleteBtn = styled.button`
   }
 `;
 
+const CardActions = styled.div`
+  display: flex;
+  gap: ${({ theme }) => theme.spacing.xs};
+  flex-shrink: 0;
+`;
+
+const ReanalyzeBtn = styled.button`
+  flex-shrink: 0;
+  padding: ${({ theme }) => `${theme.spacing.xs} ${theme.spacing.sm}`};
+  font-family: ${({ theme }) => theme.font.sans};
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.accent};
+  background: ${({ theme }) => theme.colors.accentMuted};
+  border: 1px solid ${({ theme }) => theme.colors.accent};
+  border-radius: ${({ theme }) => theme.radius.sm};
+  cursor: pointer;
+  transition:
+    background ${({ theme }) => theme.transition.fast},
+    color ${({ theme }) => theme.transition.fast};
+
+  &:hover {
+    filter: brightness(1.08);
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.accent};
+    outline-offset: 2px;
+  }
+`;
+
 const PreviewContent = styled.div`
   padding: ${({ theme }) => `${theme.spacing.md} ${theme.spacing.lg}`};
 `;
@@ -443,6 +476,12 @@ const ListExpandedSection = styled.div`
   padding: ${({ theme }) => `${theme.spacing.md} ${theme.spacing.lg} ${theme.spacing.lg}`};
   border-top: 1px solid ${({ theme }) => theme.colors.border};
   background: ${({ theme }) => theme.colors.bg};
+`;
+
+const ListExpandedToolbar = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: ${({ theme }) => theme.spacing.sm};
 `;
 
 
@@ -601,12 +640,12 @@ function matchesRiskFilter(risk: string, filters: Set<string>): boolean {
 
 /* ——— Sub-components ——— */
 
-function ExpandedContent({ response }: { response: string }) {
+function ExpandedContent({ response, fullPrice, currencyCode }: { response: string; fullPrice?: number; currencyCode?: string }) {
   const sections = useMemo(() => parseResponseSections(response), [response]);
   const hasStructure = sections.filter((s) => s.key !== "preamble").length >= 3;
 
   if (hasStructure) {
-    return <ThemedStructuredResult sections={sections} isStreaming={false} />;
+    return <ThemedStructuredResult sections={sections} isStreaming={false} fullPrice={fullPrice} currencyCode={currencyCode} />;
   }
   return <AnalysisMarkdown source={response} />;
 }
@@ -615,11 +654,12 @@ function ExpandedContent({ response }: { response: string }) {
 
 export function HistoryPage() {
   const { state, deleteAnalysis, clearHistory } = useApp();
+  const { setIntent } = useNavigation();
   const pathname = usePathname();
   const isActive = pathname === "/history" || pathname.startsWith("/history/");
 
   /* — State from URL on mount — */
-  const initial = useMemo(readInitialParams, []);
+  const initial = useMemo(() => readInitialParams(), []);
 
   const [inputValue, setInputValue] = useState(initial.q);
   const [debouncedSearch, setDebouncedSearch] = useState(initial.q);
@@ -643,9 +683,12 @@ export function HistoryPage() {
   const scoreKey = useMemo(() => [...scoreFilters].sort().join(","), [scoreFilters]);
   const riskKey = useMemo(() => [...riskFilters].sort().join(","), [riskFilters]);
 
-  useEffect(() => {
+  const filterKey = `${debouncedSearch}\0${scoreKey}\0${riskKey}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  if (filterKey !== prevFilterKey) {
+    setPrevFilterKey(filterKey);
     setVisibleCount(PAGE_SIZE);
-  }, [debouncedSearch, scoreKey, riskKey]);
+  }
 
   /* — Sync state to URL when active — */
   useEffect(() => {
@@ -769,6 +812,22 @@ export function HistoryPage() {
       setConfirmClearAll(true);
     }
   }, [clearHistory, confirmClearAll]);
+
+  const handleReanalyze = useCallback(
+    (e: React.MouseEvent, gameName: string, price: number) => {
+      e.stopPropagation();
+      sessionCache.set({
+        gameName,
+        priceRaw: String(price),
+        result: null,
+        streamedText: "",
+        prefillId: Date.now(),
+      });
+      setIntent("/analyze");
+      window.history.pushState(null, "", "/analyze");
+    },
+    [setIntent],
+  );
 
   const currency = state.setupAnswers?.currency;
   const totalCount = state.analysisHistory.length;
@@ -912,20 +971,29 @@ export function HistoryPage() {
                         </CardMeta>
                       </CardTitleBlock>
                     </CardMain>
-                    <DeleteBtn
-                      type="button"
-                      onClick={(e) => handleDelete(e, item.id)}
-                      onBlur={() => setConfirmDeleteId(null)}
-                      aria-label={`Delete analysis for ${item.gameName}`}
-                    >
-                      {confirmDeleteId === item.id ? "Sure?" : "Delete"}
-                    </DeleteBtn>
+                    <CardActions>
+                      <ReanalyzeBtn
+                        type="button"
+                        onClick={(e) => handleReanalyze(e, item.gameName, item.price)}
+                        aria-label={`Analyze ${item.gameName} again`}
+                      >
+                        Analyze Again
+                      </ReanalyzeBtn>
+                      <DeleteBtn
+                        type="button"
+                        onClick={(e) => handleDelete(e, item.id)}
+                        onBlur={() => setConfirmDeleteId(null)}
+                        aria-label={`Delete analysis for ${item.gameName}`}
+                      >
+                        {confirmDeleteId === item.id ? "Sure?" : "Delete"}
+                      </DeleteBtn>
+                    </CardActions>
                   </CardHeader>
 
                   {!expanded ? (
                     <CardMain type="button" onClick={() => toggle(item.id)}>
                       <PreviewContent>
-                        <HistoryPreview response={item.response} />
+                        <HistoryPreview response={item.response} fullPrice={item.price} currencyCode={currency} />
                       </PreviewContent>
                       <PreviewBody>
                         <ExpandHint>Click to view full analysis</ExpandHint>
@@ -933,7 +1001,7 @@ export function HistoryPage() {
                     </CardMain>
                   ) : (
                     <ExpandedSection>
-                      <ExpandedContent response={item.response} />
+                      <ExpandedContent response={item.response} fullPrice={item.price} currencyCode={currency} />
                     </ExpandedSection>
                   )}
                 </HistoryCard>
@@ -988,7 +1056,16 @@ export function HistoryPage() {
                 </ListRow>
                 {expandedId === item.id && (
                   <ListExpandedSection>
-                    <ExpandedContent response={item.response} />
+                    <ListExpandedToolbar>
+                      <ReanalyzeBtn
+                        type="button"
+                        onClick={(e) => handleReanalyze(e, item.gameName, item.price)}
+                        aria-label={`Analyze ${item.gameName} again`}
+                      >
+                        Analyze Again
+                      </ReanalyzeBtn>
+                    </ListExpandedToolbar>
+                    <ExpandedContent response={item.response} fullPrice={item.price} currencyCode={currency} />
                   </ListExpandedSection>
                 )}
               </ListItem>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { useAnalysis } from "@/features/analyze-game/model/useAnalysis";
 import { sessionCache } from "@/features/analyze-game/model/session-cache";
@@ -18,6 +18,7 @@ const Page = styled.div`
 const Toolbar = styled.div`
   display: flex;
   justify-content: flex-end;
+  gap: ${({ theme }) => theme.spacing.sm};
   margin-top: ${({ theme }) => theme.spacing.md};
 `;
 
@@ -40,13 +41,36 @@ function errorMessage(err: unknown): string {
 }
 
 export function AnalyzePage() {
-  const { analyze, isLoading, isStreaming, streamedText, thinkingText, result, error, reset, stop } =
-    useAnalysis();
+  const {
+    analyze, isLoading, isStreaming, isExpanding, expanded, expand,
+    streamedText, thinkingText, result, error, reset, stop,
+  } = useAnalysis();
   const cached = sessionCache.get();
   const [session, setSession] = useState<{ gameName: string; price: number } | null>(
     cached.result ? { gameName: cached.result.gameName, price: cached.result.price } : null,
   );
   const [formKey, setFormKey] = useState(0);
+  const [lastPrefillId, setLastPrefillId] = useState(0);
+  const currentPrefillId = sessionCache.get().prefillId;
+  if (currentPrefillId > lastPrefillId) {
+    setLastPrefillId(currentPrefillId);
+    setSession(null);
+    setFormKey((k) => k + 1);
+  }
+
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const wasStreamingRef = useRef(false);
+
+  useEffect(() => {
+    const active = isStreaming || isExpanding;
+    if (active) {
+      wasStreamingRef.current = true;
+      bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    } else if (wasStreamingRef.current) {
+      wasStreamingRef.current = false;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [isStreaming, isExpanding, streamedText]);
 
   const handleSubmit = useCallback(
     (gameName: string, price: number) => {
@@ -64,6 +88,8 @@ export function AnalyzePage() {
   }, [reset]);
 
   const showResult = Boolean(session);
+  const isDone = !isStreaming && !isLoading && !isExpanding && (session || result);
+  const canExpand = isDone && result && !expanded;
 
   const displayResponse = streamedText || result?.response || "";
   const displayName = result?.gameName ?? session?.gameName ?? "";
@@ -73,14 +99,19 @@ export function AnalyzePage() {
     <Page>
       <AnalyzeForm key={formKey} onSubmit={handleSubmit} isLoading={isLoading} />
 
-      {(isStreaming || isLoading) ? (
+      {(isStreaming || isLoading || isExpanding) ? (
         <Toolbar>
           <Button type="button" variant="secondary" size="md" onClick={stop}>
-            Stop Analysis
+            {isExpanding ? "Stop Expanding" : "Stop Analysis"}
           </Button>
         </Toolbar>
-      ) : (session || result) ? (
+      ) : isDone ? (
         <Toolbar>
+          {canExpand && (
+            <Button type="button" variant="secondary" size="md" onClick={expand}>
+              More Details
+            </Button>
+          )}
           <Button type="button" variant="secondary" size="md" onClick={handleNewAnalysis}>
             New Analysis
           </Button>
@@ -92,12 +123,14 @@ export function AnalyzePage() {
           response={displayResponse}
           gameName={displayName}
           price={displayPrice}
-          isStreaming={isStreaming}
+          isStreaming={isStreaming || isExpanding}
           thinkingText={thinkingText}
         />
       ) : null}
 
       {error ? <ErrorBox role="alert">{errorMessage(error)}</ErrorBox> : null}
+
+      <div ref={bottomRef} />
     </Page>
   );
 }

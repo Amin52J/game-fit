@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useState, useEffect } from "react";
+import { type ReactNode, useSyncExternalStore } from "react";
 import styled from "styled-components";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { useApp } from "@/app/providers/AppProvider";
@@ -44,6 +44,10 @@ const Main = styled.main<{ $fullWidth: boolean }>`
   }
 `;
 
+const noopSubscribe = () => () => {};
+const getTauri = () => "__TAURI__" in window;
+const getTauriServer = () => null as boolean | null;
+
 interface AppShellProps {
   children: ReactNode;
 }
@@ -53,10 +57,7 @@ export function AppShell({ children }: AppShellProps) {
   const { state, hydrated } = useApp();
   const setupDone = state.isSetupComplete;
 
-  const [isTauri, setIsTauri] = useState<boolean | null>(null);
-  useEffect(() => {
-    setIsTauri("__TAURI__" in window);
-  }, []);
+  const isTauri = useSyncExternalStore(noopSubscribe, getTauri, getTauriServer);
 
   if (authLoading || isTauri === null) {
     return <AuthLoadingSkeleton />;

@@ -179,6 +179,16 @@ export async function insertAnalysis(result: AnalysisResult) {
   });
 }
 
+export async function updateAnalysisResponse(analysisId: string, response: string) {
+  const id = await uid();
+  if (!id) return;
+  await getSupabase()
+    .from("analysis_history")
+    .update({ response })
+    .eq("id", analysisId)
+    .eq("user_id", id);
+}
+
 export async function deleteAnalysis(analysisId: string) {
   const id = await uid();
   if (!id) return;

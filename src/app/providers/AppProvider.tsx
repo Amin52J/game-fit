@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useContext, useCallback, useEffect, useReducer, useState } from "react";
+import React, { createContext, useContext, useCallback, useEffect, useReducer } from "react";
 import type {
   AppState,
   AIProviderConfig,
@@ -11,8 +11,13 @@ import { INITIAL_STATE } from "@/shared/types";
 import { useAuth } from "./AuthProvider";
 import * as db from "@/shared/api/db";
 
+interface ReducerState extends AppState {
+  hydrated: boolean;
+}
+
 type Action =
-  | { type: "INIT"; payload: AppState }
+  | { type: "INIT"; payload: AppState; hydrated: boolean }
+  | { type: "LOADING" }
   | { type: "SET_AI_PROVIDER"; payload: AIProviderConfig }
   | { type: "SET_GAMES"; payload: Game[] }
   | { type: "ADD_GAME"; payload: Game }
@@ -22,14 +27,17 @@ type Action =
   | { type: "SET_SETUP_ANSWERS"; payload: SetupAnswers }
   | { type: "COMPLETE_SETUP" }
   | { type: "ADD_ANALYSIS"; payload: AnalysisResult }
+  | { type: "UPDATE_ANALYSIS"; payload: { id: string; response: string } }
   | { type: "DELETE_ANALYSIS"; payload: string }
   | { type: "CLEAR_HISTORY" }
   | { type: "RESET" };
 
-function reducer(state: AppState, action: Action): AppState {
+function reducer(state: ReducerState, action: Action): ReducerState {
   switch (action.type) {
     case "INIT":
-      return action.payload;
+      return { ...action.payload, hydrated: action.hydrated };
+    case "LOADING":
+      return { ...state, hydrated: false };
     case "SET_AI_PROVIDER":
       return { ...state, aiProvider: action.payload };
     case "SET_GAMES":
@@ -51,6 +59,13 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, isSetupComplete: true };
     case "ADD_ANALYSIS":
       return { ...state, analysisHistory: [action.payload, ...state.analysisHistory] };
+    case "UPDATE_ANALYSIS":
+      return {
+        ...state,
+        analysisHistory: state.analysisHistory.map((a) =>
+          a.id === action.payload.id ? { ...a, response: action.payload.response } : a,
+        ),
+      };
     case "DELETE_ANALYSIS":
       return {
         ...state,
@@ -59,7 +74,7 @@ function reducer(state: AppState, action: Action): AppState {
     case "CLEAR_HISTORY":
       return { ...state, analysisHistory: [] };
     case "RESET":
-      return INITIAL_STATE;
+      return { ...INITIAL_STATE, hydrated: false };
     default:
       return state;
   }
@@ -78,6 +93,7 @@ interface AppContextValue {
   setSetupAnswers: (answers: SetupAnswers) => void;
   completeSetup: () => void;
   addAnalysis: (result: AnalysisResult) => void;
+  updateAnalysisResponse: (id: string, response: string) => void;
   deleteAnalysis: (id: string) => void;
   clearHistory: () => void;
   resetApp: () => void;
@@ -87,23 +103,22 @@ const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
-  const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
-  const [hydrated, setHydrated] = useState(false);
+  const [fullState, dispatch] = useReducer(reducer, { ...INITIAL_STATE, hydrated: false });
+  const { hydrated } = fullState;
+  const state: AppState = fullState;
 
   const userId = user?.id ?? null;
 
   useEffect(() => {
     if (!userId) {
-      dispatch({ type: "INIT", payload: INITIAL_STATE });
-      setHydrated(false);
+      dispatch({ type: "INIT", payload: INITIAL_STATE, hydrated: false });
       return;
     }
     let cancelled = false;
-    setHydrated(false);
+    dispatch({ type: "LOADING" });
     db.loadUserState().then((loaded) => {
       if (!cancelled) {
-        dispatch({ type: "INIT", payload: loaded });
-        setHydrated(true);
+        dispatch({ type: "INIT", payload: loaded, hydrated: true });
       }
     });
     return () => { cancelled = true; };
@@ -154,6 +169,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     db.insertAnalysis(result);
   }, []);
 
+  const updateAnalysisResponse = useCallback((id: string, response: string) => {
+    dispatch({ type: "UPDATE_ANALYSIS", payload: { id, response } });
+    db.updateAnalysisResponse(id, response);
+  }, []);
+
   const deleteAnalysis = useCallback((id: string) => {
     dispatch({ type: "DELETE_ANALYSIS", payload: id });
     db.deleteAnalysis(id);
@@ -184,6 +204,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setSetupAnswers,
         completeSetup,
         addAnalysis,
+        updateAnalysisResponse,
         deleteAnalysis,
         clearHistory,
         resetApp,

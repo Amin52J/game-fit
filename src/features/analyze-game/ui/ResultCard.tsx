@@ -9,7 +9,9 @@ import { Icon } from "@/shared/ui";
 import {
   parseResponseSections,
   extractMetrics,
+  computeTargetPrice,
   getSectionType,
+  isInternalSection,
   type ParsedSection,
   type RiskLevel,
 } from "@/features/analyze-game/lib/response-parser";
@@ -441,18 +443,28 @@ function renderMetricsRow(
   sections: ParsedSection[],
   metrics: ReturnType<typeof extractMetrics>,
   theme: { colors: Record<string, string> },
+  fullPrice?: number,
+  currencyCode?: string,
 ) {
   const riskSection = sections.find((s) => s.key.includes("red-line-risk"));
-  const hasMetrics = metrics.targetPrice || riskSection;
+
+  const computed = metrics.score !== null && fullPrice != null
+    ? computeTargetPrice(metrics.score, metrics.riskLevel, metrics.confidence, fullPrice, metrics.refundRecommended)
+    : null;
+  const priceLabel = computed
+    ? computed.value != null ? formatCurrencyValue(computed.value, currencyCode) : computed.label
+    : metrics.targetPrice;
+
+  const hasMetrics = priceLabel || riskSection;
   if (!hasMetrics) return null;
 
   return (
     <MetricsRow>
-      {metrics.targetPrice && (
+      {priceLabel && (
         <MetricCell>
           <MetricLabel>Target Price</MetricLabel>
-          <MetricValue $color={priceColor(metrics.targetPrice, theme)}>
-            {metrics.targetPrice}
+          <MetricValue $color={priceColor(priceLabel, theme)}>
+            {priceLabel}
           </MetricValue>
         </MetricCell>
       )}
@@ -476,6 +488,20 @@ function renderMetricsRow(
       )}
     </MetricsRow>
   );
+}
+
+function formatCurrencyValue(price: number, currencyCode: string | undefined): string {
+  const code = currencyCode || "USD";
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: code,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price);
+  } catch {
+    return `${code} ${price}`;
+  }
 }
 
 function renderSection(
@@ -533,14 +559,31 @@ function renderSection(
 
 /* ——— Structured result view ——— */
 
+const DISPLAY_ORDER: string[] = [
+  "refund-guard",
+  "positive-alignment",
+  "negative-factors",
+  "red-line-risk",
+  "public-sentiment",
+];
+
+function displaySortKey(key: string): number {
+  const idx = DISPLAY_ORDER.findIndex((p) => key.includes(p));
+  return idx === -1 ? DISPLAY_ORDER.length : idx;
+}
+
 function StructuredResult({
   sections,
   isStreaming,
   theme,
+  fullPrice,
+  currencyCode,
 }: {
   sections: ParsedSection[];
   isStreaming: boolean;
   theme: { colors: Record<string, string> };
+  fullPrice?: number;
+  currencyCode?: string;
 }) {
   const metrics = extractMetrics(sections);
 
@@ -549,15 +592,20 @@ function StructuredResult({
       s.key !== "preamble" &&
       !s.key.includes("enjoyment-score") &&
       !s.key.includes("score-summary") &&
-      !s.key.includes("target-price"),
+      !s.key.includes("target-price") &&
+      !isInternalSection(s.key),
   );
+
+  const ordered = isStreaming
+    ? contentSections
+    : [...contentSections].sort((a, b) => displaySortKey(a.key) - displaySortKey(b.key));
 
   return (
     <>
       {renderScoreHero(sections, metrics)}
-      {renderMetricsRow(sections, metrics, theme)}
-      {contentSections.map((s, i) =>
-        renderSection(s, metrics, i === contentSections.length - 1, isStreaming, theme),
+      {renderMetricsRow(sections, metrics, theme, fullPrice, currencyCode)}
+      {ordered.map((s, i) =>
+        renderSection(s, metrics, i === ordered.length - 1, isStreaming, theme),
       )}
     </>
   );
@@ -637,7 +685,7 @@ export function ResultCard({ response, gameName, price, isStreaming, thinkingTex
           </MarkdownBody>
         </FallbackBody>
       ) : useStructured ? (
-        <ThemedStructuredResult sections={sections} isStreaming={isStreaming} />
+        <ThemedStructuredResult sections={sections} isStreaming={isStreaming} fullPrice={price} currencyCode={state.setupAnswers?.currency} />
       ) : (
         <FallbackBody>
           <AnalysisMarkdown source={response} showStreamCursor={isStreaming} thinkingText={thinkingText} />
@@ -647,7 +695,7 @@ export function ResultCard({ response, gameName, price, isStreaming, thinkingTex
   );
 }
 
-export function HistoryPreview({ response }: { response: string }) {
+export function HistoryPreview({ response, fullPrice, currencyCode }: { response: string; fullPrice?: number; currencyCode?: string }) {
   const sections = useMemo(() => parseResponseSections(response), [response]);
   const metrics = useMemo(() => extractMetrics(sections), [sections]);
   const hasStructure = sections.filter((s) => s.key !== "preamble").length >= 3;
@@ -667,13 +715,12 @@ export function HistoryPreview({ response }: { response: string }) {
     },
   };
 
-  const refundLower = refundSection?.content.toLowerCase() ?? "";
-  const refundRequired = !/not\s+\w*\s*(?:required|needed|necessary|recommended|applicable)|no\s+(?:guard|concerns|refund|special|high)|none\s+(?:needed|required)|unnecessary|n\/a|low risk|safe\s+(?:to buy|purchase)/.test(refundLower);
+  const refundRequired = metrics.refundRecommended;
 
   return (
     <>
       {renderScoreHero(sections, metrics)}
-      {renderMetricsRow(sections, metrics, theme)}
+      {renderMetricsRow(sections, metrics, theme, fullPrice, currencyCode)}
       {refundSection && (
         <RefundBanner $required={refundRequired}>
           <RefundIconWrap $required={refundRequired}><Icon name={refundRequired ? "alert-triangle" : "info"} size={20} /></RefundIconWrap>
@@ -690,9 +737,13 @@ export function HistoryPreview({ response }: { response: string }) {
 export function ThemedStructuredResult({
   sections,
   isStreaming,
+  fullPrice,
+  currencyCode,
 }: {
   sections: ParsedSection[];
   isStreaming: boolean;
+  fullPrice?: number;
+  currencyCode?: string;
 }) {
   const theme = {
     colors: {
@@ -706,5 +757,5 @@ export function ThemedStructuredResult({
     },
   };
 
-  return <StructuredResult sections={sections} isStreaming={isStreaming} theme={theme} />;
+  return <StructuredResult sections={sections} isStreaming={isStreaming} theme={theme} fullPrice={fullPrice} currencyCode={currencyCode} />;
 }

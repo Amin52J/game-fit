@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import styled, { keyframes } from "styled-components";
 import { useNavigation } from "@/app/providers/NavigationProvider";
@@ -112,15 +112,10 @@ export function KeepAlivePages() {
     return initial;
   });
 
-  useEffect(() => {
-    const match = PAGES.find((p) => matchRoute(activePath, p.path));
-    if (match) {
-      setMounted((prev) => {
-        if (prev.has(match.path)) return prev;
-        return new Set([...prev, match.path]);
-      });
-    }
-  }, [activePath]);
+  const currentMatch = PAGES.find((p) => matchRoute(activePath, p.path));
+  if (currentMatch && !mounted.has(currentMatch.path)) {
+    setMounted((prev) => new Set([...prev, currentMatch.path]));
+  }
 
   return (
     <>

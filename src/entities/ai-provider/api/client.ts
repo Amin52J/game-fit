@@ -5,6 +5,37 @@ interface Message {
   content: string;
 }
 
+class RetryableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "RetryableError";
+  }
+}
+
+const MAX_RETRIES = 3;
+const BASE_DELAY_MS = 1000;
+
+async function withRetry<T>(fn: () => Promise<T>, retries = MAX_RETRIES): Promise<T> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      const isRetryable =
+        err instanceof RetryableError ||
+        (err instanceof Error && /overloaded|529|rate.?limit|too many requests/i.test(err.message));
+      if (!isRetryable || attempt === retries) {
+        if (isRetryable && err instanceof Error) {
+          throw new Error(`The AI service is currently overloaded. Retried ${retries} times but it's still busy — please try again in a minute.`);
+        }
+        throw err;
+      }
+      const delay = BASE_DELAY_MS * 2 ** attempt + Math.random() * 500;
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+  throw new Error("Retry exhausted");
+}
+
 export class AIClient {
   private config: AIProviderConfig;
 
@@ -24,12 +55,78 @@ export class AIClient {
   ): Promise<string> {
     const libraryData = this.formatLibrary(games);
     const systemPrompt = instructions;
-    const userMessage = `Here is my game library:\n\n${libraryData}\n\n---\n\nAnalyze this game for me: **${gameName}** at **${currencySymbol}${price}**\n\nIMPORTANT: Search the web for current Steam reviews and player feedback for this game. Use real, up-to-date review data — do not rely on training data for review statistics, ratings, review counts, or player sentiment.\n\nProvide the full analysis with Enjoyment Score, confidence, verified matches from my library, Red-Line Risk, target price, and all reasoning.`;
+    const userMessage = `Here is my game library:\n\n${libraryData}\n\n---\n\nAnalyze this game for me: **${gameName}** at **${currencySymbol}${price}**\n\nIMPORTANT: Search the web for "${gameName} Steam reviews" to find the current Steam review rating (e.g. Very Positive, Mixed), total review count, and the most common praise/complaints. Use ONLY factual review statistics — do not change your scoring based on individual reviewer opinions. Review data informs the Public Sentiment section and penalty evidence, but anchor games and the scoring procedure drive the Enjoyment Score.`;
 
     if (onStream) {
       return this.streamRequest(systemPrompt, userMessage, onStream, signal, onThinking);
     }
     return this.request(systemPrompt, userMessage, signal);
+  }
+
+  async expandAnalysis(
+    gameName: string,
+    originalResponse: string,
+    sectionNames: string[],
+    onStream?: (chunk: string) => void,
+    signal?: AbortSignal,
+  ): Promise<string> {
+    const system = "You are a game analysis assistant. The user has already received a core analysis and is now requesting additional detail sections. Generate ONLY the requested sections using ## headings. Be concise and analytical.";
+    const user = `Here is the core analysis for **${gameName}**:\n\n${originalResponse}\n\n---\n\nNow provide these additional sections:\n${sectionNames.map((n) => `- **${n}**`).join("\n")}\n\nUse ## headings for each section. Base your answers on the information already in the analysis. Do not repeat information from the core analysis.`;
+
+    if (onStream) {
+      return this.streamExpandRequest(system, user, onStream, signal);
+    }
+    return this.request(system, user, signal);
+  }
+
+  private async streamExpandRequest(
+    system: string,
+    user: string,
+    onStream: (chunk: string) => void,
+    signal?: AbortSignal,
+  ): Promise<string> {
+    switch (this.config.type) {
+      case "anthropic":
+        return this.anthropicExpandStream(system, user, onStream, signal);
+      case "openai":
+        return this.openaiStream(system, user, onStream, signal);
+      case "google":
+        return this.googleStream(system, user, onStream, signal);
+      case "custom":
+        return this.customStream(system, user, onStream, signal);
+    }
+  }
+
+  private async anthropicExpandStream(
+    system: string,
+    user: string,
+    onStream: (chunk: string) => void,
+    signal?: AbortSignal,
+  ): Promise<string> {
+    const body: Record<string, unknown> = {
+      model: this.config.model,
+      system,
+      messages: [{ role: "user", content: user }],
+      max_tokens: 4096,
+      temperature: 0.2,
+      stream: true,
+    };
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": this.config.apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true",
+      },
+      body: JSON.stringify(body),
+      signal,
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Anthropic API error (${res.status}): ${err}`);
+    }
+    return this.readAnthropicSSE(res, onStream);
   }
 
   private formatLibrary(games: Game[]): string {
@@ -75,17 +172,16 @@ export class AIClient {
   private buildAnthropicBody(system: string, user: string, stream = false) {
     const body: Record<string, unknown> = {
       model: this.config.model,
-      system,
+      system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
       messages: [{ role: "user", content: user }],
-      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
+      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 1 }],
+      temperature: 0,
     };
 
     if (this.config.extendedThinking) {
-      body.thinking = { type: "adaptive" };
-      body.max_tokens = 32000;
+      body.max_tokens = 8192;
     } else {
       body.max_tokens = 4096;
-      body.temperature = 0.2;
     }
 
     if (stream) body.stream = true;
@@ -93,24 +189,29 @@ export class AIClient {
   }
 
   private async anthropicRequest(system: string, user: string, signal?: AbortSignal): Promise<string> {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": this.config.apiKey,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true",
-      },
-      body: JSON.stringify(this.buildAnthropicBody(system, user)),
-      signal,
+    return withRetry(async () => {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": this.config.apiKey,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true",
+        },
+        body: JSON.stringify(this.buildAnthropicBody(system, user)),
+        signal,
+      });
+      if (!res.ok) {
+        const err = await res.text();
+        if (res.status === 429 || res.status === 529 || /overloaded/i.test(err)) {
+          throw new RetryableError(`Anthropic API error (${res.status}): ${err}`);
+        }
+        throw new Error(`Anthropic API error (${res.status}): ${err}`);
+      }
+      const data = await res.json();
+      const textBlocks = (data.content || []).filter((b: { type: string }) => b.type === "text");
+      return textBlocks.map((b: { text: string }) => b.text).join("") || "";
     });
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(`Anthropic API error (${res.status}): ${err}`);
-    }
-    const data = await res.json();
-    const textBlocks = (data.content || []).filter((b: { type: string }) => b.type === "text");
-    return textBlocks.map((b: { text: string }) => b.text).join("") || "";
   }
 
   private async anthropicStream(
@@ -120,22 +221,27 @@ export class AIClient {
     signal?: AbortSignal,
     onThinking?: (chunk: string) => void,
   ): Promise<string> {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": this.config.apiKey,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true",
-      },
-      body: JSON.stringify(this.buildAnthropicBody(system, user, true)),
-      signal,
+    return withRetry(async () => {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": this.config.apiKey,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true",
+        },
+        body: JSON.stringify(this.buildAnthropicBody(system, user, true)),
+        signal,
+      });
+      if (!res.ok) {
+        const err = await res.text();
+        if (res.status === 429 || res.status === 529 || /overloaded/i.test(err)) {
+          throw new RetryableError(`Anthropic API error (${res.status}): ${err}`);
+        }
+        throw new Error(`Anthropic API error (${res.status}): ${err}`);
+      }
+      return this.readAnthropicSSE(res, onStream, onThinking);
     });
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(`Anthropic API error (${res.status}): ${err}`);
-    }
-    return this.readAnthropicSSE(res, onStream, onThinking);
   }
 
   private extractLatestThought(text: string): string {
@@ -169,6 +275,16 @@ export class AIClient {
         if (json === "[DONE]") break;
         try {
           const evt = JSON.parse(json);
+
+          if (evt.type === "error") {
+            const errType = evt.error?.type ?? "unknown_error";
+            const errMsg = evt.error?.message ?? "Unknown error";
+            if (/overloaded|rate.?limit/i.test(errType) || /overloaded|rate.?limit/i.test(errMsg)) {
+              throw new RetryableError(`Anthropic API: ${errMsg} (${errType})`);
+            }
+            throw new Error(`Anthropic API stream error: ${errMsg} (${errType})`);
+          }
+
           if (evt.type === "content_block_start" && onThinking) {
             const block = evt.content_block;
             if (block?.type === "thinking") {
@@ -188,8 +304,8 @@ export class AIClient {
               onStream(evt.delta.text);
             }
           }
-        } catch {
-          /* skip malformed */
+        } catch (e) {
+          if (e instanceof RetryableError || (e instanceof Error && e.message.includes("stream error"))) throw e;
         }
       }
     }
@@ -206,11 +322,11 @@ export class AIClient {
     };
 
     if (this.config.extendedThinking) {
-      body.reasoning_effort = "high";
-      body.max_completion_tokens = 32000;
+      body.reasoning_effort = "low";
+      body.max_completion_tokens = 8192;
     } else {
       body.max_tokens = 4096;
-      body.temperature = 0.2;
+      body.temperature = 0;
     }
 
     if (stream) body.stream = true;
@@ -322,11 +438,11 @@ export class AIClient {
       messages,
     };
     if (this.config.extendedThinking) {
-      body.reasoning_effort = "high";
-      body.max_tokens = 32000;
+      body.reasoning_effort = "low";
+      body.max_tokens = 8192;
     } else {
       body.max_tokens = 4096;
-      body.temperature = 0.2;
+      body.temperature = 0;
     }
     const res = await fetch(this.googleBaseUrl, {
       method: "POST",
@@ -362,11 +478,11 @@ export class AIClient {
       stream: true,
     };
     if (this.config.extendedThinking) {
-      body.reasoning_effort = "high";
-      body.max_tokens = 32000;
+      body.reasoning_effort = "low";
+      body.max_tokens = 8192;
     } else {
       body.max_tokens = 4096;
-      body.temperature = 0.2;
+      body.temperature = 0;
     }
     const res = await fetch(this.googleBaseUrl, {
       method: "POST",

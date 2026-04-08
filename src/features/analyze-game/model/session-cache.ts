@@ -5,9 +5,10 @@ interface AnalysisSession {
   priceRaw: string;
   result: AnalysisResult | null;
   streamedText: string;
+  prefillId: number;
 }
 
-const EMPTY: AnalysisSession = { gameName: "", priceRaw: "", result: null, streamedText: "" };
+const EMPTY: AnalysisSession = { gameName: "", priceRaw: "", result: null, streamedText: "", prefillId: 0 };
 
 let _session: AnalysisSession = { ...EMPTY };
 
