@@ -104,7 +104,8 @@ export function extractMetrics(sections: ParsedSection[]): ExtractedMetrics {
 
 /**
  * Deterministic client-side target price computation.
- * Uses a continuous linear formula — no bands, no cliffs.
+ * Uses a concave curve (fraction^1.3) over a wide range [40, 92]
+ * so mid-range scores produce conservative prices.
  */
 export function computeTargetPrice(
   score: number,
@@ -126,11 +127,11 @@ export function computeTargetPrice(
 
   A = Math.max(0, A);
 
-  if (A < 45) return { value: null, label: "Don't buy" };
-  if (A >= 85) return { value: fullPrice, label: formatPriceValue(fullPrice) };
+  if (A < 40) return { value: null, label: "Don't buy" };
+  if (A >= 92) return { value: fullPrice, label: formatPriceValue(fullPrice) };
 
-  const fraction = (A - 45) / 40;
-  const price = Math.round(fullPrice * (0.15 + 0.85 * fraction));
+  const fraction = (A - 40) / 52;
+  const price = Math.round(fullPrice * (0.10 + 0.90 * Math.pow(fraction, 1.3)));
   return { value: price, label: formatPriceValue(price) };
 }
 

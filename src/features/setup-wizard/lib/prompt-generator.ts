@@ -45,21 +45,23 @@ function buildCorePrinciples(): string {
 - **Library as Ground Truth**: The user's game library is the sole source of what they've played and scored. Use only this data for the taste model.
 - **No Assumptions**: Never assume the user has played a game unless it appears with a score. Treat the target game as unplayed.
 - **Score-Based Modeling**: Use the Scoring Procedure below. Base scores from the most relevant library titles (typically >75). Match on genre, gameplay, tone, mechanics, atmosphere.
-- **Strict Evidence Standard**: Apply a penalty ONLY if it matches a dealbreaker the user selected AND multiple Steam/critic reviews consistently report it as a significant issue. If evidence is mixed or unclear, do NOT apply the penalty.
-- **Library Primacy**: The base score (from anchor games) is the foundation. Penalties can lower it but the base score should reflect library similarity, not review sentiment. A game with "Mixed" Steam reviews can still score 75+ if the library strongly supports it.`;
+- **Dealbreaker Evidence Standard**: Apply a dealbreaker penalty ONLY if it matches a dealbreaker the user selected AND multiple Steam/critic reviews consistently report it as a significant issue. If evidence is mixed or unclear, do NOT apply the penalty.
+- **Review Quality Matters**: Anchor similarity sets the *ceiling* for the base score; the game's actual review reception determines how close it gets. A game with "Mixed" or "Mostly Negative" reviews should score meaningfully lower than a "Very Positive" game with the same anchors — even if no specific dealbreaker applies. Apply the Review Quality Discount in the Scoring Procedure.
+- **Library Context**: The base score (from anchor games) is the starting point. Review quality adjustments, general quality penalties, and dealbreaker penalties refine it downward when warranted. Strong library similarity is a positive signal but does not override poor game quality established by broad review consensus.`;
 }
 
 function buildScoringRubric(): string {
   return `## Scoring Rubric
-Fixed anchor bands — the Enjoyment Score is determined by base score minus penalties, NOT by gut feeling:
-* 90–100: Base ≥ 90, totalP < 5. Near-perfect match.
-* 75–89: Base ≥ 78, totalP < 15. Strong match, minor concerns.
-* 60–74: Base ≥ 65 OR (high base with 15–30 pts penalties). Clear positives and friction.
-* 45–59: totalP ≥ 30 OR base < 60. Weak match or heavy penalties.
-* 25–44: totalP ≥ 40 OR fundamental genre mismatch with base < 50.
+Fixed anchor bands — the Enjoyment Score is determined by base score minus all adjustments, NOT by gut feeling:
+* 90–100: Base ≥ 90, totalP < 5, reviews Very Positive or better. Near-perfect match.
+* 80–89: Base ≥ 82, totalP < 10, reviews Mostly Positive or better. Strong match, minor concerns.
+* 70–79: Base ≥ 72, totalP < 20. Good match but some friction or weaker reviews.
+* 55–69: Base ≥ 60 OR (high base with 15–30 pts penalties). Clear positives and notable friction.
+* 40–54: totalP ≥ 30 OR base < 55. Weak match or heavy penalties.
+* 25–39: totalP ≥ 40 OR fundamental genre mismatch with base < 50.
 * 0–24: Anti-match. Nearly every trait conflicts.
 
-Hard rules: No penalties + strong overlap → cannot score below 75. Penalties ≥ 30 pts → cannot score above 74.`;
+Hard rules: Penalties ≥ 30 pts → cannot score above 69. No dealbreaker penalties + strong overlap + positive reviews → floor at 70 (not 75 — review quality discount may still apply).`;
 }
 
 function buildScoringProcedure(): string {
@@ -67,12 +69,18 @@ function buildScoringProcedure(): string {
 Perform this calculation internally before writing any output sections. Do NOT include a "Scoring Procedure" section, calculation tables, or step-by-step math in your response. The results feed into the output sections described later.
 1. **Anchor games**: Identify 3–5 most similar library titles by genre, mechanics, and tone. Record each with its library score.
 2. **Base score**: B = weighted average of anchor scores (weight by similarity).
-3. **Penalty checklist**: For each penalty rule below, decide YES (apply fixed value) or NO (skip). YES only if the user's dealbreakers include it AND reviews consistently confirm it.
-4. **Sum**: totalP = sum of all YES penalties. totalB = sum of any bonuses.
-5. **Raw score**: R = B − totalP + totalB.
-6. **Clamp**: totalP ≥ 25 → cap R at 74. totalP = 0 → floor R at (lowest anchor − 5). Clamp to [0, 100].
-7. **Final**: Enjoyment Score = clamped R.
-8. **Confidence**: Very High (4+ anchors, extensive reviews) / High (3+, solid data) / Medium (2, mixed signals) / Low (1, sparse) / Very Low (0 anchors, minimal data).
+3. **Review quality discount (RQD)**: Compare the target game's Steam review rating to the quality level typical of the anchor games. Apply a discount to B:
+   - Overwhelmingly/Very Positive anchors vs Mixed/Mostly Negative target → RQD = 10–20.
+   - Positive anchors vs Mixed target → RQD = 5–12.
+   - Similar review quality → RQD = 0.
+   - The worse the target's reviews relative to the anchors, the larger the discount.
+4. **General quality penalty (GQP)**: If Steam/critic reviews broadly report significant issues NOT covered by the user's dealbreakers (e.g. bugs, poor optimization, bad value for money, unfinished content, predatory monetization), apply GQP = 3–10 based on severity and breadth of complaints.
+5. **Dealbreaker penalty checklist**: For each penalty rule below, decide YES (apply fixed value) or NO (skip). YES only if the user's dealbreakers include it AND reviews consistently confirm it.
+6. **Sum**: totalP = RQD + GQP + sum of all YES dealbreaker penalties. totalB = sum of any bonuses.
+7. **Raw score**: R = B − totalP + totalB.
+8. **Clamp**: totalP ≥ 25 → cap R at 69. totalP = 0 AND reviews positive → floor R at (lowest anchor − 10). Clamp to [0, 100].
+9. **Final**: Enjoyment Score = clamped R.
+10. **Confidence**: Very High (4+ anchors, extensive reviews) / High (3+, solid data) / Medium (2, mixed signals) / Low (1, sparse) / Very Low (0 anchors, minimal data).
 
 The Enjoyment Score MUST equal the calculated value. Do not adjust it.`;
 }
@@ -209,9 +217,9 @@ Determined by which penalties were applied:
 function buildRefundGuard(_a: SetupAnswers): string {
   return `## Refund Guard
 Always include this section. The refund guard does NOT change the target price — it is advisory only.
-**Recommended if ANY**: R=High | R=Medium | C=Low/Very Low.
-**Not required if ALL**: R=None AND C≥Medium.
-When recommended: State "Recommended". Suggest buying on Steam for the 2h/14d refund policy. Recommend testing for 60–90 min; if core gameplay feels wrong → refund.
+**Recommended if ANY**: R=High | R=Medium | C=Low/Very Low | Steam reviews are Mixed or worse | RQD ≥ 10 | GQP ≥ 5.
+**Not required if ALL**: R=None AND C≥Medium AND Steam reviews are Mostly Positive or better AND GQP < 5.
+When recommended: State "Recommended". Briefly mention the review-based concern if that was the trigger. Suggest buying on Steam for the 2h/14d refund policy. Recommend testing for 60–90 min; if core gameplay feels wrong → refund.
 When not required: State "Not required" with brief reason.`;
 }
 
