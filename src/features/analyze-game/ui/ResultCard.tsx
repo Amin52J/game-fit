@@ -28,6 +28,11 @@ const blink = keyframes`
   50%      { opacity: 0; }
 `;
 
+const pulse = keyframes`
+  0%, 100% { opacity: 0.12; }
+  50%      { opacity: 0.25; }
+`;
+
 /* ——— Markdown body (shared) ——— */
 
 export const MarkdownBody = styled.div`
@@ -177,6 +182,22 @@ const GameMeta = styled.p`
   color: ${({ theme }) => theme.colors.textSecondary};
 `;
 
+const EarlyAccessBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  margin-left: ${({ theme }) => theme.spacing.sm};
+  padding: 2px ${({ theme }) => theme.spacing.sm};
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: ${({ theme }) => theme.colors.warning};
+  background: ${({ theme }) => theme.colors.warningMuted};
+  border: 1px solid ${({ theme }) => theme.colors.warning};
+  border-radius: ${({ theme }) => theme.radius.sm};
+  vertical-align: middle;
+`;
+
 /* ——— Score hero ——— */
 
 const ScoreHero = styled.div`
@@ -224,6 +245,22 @@ const ScoreRing = styled.div<{ $score: number }>`
           : theme.colors.errorMuted};
 `;
 
+const ScoreRingWrap = styled.div`
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+`;
+
+const ScoreRingTag = styled.span`
+  font-size: 0.5625rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: ${({ theme }) => theme.colors.warning};
+`;
+
 const ScoreDetails = styled.div`
   flex: 1;
   min-width: 0;
@@ -244,6 +281,13 @@ const ScoreSummaryText = styled.div`
   line-height: 1.5;
   color: ${({ theme }) => theme.colors.textSecondary};
   margin-top: ${({ theme }) => theme.spacing.xs};
+`;
+
+const CurrentScoreNote = styled.div`
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.textMuted};
+  margin-top: 2px;
 `;
 
 /* ——— Metrics row ——— */
@@ -278,6 +322,26 @@ const MetricValue = styled.div<{ $color?: string }>`
   font-weight: 700;
   color: ${({ $color, theme }) => $color || theme.colors.text};
   word-break: break-word;
+`;
+
+/* ——— Skeleton placeholders ——— */
+
+const SkeletonBar = styled.div<{ $width?: string; $height?: string }>`
+  width: ${({ $width }) => $width || "100%"};
+  height: ${({ $height }) => $height || "0.875rem"};
+  border-radius: ${({ theme }) => theme.radius.sm};
+  background: ${({ theme }) => theme.colors.textMuted};
+  animation: ${pulse} 1.8s ease-in-out infinite;
+`;
+
+const SkeletonRing = styled.div`
+  flex-shrink: 0;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: ${({ theme }) => theme.colors.surfaceElevated};
+  border: 4px solid ${({ theme }) => theme.colors.border};
+  animation: ${pulse} 1.8s ease-in-out infinite;
 `;
 
 /* ——— Section cards ——— */
@@ -411,29 +475,46 @@ function priceColor(text: string, theme: { colors: Record<string, string> }): st
 function renderScoreHero(
   sections: ParsedSection[],
   metrics: ReturnType<typeof extractMetrics>,
+  isStreaming: boolean,
 ) {
   const scoreSection = sections.find((s) => s.key.includes("enjoyment-score"));
   const summarySection = sections.find((s) => s.key.includes("score-summary"));
 
-  if (metrics.score === null && !scoreSection) return null;
+  if (metrics.score === null && !scoreSection && !isStreaming) return null;
+
+  const displayScore = metrics.earlyAccess
+    ? metrics.potentialScore
+    : metrics.score;
 
   return (
     <ScoreHero>
-      {metrics.score !== null && (
-        <ScoreRing $score={metrics.score}>{metrics.score}</ScoreRing>
-      )}
+      <ScoreRingWrap>
+        {metrics.earlyAccess && <ScoreRingTag>Potential</ScoreRingTag>}
+        {displayScore !== null ? (
+          <ScoreRing $score={displayScore}>{displayScore}</ScoreRing>
+        ) : isStreaming ? (
+          <SkeletonRing />
+        ) : null}
+      </ScoreRingWrap>
       <ScoreDetails>
         <ScoreLabel>Enjoyment Score</ScoreLabel>
-        {summarySection && (
+        {metrics.earlyAccess && metrics.score !== null && (
+          <CurrentScoreNote>Currently {metrics.score}/100</CurrentScoreNote>
+        )}
+        {summarySection ? (
           <ScoreSummaryText>
             <SectionMarkdown content={summarySection.content} />
           </ScoreSummaryText>
-        )}
-        {!summarySection && scoreSection && (
+        ) : scoreSection ? (
           <ScoreSummaryText>
             <SectionMarkdown content={scoreSection.content} />
           </ScoreSummaryText>
-        )}
+        ) : isStreaming ? (
+          <>
+            <SkeletonBar $width="60%" style={{ marginTop: 6 }} />
+            <SkeletonBar $width="85%" style={{ marginTop: 6 }} />
+          </>
+        ) : null}
       </ScoreDetails>
     </ScoreHero>
   );
@@ -443,6 +524,7 @@ function renderMetricsRow(
   sections: ParsedSection[],
   metrics: ReturnType<typeof extractMetrics>,
   theme: { colors: Record<string, string> },
+  isStreaming: boolean,
   fullPrice?: number,
   currencyCode?: string,
 ) {
@@ -455,8 +537,62 @@ function renderMetricsRow(
     ? computed.value != null ? formatCurrencyValue(computed.value, currencyCode) : computed.label
     : metrics.targetPrice;
 
-  const hasMetrics = priceLabel || riskSection;
-  if (!hasMetrics) return null;
+  const potentialComputed = metrics.earlyAccess && metrics.potentialScore !== null && fullPrice != null
+    ? computeTargetPrice(metrics.potentialScore, metrics.riskLevel, metrics.confidence, fullPrice, metrics.refundRecommended)
+    : null;
+  const potentialPriceLabel = potentialComputed
+    ? potentialComputed.value != null ? formatCurrencyValue(potentialComputed.value, currencyCode) : potentialComputed.label
+    : null;
+
+  const hasMetrics = priceLabel || riskSection || metrics.confidence;
+  if (!hasMetrics && !isStreaming) return null;
+
+  if (isStreaming) {
+    return (
+      <MetricsRow>
+        <MetricCell>
+          <MetricLabel>Target Price</MetricLabel>
+          {priceLabel ? (
+            <MetricValue $color={priceColor(priceLabel, theme)}>{priceLabel}</MetricValue>
+          ) : (
+            <SkeletonBar $width="60%" $height="1rem" />
+          )}
+        </MetricCell>
+        {metrics.earlyAccess && (
+          <MetricCell>
+            <MetricLabel>At Release</MetricLabel>
+            {potentialPriceLabel ? (
+              <MetricValue $color={priceColor(potentialPriceLabel, theme)}>{potentialPriceLabel}</MetricValue>
+            ) : (
+              <SkeletonBar $width="60%" $height="1rem" />
+            )}
+          </MetricCell>
+        )}
+        <MetricCell>
+          <MetricLabel>Red-Line Risk</MetricLabel>
+          {riskSection ? (
+            <MetricValue $color={riskColor(metrics.riskLevel, theme)}>
+              {metrics.riskLevel === "unknown"
+                ? "See below"
+                : metrics.riskLevel.charAt(0).toUpperCase() + metrics.riskLevel.slice(1)}
+            </MetricValue>
+          ) : (
+            <SkeletonBar $width="50%" $height="1rem" />
+          )}
+        </MetricCell>
+        <MetricCell>
+          <MetricLabel>Confidence</MetricLabel>
+          {metrics.confidence ? (
+            <MetricValue $color={confidenceColor(metrics.confidence, theme)}>
+              {metrics.confidence}
+            </MetricValue>
+          ) : (
+            <SkeletonBar $width="55%" $height="1rem" />
+          )}
+        </MetricCell>
+      </MetricsRow>
+    );
+  }
 
   return (
     <MetricsRow>
@@ -465,6 +601,14 @@ function renderMetricsRow(
           <MetricLabel>Target Price</MetricLabel>
           <MetricValue $color={priceColor(priceLabel, theme)}>
             {priceLabel}
+          </MetricValue>
+        </MetricCell>
+      )}
+      {metrics.earlyAccess && potentialPriceLabel && (
+        <MetricCell>
+          <MetricLabel>At Release</MetricLabel>
+          <MetricValue $color={priceColor(potentialPriceLabel, theme)}>
+            {potentialPriceLabel}
           </MetricValue>
         </MetricCell>
       )}
@@ -602,8 +746,8 @@ function StructuredResult({
 
   return (
     <>
-      {renderScoreHero(sections, metrics)}
-      {renderMetricsRow(sections, metrics, theme, fullPrice, currencyCode)}
+      {renderScoreHero(sections, metrics, isStreaming)}
+      {renderMetricsRow(sections, metrics, theme, isStreaming, fullPrice, currencyCode)}
       {ordered.map((s, i) =>
         renderSection(s, metrics, i === ordered.length - 1, isStreaming, theme),
       )}
@@ -659,13 +803,14 @@ export function ResultCard({ response, gameName, price, isStreaming, thinkingTex
   const { state } = useApp();
   const priceLabel = formatPrice(price, state.setupAnswers?.currency);
 
-  const { sections, useStructured, themeColors } = useMemo(() => {
+  const { sections, useStructured, earlyAccess } = useMemo(() => {
     const parsed = parseResponseSections(response);
-    const hasSections = parsed.filter((s) => s.key !== "preamble").length >= 3;
+    const hasSections = parsed.filter((s) => s.key !== "preamble").length >= 1;
+    const preamble = parsed.find((s) => s.key === "preamble");
     return {
       sections: parsed,
       useStructured: hasSections,
-      themeColors: null as unknown,
+      earlyAccess: Boolean(preamble && /\[EARLY_ACCESS\]/i.test(preamble.content)),
     };
   }, [response]);
 
@@ -674,7 +819,10 @@ export function ResultCard({ response, gameName, price, isStreaming, thinkingTex
   return (
     <Card>
       <Header>
-        <GameTitle>{gameName}</GameTitle>
+        <GameTitle>
+          {gameName}
+          {earlyAccess && <EarlyAccessBadge>Early Access</EarlyAccessBadge>}
+        </GameTitle>
         <GameMeta>{priceLabel}</GameMeta>
       </Header>
 
@@ -684,7 +832,7 @@ export function ResultCard({ response, gameName, price, isStreaming, thinkingTex
             <ThinkingDisplay text={thinkingText ?? ""} />
           </MarkdownBody>
         </FallbackBody>
-      ) : useStructured ? (
+      ) : (useStructured || isStreaming) ? (
         <ThemedStructuredResult sections={sections} isStreaming={isStreaming} fullPrice={price} currencyCode={state.setupAnswers?.currency} />
       ) : (
         <FallbackBody>
@@ -694,6 +842,29 @@ export function ResultCard({ response, gameName, price, isStreaming, thinkingTex
     </Card>
   );
 }
+
+const PreviewWrap = styled.div`
+  ${ScoreSummaryText} {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+`;
+
+const RefundStrip = styled.div<{ $required: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: ${({ theme }) => `${theme.spacing.sm} ${theme.spacing.lg}`};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  font-family: ${({ theme }) => theme.font.sans};
+  font-size: 0.8125rem;
+  color: ${({ theme, $required }) =>
+    $required ? theme.colors.warning : theme.colors.accent};
+
+  svg { flex-shrink: 0; }
+`;
 
 export function HistoryPreview({ response, fullPrice, currencyCode }: { response: string; fullPrice?: number; currencyCode?: string }) {
   const sections = useMemo(() => parseResponseSections(response), [response]);
@@ -718,19 +889,16 @@ export function HistoryPreview({ response, fullPrice, currencyCode }: { response
   const refundRequired = metrics.refundRecommended;
 
   return (
-    <>
-      {renderScoreHero(sections, metrics)}
-      {renderMetricsRow(sections, metrics, theme, fullPrice, currencyCode)}
+    <PreviewWrap>
+      {renderScoreHero(sections, metrics, false)}
+      {renderMetricsRow(sections, metrics, theme, false, fullPrice, currencyCode)}
       {refundSection && (
-        <RefundBanner $required={refundRequired}>
-          <RefundIconWrap $required={refundRequired}><Icon name={refundRequired ? "alert-triangle" : "info"} size={20} /></RefundIconWrap>
-          <SectionContent>
-            <RefundTitle $required={refundRequired}>Refund Guard</RefundTitle>
-            <SectionMarkdown content={refundSection.content} />
-          </SectionContent>
-        </RefundBanner>
+        <RefundStrip $required={refundRequired}>
+          <Icon name={refundRequired ? "alert-triangle" : "info"} size={14} />
+          <span><strong>Refund Guard:</strong> {refundRequired ? "Recommended" : "Not required"}</span>
+        </RefundStrip>
       )}
-    </>
+    </PreviewWrap>
   );
 }
 

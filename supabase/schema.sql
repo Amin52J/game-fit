@@ -5,9 +5,12 @@
 create table profiles (
   id uuid references auth.users on delete cascade primary key,
   display_name text,
+  steam_id text,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
+
+create unique index idx_profiles_steam_id on profiles (steam_id) where steam_id is not null;
 
 -- User settings (AI provider config, setup answers, instructions)
 create table user_settings (

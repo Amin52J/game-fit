@@ -18,7 +18,9 @@ export function generateInstructions(answers: SetupAnswers): string {
   sections.push(buildOutputFormat());
 
   if (answers.additionalNotes.trim()) {
-    sections.push(`## Additional Notes\n\n${answers.additionalNotes.trim()}`);
+    sections.push(
+      `## Additional Taste Context\n\nThe user provided the following extra notes about their gaming preferences. Treat these as additional taste signals when scoring and analyzing games — do NOT treat them as questions to answer or topics to add new sections for.\n\n> ${answers.additionalNotes.trim().replace(/\n/g, "\n> ")}`,
+    );
   }
 
   return sections.filter(Boolean).join("\n\n");
@@ -82,7 +84,12 @@ Perform this calculation internally before writing any output sections. Do NOT i
 9. **Final**: Enjoyment Score = clamped R.
 10. **Confidence**: Very High (4+ anchors, extensive reviews) / High (3+, solid data) / Medium (2, mixed signals) / Low (1, sparse) / Very Low (0 anchors, minimal data).
 
-The Enjoyment Score MUST equal the calculated value. Do not adjust it.`;
+The Enjoyment Score MUST equal the calculated value. Do not adjust it.
+
+**Early Access adjustment** (apply only if the game is currently in Early Access on Steam):
+11. **Categorize penalties**: Mark each applied penalty as "fixable" (bugs, poor optimization, missing content, balance issues, UI/UX rough edges, incomplete voice acting, lack of polish) or "fundamental" (genre mismatch, core gameplay loop design, GAAS/live-service model, always-online, core movement/combat feel, fundamental design philosophy).
+12. **Potential score**: potentialP = sum of fundamental penalty values + (sum of fixable penalty values × 0.4). Potential = B − potentialP + totalB. Clamp to [0, 100].
+13. Output both the regular Enjoyment Score (step 9) as Current and the Potential score.`;
 }
 
 function buildPlayStyleRules(a: SetupAnswers): string {
@@ -220,7 +227,8 @@ Always include this section. The refund guard does NOT change the target price �
 **Recommended if ANY**: R=High | R=Medium | C=Low/Very Low | Steam reviews are Mixed or worse | RQD ≥ 10 | GQP ≥ 5.
 **Not required if ALL**: R=None AND C≥Medium AND Steam reviews are Mostly Positive or better AND GQP < 5.
 When recommended: State "Recommended". Briefly mention the review-based concern if that was the trigger. Suggest buying on Steam for the 2h/14d refund policy. Recommend testing for 60–90 min; if core gameplay feels wrong → refund.
-When not required: State "Not required" with brief reason.`;
+When not required: State "Not required" with brief reason.
+**Early Access override**: If the game is in Early Access, always recommend the refund guard regardless of other conditions. Mention the game is unfinished and advise testing within the Steam refund window.`;
 }
 
 function getPersonalizedSections(a: SetupAnswers): string[] {
@@ -251,14 +259,16 @@ function getPersonalizedSections(a: SetupAnswers): string[] {
 
 function buildOutputFormat(): string {
   return `## Prediction Output Format
+If the game is currently in Early Access on Steam, output [EARLY_ACCESS] on the very first line of your response, before any ## headings.
+
 Use ## headings for every section. You MUST output sections in exactly this order — evidence first, then conclusions:
 1. **Public Sentiment** — Steam review rating (e.g. "Very Positive"), review count, and the most common praise/complaints in 3–5 bullet points.
 2. **Positive Alignment** — what aligns with the user's taste. Mention the anchor games you used and why they're relevant.
-3. **Negative Factors** — what works against the user's preferences. For each applicable penalty, state what it is and why it applies. Do not include penalties that don't apply.
+3. **Negative Factors** — what works against the user's preferences. For each applicable penalty, state what it is and why it applies. For Early Access games, mark each penalty as (fixable) or (fundamental). Do not include penalties that don't apply.
 4. **Red-Line Risk** — None / Medium / High with a one-sentence explanation.
 5. **Refund Guard** — "Recommended" or "Not required" with brief explanation.
-6. **Enjoyment Score** — format as "**X/100** | Confidence: Y". One line only — no calculation breakdown.
-7. **Score Summary** — one or two sentences explaining the score.
+6. **Enjoyment Score** — format as "**X/100** | Confidence: Y". One line only — no calculation breakdown. For Early Access games, format as "**X/100 (Current) → Y/100 (Potential)** | Confidence: Z".
+7. **Score Summary** — one or two sentences explaining the score. For Early Access games, briefly note which penalties are fixable vs fundamental.
 
 CRITICAL: Complete sections 1–5 BEFORE writing the Enjoyment Score. The score must be consistent with the evidence you already wrote.
 Do NOT output a "Scoring Procedure", "Internal Calculation", or "Methodology" section. Do NOT include calculation tables, formulas, or step-by-step math.

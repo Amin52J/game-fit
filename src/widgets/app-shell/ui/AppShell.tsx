@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, useSyncExternalStore } from "react";
+import { usePathname } from "next/navigation";
 import styled from "styled-components";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { useApp } from "@/app/providers/AppProvider";
@@ -55,7 +56,9 @@ interface AppShellProps {
 export function AppShell({ children }: AppShellProps) {
   const { user, loading: authLoading } = useAuth();
   const { state, hydrated } = useApp();
-  const setupDone = state.isSetupComplete;
+  const pathname = usePathname();
+  const forceSetup = pathname === "/setup";
+  const setupDone = state.isSetupComplete && !forceSetup;
 
   const isTauri = useSyncExternalStore(noopSubscribe, getTauri, getTauriServer);
 

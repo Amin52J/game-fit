@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import Image from "next/image";
 import styled, { keyframes } from "styled-components";
 import { useAuth } from "@/app/providers/AuthProvider";
+import { openSteamLoginPopup, verifySteamLogin } from "@/features/auth/lib/steam";
+import { getSupabase } from "@/shared/api/supabase";
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(12px); }
@@ -214,6 +216,41 @@ const SocialBtn = styled.button`
   }
 `;
 
+const SteamBtn = styled.button`
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px;
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: #171a21;
+  color: #c7d5e0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: ${({ theme }) => theme.font.sans};
+  cursor: pointer;
+  transition: all ${({ theme }) => theme.transition.fast};
+
+  &:hover:not(:disabled) {
+    background: #1b2838;
+    border-color: #66c0f4;
+    color: #fff;
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0) scale(0.97);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
 const ErrorMsg = styled.div`
   padding: 10px 14px;
   border-radius: ${({ theme }) => theme.radius.md};
@@ -269,6 +306,25 @@ export function AuthPage() {
     setBusy(true);
     const err = await signInWithProvider(provider);
     if (err) setError(err);
+    setBusy(false);
+  };
+
+  const handleSteamLogin = async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      const params = await openSteamLoginPopup();
+      const { tokenHash, email: steamEmail } = await verifySteamLogin(params);
+      const sb = getSupabase();
+      const { error: otpError } = await sb.auth.verifyOtp({
+        type: "magiclink",
+        token_hash: tokenHash,
+        email: steamEmail,
+      });
+      if (otpError) setError(otpError.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Steam login failed");
+    }
     setBusy(false);
   };
 
@@ -340,13 +396,16 @@ export function AuthPage() {
         <Divider>or continue with</Divider>
 
         <SocialRow>
-          <SocialBtn type="button" onClick={() => handleSocial("google")} disabled={busy}>
-            Google
-          </SocialBtn>
           <SocialBtn type="button" onClick={() => handleSocial("github")} disabled={busy}>
+            <img src="/github-logo.svg" alt="" width="18" height="18" />
             GitHub
           </SocialBtn>
         </SocialRow>
+
+        <SteamBtn type="button" onClick={handleSteamLogin} disabled={busy}>
+          <img src="/steam-logo.svg" alt="" width="18" height="18" />
+          Sign in with Steam
+        </SteamBtn>
       </Card>
     </Page>
   );

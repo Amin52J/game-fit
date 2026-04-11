@@ -37,6 +37,8 @@
   ],
   "exclude": [
     "node_modules",
-    "src-tauri"
+    ".next",
+    "src-tauri",
+    "supabase/functions"
   ]
 }

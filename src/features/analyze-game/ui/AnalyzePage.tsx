@@ -60,12 +60,33 @@ export function AnalyzePage() {
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const wasStreamingRef = useRef(false);
+  const userScrolledRef = useRef(false);
+
+  useEffect(() => {
+    const active = isStreaming || isExpanding;
+    if (!active) return;
+
+    userScrolledRef.current = false;
+    const onUserScroll = () => {
+      const nearBottom =
+        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 50;
+      userScrolledRef.current = !nearBottom;
+    };
+    window.addEventListener("wheel", onUserScroll, { passive: true });
+    window.addEventListener("touchmove", onUserScroll, { passive: true });
+    return () => {
+      window.removeEventListener("wheel", onUserScroll);
+      window.removeEventListener("touchmove", onUserScroll);
+    };
+  }, [isStreaming, isExpanding]);
 
   useEffect(() => {
     const active = isStreaming || isExpanding;
     if (active) {
       wasStreamingRef.current = true;
-      bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      if (!userScrolledRef.current) {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      }
     } else if (wasStreamingRef.current) {
       wasStreamingRef.current = false;
       window.scrollTo({ top: 0, behavior: "smooth" });

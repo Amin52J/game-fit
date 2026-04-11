@@ -208,7 +208,6 @@ export function AnalyzeForm({ onSubmit, isLoading }: AnalyzeFormProps) {
           name="gameName"
           type="text"
           autoComplete="off"
-          placeholder="e.g. Hollow Knight"
           value={gameName}
           onChange={(e) => { setGameName(e.target.value); sessionCache.set({ gameName: e.target.value }); }}
           disabled={isLoading || showProviderError}

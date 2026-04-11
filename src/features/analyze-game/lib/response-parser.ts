@@ -8,10 +8,12 @@ export type RiskLevel = "none" | "medium" | "high" | "unknown";
 
 export interface ExtractedMetrics {
   score: number | null;
+  potentialScore: number | null;
   confidence: string | null;
   riskLevel: RiskLevel;
   targetPrice: string | null;
   refundRecommended: boolean;
+  earlyAccess: boolean;
 }
 
 function normalizeKey(heading: string): string {
@@ -50,16 +52,31 @@ export function parseResponseSections(text: string): ParsedSection[] {
 export function extractMetrics(sections: ParsedSection[]): ExtractedMetrics {
   const metrics: ExtractedMetrics = {
     score: null,
+    potentialScore: null,
     confidence: null,
     riskLevel: "unknown",
     targetPrice: null,
     refundRecommended: false,
+    earlyAccess: false,
   };
+
+  const preamble = sections.find((s) => s.key === "preamble");
+  if (preamble && /\[EARLY_ACCESS\]/i.test(preamble.content)) {
+    metrics.earlyAccess = true;
+  }
 
   for (const s of sections) {
     if (s.key.includes("enjoyment-score")) {
-      const scoreMatch = s.content.match(/(\d{1,3})\s*(?:\/\s*100|%)/);
-      if (scoreMatch) metrics.score = parseInt(scoreMatch[1], 10);
+      const eaMatch = s.content.match(
+        /(\d{1,3})\s*\/\s*100\s*\(Current\)[\s\S]*?(\d{1,3})\s*\/\s*100\s*\(Potential\)/i,
+      );
+      if (eaMatch) {
+        metrics.score = parseInt(eaMatch[1], 10);
+        metrics.potentialScore = parseInt(eaMatch[2], 10);
+      } else {
+        const scoreMatch = s.content.match(/(\d{1,3})\s*(?:\/\s*100|%)/);
+        if (scoreMatch) metrics.score = parseInt(scoreMatch[1], 10);
+      }
 
       const confMatch = s.content.match(
         /(?:confidence|level)[:\s—–-]*(Very High|High|Medium|Low|Very Low)/i,

@@ -377,7 +377,7 @@ const FEATURES = [
 const STEPS = [
   {
     title: "Create an account",
-    desc: "Sign up with email or your Google/GitHub account in seconds.",
+    desc: "Sign up with email, GitHub, or your Steam account in seconds.",
   },
   {
     title: "Set up your profile",

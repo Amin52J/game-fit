@@ -51,15 +51,17 @@ function readInitialParams(): {
   score: Set<string>;
   risk: Set<string>;
   view: ViewMode;
+  ea: boolean;
 } {
   if (typeof window === "undefined")
-    return { q: "", score: new Set(), risk: new Set(), view: "detailed" };
+    return { q: "", score: new Set(), risk: new Set(), view: "detailed", ea: false };
   const params = new URLSearchParams(window.location.search);
   return {
     q: params.get("q") || "",
     score: new Set(params.get("score")?.split(",").filter(Boolean) || []),
     risk: new Set(params.get("risk")?.split(",").filter(Boolean) || []),
     view: params.get("view") === "list" ? "list" : "detailed",
+    ea: params.get("ea") === "1",
   };
 }
 
@@ -550,6 +552,32 @@ const RiskBadge = styled.span<{ $level: string }>`
   }}
 `;
 
+const EarlyAccessTag = styled.span`
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: ${({ theme }) => theme.colors.warning};
+  background: ${({ theme }) => theme.colors.warningMuted};
+  border: 1px solid ${({ theme }) => theme.colors.warning};
+  border-radius: ${({ theme }) => theme.radius.sm};
+  flex-shrink: 0;
+  white-space: nowrap;
+  vertical-align: middle;
+`;
+
+const ListGameCell = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+`;
+
 const ListDeleteBtn = styled.button`
   padding: 4px 8px;
   font-family: ${({ theme }) => theme.font.sans};
@@ -665,6 +693,7 @@ export function HistoryPage() {
   const [debouncedSearch, setDebouncedSearch] = useState(initial.q);
   const [scoreFilters, setScoreFilters] = useState<Set<string>>(initial.score);
   const [riskFilters, setRiskFilters] = useState<Set<string>>(initial.risk);
+  const [eaFilter, setEaFilter] = useState(initial.ea);
   const [viewMode, setViewMode] = useState<ViewMode>(initial.view);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -683,7 +712,7 @@ export function HistoryPage() {
   const scoreKey = useMemo(() => [...scoreFilters].sort().join(","), [scoreFilters]);
   const riskKey = useMemo(() => [...riskFilters].sort().join(","), [riskFilters]);
 
-  const filterKey = `${debouncedSearch}\0${scoreKey}\0${riskKey}`;
+  const filterKey = `${debouncedSearch}\0${scoreKey}\0${riskKey}\0${eaFilter}`;
   const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
   if (filterKey !== prevFilterKey) {
     setPrevFilterKey(filterKey);
@@ -697,10 +726,11 @@ export function HistoryPage() {
     if (debouncedSearch) params.set("q", debouncedSearch);
     if (scoreKey) params.set("score", scoreKey);
     if (riskKey) params.set("risk", riskKey);
+    if (eaFilter) params.set("ea", "1");
     if (viewMode === "list") params.set("view", "list");
     const qs = params.toString();
     window.history.replaceState(null, "", `/history${qs ? `?${qs}` : ""}`);
-  }, [isActive, debouncedSearch, scoreKey, riskKey, viewMode]);
+  }, [isActive, debouncedSearch, scoreKey, riskKey, eaFilter, viewMode]);
 
   /* — Enrich results with parsed metrics — */
   const enriched = useMemo<EnrichedResult[]>(
@@ -730,8 +760,12 @@ export function HistoryPage() {
       results = results.filter((r) => matchesRiskFilter(r.metrics.riskLevel, riskFilters));
     }
 
+    if (eaFilter) {
+      results = results.filter((r) => r.metrics.earlyAccess);
+    }
+
     return [...results].sort((a, b) => b.item.timestamp - a.item.timestamp);
-  }, [enriched, debouncedSearch, scoreFilters, riskFilters]);
+  }, [enriched, debouncedSearch, scoreFilters, riskFilters, eaFilter]);
 
   const visible = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
@@ -922,6 +956,12 @@ export function HistoryPage() {
               </FilterChip>
             ))}
           </FilterGroup>
+          <FilterChip
+            $active={eaFilter}
+            onClick={() => setEaFilter((v) => !v)}
+          >
+            Early Access
+          </FilterChip>
           <ResultCount>
             {filtered.length === totalCount
               ? `${totalCount} analyses`
@@ -946,7 +986,10 @@ export function HistoryPage() {
                       aria-expanded={expanded}
                     >
                       <CardTitleBlock>
-                        <CardTitle>{item.gameName}</CardTitle>
+                        <CardTitle>
+                          {item.gameName}
+                          {metrics.earlyAccess && <EarlyAccessTag>Early Access</EarlyAccessTag>}
+                        </CardTitle>
                         <CardMeta>
                           {metrics.score !== null && (
                             <>
@@ -1032,7 +1075,10 @@ export function HistoryPage() {
                       {metrics.score !== null ? metrics.score : "—"}
                     </MiniScore>
                   </div>
-                  <ListGameName title={item.gameName}>{item.gameName}</ListGameName>
+                  <ListGameCell>
+                    <ListGameName title={item.gameName}>{item.gameName}</ListGameName>
+                    {metrics.earlyAccess && <EarlyAccessTag>EA</EarlyAccessTag>}
+                  </ListGameCell>
                   <ListMeta>{formatPrice(item.price, currency)}</ListMeta>
                   <ListMeta>{formatDateShort(item.timestamp)}</ListMeta>
                   <div>

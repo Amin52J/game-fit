@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styled, { css, keyframes } from "styled-components";
 import { useDropzone } from "react-dropzone";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/app/providers/AppProvider";
 import { generateInstructions } from "@/features/setup-wizard/lib/prompt-generator";
 import { parseAnyFormat } from "@/entities/game/lib/csv-parser";
+import { openSteamLoginPopup, fetchSteamGames, extractSteamIdFromParams } from "@/features/auth/lib/steam";
+import { openEpicLoginTab, fetchEpicGames } from "@/features/auth/lib/epic";
 import { AIClient } from "@/entities/ai-provider/api/client";
 import type { AIProviderConfig, AIProviderType, Game, SetupAnswers } from "@/shared/types";
 import { DEFAULT_MODELS, DEALBREAKER_OPTIONS } from "@/shared/types";
@@ -45,11 +47,16 @@ function defaultAiConfig(): AIProviderConfig {
     apiKey: "",
     model: DEFAULT_MODELS.anthropic[0] ?? "",
     baseUrl: "",
-    extendedThinking: false,
   };
 }
 
-function mergeGameLists(a: Game[], b: Game[]): Game[] {
+/**
+ * Merge two game lists by title. When `bPriority` is true, entries from `b`
+ * overwrite duplicates in `a` (unless `a` has a score and `b` doesn't).
+ * Default behaviour (bPriority=false): `a` always wins on duplicates unless
+ * `b` has a strictly higher score.
+ */
+function mergeGameLists(a: Game[], b: Game[], bPriority = false): Game[] {
   const map = new Map<string, Game>();
   const keyOf = (name: string) => name.trim().toLowerCase();
   for (const g of a) {
@@ -62,9 +69,13 @@ function mergeGameLists(a: Game[], b: Game[]): Game[] {
       map.set(k, g);
       continue;
     }
-    const ps = prev.score ?? -Infinity;
-    const gs = g.score ?? -Infinity;
-    map.set(k, gs > ps ? { ...g, id: prev.id } : prev);
+    if (bPriority) {
+      map.set(k, prev.score !== null && g.score === null ? prev : { ...g, id: prev.id });
+    } else {
+      const ps = prev.score ?? -Infinity;
+      const gs = g.score ?? -Infinity;
+      map.set(k, gs > ps ? { ...g, id: prev.id } : prev);
+    }
   }
   return Array.from(map.values());
 }
@@ -218,6 +229,198 @@ const SelectInput = styled.select`
   background-position: right ${({ theme }) => theme.spacing.md} center;
   padding-right: ${({ theme }) => theme.spacing.xl};
 `;
+
+/* ——— Searchable currency dropdown ——— */
+
+const CURRENCIES = [
+  { code: "EUR", label: "EUR – Euro" },
+  { code: "USD", label: "USD – US Dollar" },
+  { code: "GBP", label: "GBP – British Pound" },
+  { code: "CAD", label: "CAD – Canadian Dollar" },
+  { code: "AUD", label: "AUD – Australian Dollar" },
+  { code: "JPY", label: "JPY – Japanese Yen" },
+  { code: "CHF", label: "CHF – Swiss Franc" },
+  { code: "CNY", label: "CNY – Chinese Yuan" },
+  { code: "SEK", label: "SEK – Swedish Krona" },
+  { code: "NOK", label: "NOK – Norwegian Krone" },
+  { code: "DKK", label: "DKK – Danish Krone" },
+  { code: "PLN", label: "PLN – Polish Złoty" },
+  { code: "CZK", label: "CZK – Czech Koruna" },
+  { code: "HUF", label: "HUF – Hungarian Forint" },
+  { code: "RON", label: "RON – Romanian Leu" },
+  { code: "BGN", label: "BGN – Bulgarian Lev" },
+  { code: "HRK", label: "HRK – Croatian Kuna" },
+  { code: "TRY", label: "TRY – Turkish Lira" },
+  { code: "RUB", label: "RUB – Russian Ruble" },
+  { code: "UAH", label: "UAH – Ukrainian Hryvnia" },
+  { code: "BRL", label: "BRL – Brazilian Real" },
+  { code: "MXN", label: "MXN – Mexican Peso" },
+  { code: "ARS", label: "ARS – Argentine Peso" },
+  { code: "CLP", label: "CLP – Chilean Peso" },
+  { code: "COP", label: "COP – Colombian Peso" },
+  { code: "PEN", label: "PEN – Peruvian Sol" },
+  { code: "INR", label: "INR – Indian Rupee" },
+  { code: "KRW", label: "KRW – South Korean Won" },
+  { code: "TWD", label: "TWD – Taiwan Dollar" },
+  { code: "THB", label: "THB – Thai Baht" },
+  { code: "SGD", label: "SGD – Singapore Dollar" },
+  { code: "MYR", label: "MYR – Malaysian Ringgit" },
+  { code: "IDR", label: "IDR – Indonesian Rupiah" },
+  { code: "PHP", label: "PHP – Philippine Peso" },
+  { code: "VND", label: "VND – Vietnamese Dong" },
+  { code: "NZD", label: "NZD – New Zealand Dollar" },
+  { code: "ZAR", label: "ZAR – South African Rand" },
+  { code: "ILS", label: "ILS – Israeli Shekel" },
+  { code: "SAR", label: "SAR – Saudi Riyal" },
+  { code: "AED", label: "AED – UAE Dirham" },
+  { code: "QAR", label: "QAR – Qatari Riyal" },
+  { code: "KWD", label: "KWD – Kuwaiti Dinar" },
+  { code: "EGP", label: "EGP – Egyptian Pound" },
+  { code: "NGN", label: "NGN – Nigerian Naira" },
+  { code: "KES", label: "KES – Kenyan Shilling" },
+  { code: "PKR", label: "PKR – Pakistani Rupee" },
+  { code: "BDT", label: "BDT – Bangladeshi Taka" },
+  { code: "HKD", label: "HKD – Hong Kong Dollar" },
+] as const;
+
+const CurrencyWrap = styled.div`
+  position: relative;
+`;
+
+const CurrencyDropdown = styled.ul`
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  margin: 4px 0 0;
+  padding: 4px 0;
+  list-style: none;
+  max-height: 220px;
+  overflow-y: auto;
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  box-shadow: ${({ theme }) => theme.shadow.md};
+`;
+
+const CurrencyOption = styled.li<{ $highlighted: boolean }>`
+  padding: ${({ theme }) => `${theme.spacing.sm} ${theme.spacing.md}`};
+  font-family: ${({ theme }) => theme.font.sans};
+  font-size: 0.875rem;
+  color: ${({ theme }) => theme.colors.text};
+  cursor: pointer;
+  background: ${({ theme, $highlighted }) =>
+    $highlighted ? theme.colors.accentMuted : "transparent"};
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.surfaceHover};
+  }
+`;
+
+function CurrencySearch({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (code: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [highlightIdx, setHighlightIdx] = useState(0);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const displayLabel = CURRENCIES.find((c) => c.code === value)?.label ?? value;
+
+  const filtered = query
+    ? CURRENCIES.filter((c) =>
+        c.label.toLowerCase().includes(query.toLowerCase()),
+      )
+    : CURRENCIES;
+
+  useEffect(() => {
+    setHighlightIdx(0);
+  }, [query]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClickOutside = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
+        setOpen(false);
+        setQuery("");
+      }
+    };
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, [open]);
+
+  const select = (code: string) => {
+    onChange(code);
+    setOpen(false);
+    setQuery("");
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!open) {
+      if (e.key === "ArrowDown" || e.key === "Enter") {
+        e.preventDefault();
+        setOpen(true);
+      }
+      return;
+    }
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlightIdx((i) => Math.min(i + 1, filtered.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlightIdx((i) => Math.max(i - 1, 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (filtered[highlightIdx]) select(filtered[highlightIdx].code);
+    } else if (e.key === "Escape") {
+      setOpen(false);
+      setQuery("");
+    }
+  };
+
+  return (
+    <CurrencyWrap ref={wrapRef}>
+      <TextInput
+        ref={inputRef}
+        id="gf-currency"
+        value={open ? query : displayLabel}
+        placeholder="Search currency..."
+        onChange={(e) => {
+          setQuery(e.target.value);
+          if (!open) setOpen(true);
+        }}
+        onFocus={() => {
+          setOpen(true);
+          setQuery("");
+        }}
+        onKeyDown={handleKeyDown}
+        autoComplete="off"
+      />
+      {open && filtered.length > 0 && (
+        <CurrencyDropdown>
+          {filtered.map((c, i) => (
+            <CurrencyOption
+              key={c.code}
+              $highlighted={i === highlightIdx}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                select(c.code);
+              }}
+            >
+              {c.label}
+            </CurrencyOption>
+          ))}
+        </CurrencyDropdown>
+      )}
+    </CurrencyWrap>
+  );
+}
 
 const TextAreaField = styled.textarea`
   ${BaseField};
@@ -911,6 +1114,88 @@ const BucketRow = styled.div`
   color: ${({ theme }) => theme.colors.textMuted};
 `;
 
+/* ——— Platform connectors ——— */
+
+const PlatformSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.sm};
+`;
+
+const PlatformRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${({ theme }) => theme.spacing.sm};
+`;
+
+const PlatformBtn = styled.button<{ $color: string; $connected?: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: 1px solid ${({ $connected, theme }) => ($connected ? theme.colors.success : theme.colors.border)};
+  background: ${({ $color, $connected }) => ($connected ? "transparent" : $color)};
+  color: ${({ $connected, theme }) => ($connected ? theme.colors.success : "#fff")};
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: ${({ theme }) => theme.font.sans};
+  cursor: pointer;
+  transition: all ${({ theme }) => theme.transition.fast};
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  svg { fill: currentColor; }
+`;
+
+const PlatformGuideBox = styled.details`
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.colors.surface};
+  padding: 0;
+
+  &[open] summary { margin-bottom: ${({ theme }) => theme.spacing.sm}; }
+`;
+
+const PlatformGuideSummary = styled.summary`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.text};
+  cursor: pointer;
+  list-style: none;
+
+  &::-webkit-details-marker { display: none; }
+  &::marker { content: ""; }
+`;
+
+const PlatformGuideContent = styled.div`
+  padding: 0 14px 14px;
+  font-size: 0.78rem;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  line-height: 1.6;
+
+  ol { margin: 0; padding-left: 1.2rem; }
+  a { color: ${({ theme }) => theme.colors.accent}; text-decoration: none; &:hover { text-decoration: underline; } }
+`;
+
+const PlatformStatusText = styled.span`
+  font-size: 0.75rem;
+  color: ${({ theme }) => theme.colors.textMuted};
+  padding-left: 4px;
+`;
+
 /* ——— Step 4 ——— */
 
 const SummaryList = styled.ul`
@@ -1227,19 +1512,6 @@ function StepAiProvider({
         )}
       </div>
 
-      <ToggleRow onClick={() => setConfig((c) => ({ ...c, extendedThinking: !c.extendedThinking }))}>
-        <ToggleTrack $on={!!config.extendedThinking}>
-          <ToggleThumb $on={!!config.extendedThinking} />
-        </ToggleTrack>
-        <ToggleLabel>
-          <ToggleTitle>Think More mode</ToggleTitle>
-          <ToggleDesc>
-            The AI will reason more deeply before responding — produces more thorough analysis but
-            takes longer and costs more per request.
-          </ToggleDesc>
-        </ToggleLabel>
-      </ToggleRow>
-
       <NoteBox>
         Your API key stays in your browser and is never sent to any server other than your chosen AI
         provider. Each provider charges per request — typically a few cents per game analysis.
@@ -1483,10 +1755,9 @@ export function StepPreferences({
       <Row>
         <div>
           <Label htmlFor="gf-currency">Currency</Label>
-          <TextInput
-            id="gf-currency"
+          <CurrencySearch
             value={answers.currency}
-            onChange={(e) => setAnswers((a) => ({ ...a, currency: e.target.value }))}
+            onChange={(code) => setAnswers((a) => ({ ...a, currency: code }))}
           />
         </div>
         <div>
@@ -1513,6 +1784,10 @@ export function StepPreferences({
   );
 }
 
+function generateId(): string {
+  return Math.random().toString(36).slice(2, 11);
+}
+
 function StepImportLibrary({
   importedGames,
   setImportedGames,
@@ -1528,6 +1803,42 @@ function StepImportLibrary({
   parseError: string | null;
   setParseError: (v: string | null) => void;
 }) {
+  const [steamLoading, setSteamLoading] = useState(false);
+  const [steamCount, setSteamCount] = useState<number | null>(null);
+  const [steamError, setSteamError] = useState<string | null>(null);
+
+  const [epicStep, setEpicStep] = useState<"idle" | "waiting" | "loading">("idle");
+  const [epicCode, setEpicCode] = useState("");
+  const [epicCount, setEpicCount] = useState<number | null>(null);
+  const [epicError, setEpicError] = useState<string | null>(null);
+
+  const handleEpicLogin = () => {
+    openEpicLoginTab();
+    setEpicStep("waiting");
+    setEpicError(null);
+  };
+
+  const handleEpicSubmitCode = async () => {
+    if (!epicCode.trim()) return;
+    setEpicError(null);
+    setEpicStep("loading");
+    try {
+      const games = await fetchEpicGames(epicCode.trim());
+      const mapped: Game[] = games.map((name) => ({
+        id: generateId(),
+        name,
+        score: null,
+      }));
+      setImportedGames((prev) => mergeGameLists(prev, mapped));
+      setEpicCount(games.length);
+      setEpicStep("idle");
+      setEpicCode("");
+    } catch (err) {
+      setEpicError(err instanceof Error ? err.message : "Failed to import Epic games");
+      setEpicStep("waiting");
+    }
+  };
+
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       setParseError(null);
@@ -1538,7 +1849,7 @@ function StepImportLibrary({
           const parsed = parseAnyFormat(raw);
           combined = mergeGameLists(combined, parsed);
         }
-        setImportedGames((prev) => mergeGameLists(prev, combined));
+        setImportedGames((prev) => mergeGameLists(prev, combined, true));
       } catch {
         setParseError("Could not read one or more files.");
       }
@@ -1556,10 +1867,34 @@ function StepImportLibrary({
     setParseError(null);
     try {
       const parsed = parseAnyFormat(pasteText);
-      setImportedGames((prev) => mergeGameLists(prev, parsed));
+      setImportedGames((prev) => mergeGameLists(prev, parsed, true));
     } catch {
       setParseError("Could not parse pasted content.");
     }
+  };
+
+  const handleSteamConnect = async () => {
+    setSteamError(null);
+    setSteamLoading(true);
+    try {
+      const params = await openSteamLoginPopup();
+      const steamId = extractSteamIdFromParams(params);
+      if (!steamId) throw new Error("Could not extract Steam ID");
+
+      const games = await fetchSteamGames(steamId);
+      const mapped: Game[] = games.map((g) => ({
+        id: generateId(),
+        name: g.name,
+        score: null,
+      }));
+
+      // Merge: existing games (CSV/text) take priority over Steam imports
+      setImportedGames((prev) => mergeGameLists(prev, mapped));
+      setSteamCount(games.length);
+    } catch (err) {
+      setSteamError(err instanceof Error ? err.message : "Failed to connect to Steam");
+    }
+    setSteamLoading(false);
   };
 
   const buckets = useMemo(() => computeScoreBuckets(importedGames), [importedGames]);
@@ -1569,9 +1904,71 @@ function StepImportLibrary({
     <FieldGroup>
       <SectionTitle>Import your library</SectionTitle>
       <SectionHint>
-        Drop a CSV export, JSON list, or plain text (one game per line). You can skip and add games
-        later.
+        Connect your gaming platforms or import a CSV / text file. Duplicates are automatically
+        merged, with manual imports taking priority.
       </SectionHint>
+
+      <PlatformSection>
+        <Label>Connect platforms</Label>
+        <PlatformRow>
+          <PlatformBtn
+            type="button"
+            $color="#171a21"
+            $connected={steamCount !== null}
+            onClick={handleSteamConnect}
+            disabled={steamLoading}
+          >
+            <img src="/steam-logo.svg" alt="" width="16" height="16" />
+            {steamLoading ? "Connecting…" : steamCount !== null ? `Steam (${steamCount} games)` : "Steam"}
+          </PlatformBtn>
+        </PlatformRow>
+        {steamError && <StatusPill>{steamError}</StatusPill>}
+        {steamCount !== null && (
+          <PlatformStatusText>
+            Imported {steamCount} games from Steam. Your profile must be public.
+          </PlatformStatusText>
+        )}
+      </PlatformSection>
+
+      <PlatformSection>
+        <Label>Epic Games</Label>
+        {epicCount !== null ? (
+          <PlatformStatusText>
+            Imported {epicCount} games from Epic Games.
+          </PlatformStatusText>
+        ) : epicStep === "idle" ? (
+          <PlatformRow>
+            <PlatformBtn type="button" $color="#2f2f2f" onClick={handleEpicLogin}>
+              <img src="/epic-logo.svg" alt="" width="16" height="16" />
+              Connect Epic Games
+            </PlatformBtn>
+          </PlatformRow>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <PlatformStatusText>
+              A new tab opened to Epic Games. Log in, then copy the authorization code shown on the page and paste it below.
+            </PlatformStatusText>
+            <div style={{ display: "flex", gap: 8 }}>
+              <TextInput
+                placeholder="Paste authorization code…"
+                value={epicCode}
+                onChange={(e) => setEpicCode(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleEpicSubmitCode(); }}
+                style={{ flex: 1 }}
+              />
+              <Btn
+                type="button"
+                $variant="primary"
+                onClick={handleEpicSubmitCode}
+                disabled={epicStep === "loading" || !epicCode.trim()}
+              >
+                {epicStep === "loading" ? "Importing…" : "Import"}
+              </Btn>
+            </div>
+          </div>
+        )}
+        {epicError && <StatusPill>{epicError}</StatusPill>}
+      </PlatformSection>
 
       <DropZone {...getRootProps()} $active={isDragActive}>
         <input {...getInputProps()} />
@@ -1594,7 +1991,7 @@ function StepImportLibrary({
           <Btn type="button" $variant="secondary" onClick={applyPaste}>
             Parse pasted text
           </Btn>
-          <Btn type="button" $variant="ghost" onClick={() => setImportedGames([])}>
+          <Btn type="button" $variant="ghost" onClick={() => { setImportedGames([]); setSteamCount(null); setEpicCount(null); setEpicStep("idle"); }}>
             Clear imported games
           </Btn>
         </InlineActions>
@@ -1634,18 +2031,10 @@ function StepReview({
   aiConfig,
   importedGames,
   answers,
-  instructionsDraft,
-  setInstructionsDraft,
-  editingInstructions,
-  setEditingInstructions,
 }: {
   aiConfig: AIProviderConfig;
   importedGames: Game[];
   answers: SetupAnswers;
-  instructionsDraft: string;
-  setInstructionsDraft: (v: string) => void;
-  editingInstructions: boolean;
-  setEditingInstructions: (v: boolean) => void;
 }) {
   const providerLabel =
     aiConfig.type === "anthropic"
@@ -1662,7 +2051,6 @@ function StepReview({
       <SummaryList>
         <SummaryItem>
           <strong>Provider:</strong> {providerLabel} · model {aiConfig.model || "—"}
-          {aiConfig.extendedThinking ? " · Think More enabled" : ""}
         </SummaryItem>
         <SummaryItem>
           <strong>Games:</strong> {importedGames.length} imported
@@ -1675,26 +2063,6 @@ function StepReview({
           <strong>Pricing context:</strong> {answers.currency} · {answers.region}
         </SummaryItem>
       </SummaryList>
-
-      <div>
-        <InstructionsHeader>
-          <SectionTitle style={{ margin: 0 }}>Generated instructions</SectionTitle>
-          <Btn
-            type="button"
-            $variant="ghost"
-            onClick={() => setEditingInstructions(!editingInstructions)}
-          >
-            {editingInstructions ? "Done editing" : "Edit instructions"}
-          </Btn>
-        </InstructionsHeader>
-        <InstructionsTextArea
-          $readOnly={!editingInstructions}
-          readOnly={!editingInstructions}
-          value={instructionsDraft}
-          onChange={(e) => setInstructionsDraft(e.target.value)}
-          spellCheck={false}
-        />
-      </div>
     </FieldGroup>
   );
 }
@@ -1705,14 +2073,15 @@ export function SetupWizard() {
   const router = useRouter();
   const { setAIProvider, setGames, setInstructions, setSetupAnswers, completeSetup } = useApp();
 
+  const isDevMode = typeof window !== "undefined"
+    && new URLSearchParams(window.location.search).get("dev") === "true";
+
   const [step, setStep] = useState(1);
   const [aiConfig, setAiConfig] = useState<AIProviderConfig>(defaultAiConfig);
   const [answers, setAnswers] = useState<SetupAnswers>(defaultSetupAnswers);
   const [importedGames, setImportedGames] = useState<Game[]>([]);
   const [pasteText, setPasteText] = useState("");
   const [parseError, setParseError] = useState<string | null>(null);
-  const [instructionsDraft, setInstructionsDraft] = useState("");
-  const [editingInstructions, setEditingInstructions] = useState(false);
   const [showKey, setShowKey] = useState(false);
   const [testStatus, setTestStatus] = useState<"idle" | "ok" | "err">("idle");
   const [testLoading, setTestLoading] = useState(false);
@@ -1756,23 +2125,21 @@ export function SetupWizard() {
   };
 
   const goNext = () => {
-    if (step === 1 && !validateStep1()) return;
-    if (step === 3) {
-      setInstructionsDraft(generateInstructions(answers));
-      setEditingInstructions(false);
-    }
+    if (!isDevMode && step === 1 && !validateStep1()) return;
     setStep((s) => Math.min(4, s + 1));
   };
 
   const goBack = () => setStep((s) => Math.max(1, s - 1));
 
   const skipLibrary = () => {
-    setInstructionsDraft(generateInstructions(answers));
-    setEditingInstructions(false);
     setStep(4);
   };
 
   const finish = () => {
+    if (isDevMode) {
+      router.push("/analyze");
+      return;
+    }
     const cfg: AIProviderConfig = {
       type: aiConfig.type,
       apiKey: aiConfig.apiKey.trim(),
@@ -1780,12 +2147,11 @@ export function SetupWizard() {
       ...(aiConfig.type === "custom" && aiConfig.baseUrl?.trim()
         ? { baseUrl: aiConfig.baseUrl.trim() }
         : {}),
-      extendedThinking: !!aiConfig.extendedThinking,
     };
     setAIProvider(cfg);
     setSetupAnswers(answers);
     setGames(importedGames);
-    setInstructions(instructionsDraft.trim() || generateInstructions(answers));
+    setInstructions(generateInstructions(answers));
     completeSetup();
     router.push("/analyze");
   };
@@ -1832,10 +2198,6 @@ export function SetupWizard() {
                 aiConfig={aiConfig}
                 importedGames={importedGames}
                 answers={answers}
-                instructionsDraft={instructionsDraft}
-                setInstructionsDraft={setInstructionsDraft}
-                editingInstructions={editingInstructions}
-                setEditingInstructions={setEditingInstructions}
               />
             ) : null}
           </StepContent>

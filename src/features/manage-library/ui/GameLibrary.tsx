@@ -3,6 +3,8 @@ import React, { useState, useMemo, useCallback } from "react";
 import styled from "styled-components";
 import { useApp } from "@/app/providers/AppProvider";
 import { parseAnyFormat, gamesToCSV } from "@/entities/game/lib/csv-parser";
+import { openSteamLoginPopup, fetchSteamGames, extractSteamIdFromParams } from "@/features/auth/lib/steam";
+import { openEpicLoginTab, fetchEpicGames } from "@/features/auth/lib/epic";
 import type { Game } from "@/shared/types";
 import { useDropzone } from "react-dropzone";
 import { Icon } from "@/shared/ui";
@@ -315,6 +317,155 @@ const Empty = styled.div`
   color: ${({ theme }) => theme.colors.textMuted};
 `;
 
+const ImportSection = styled.div`
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.md};
+`;
+
+const PlatformRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${({ theme }) => theme.spacing.sm};
+`;
+
+const PlatformBtn = styled.button<{ $connected?: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: 1px solid ${({ $connected, theme }) => ($connected ? theme.colors.success : theme.colors.border)};
+  background: ${({ $connected, theme }) => ($connected ? "transparent" : theme.colors.surface)};
+  color: ${({ $connected, theme }) => ($connected ? theme.colors.success : theme.colors.text)};
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: ${({ theme }) => theme.font.sans};
+  cursor: pointer;
+  transition: all ${({ theme }) => theme.transition.fast};
+
+  &:hover:not(:disabled) {
+    background: ${({ theme }) => theme.colors.surfaceHover};
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  img { flex-shrink: 0; }
+`;
+
+const PlatformGuide = styled.details`
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.colors.surface};
+
+  &[open] summary { margin-bottom: ${({ theme }) => theme.spacing.sm}; }
+`;
+
+const PlatformGuideSummary = styled.summary`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.text};
+  cursor: pointer;
+  list-style: none;
+
+  &::-webkit-details-marker { display: none; }
+  &::marker { content: ""; }
+
+  img { flex-shrink: 0; }
+`;
+
+const PlatformGuideBody = styled.div`
+  padding: 0 14px 14px;
+  font-size: 0.78rem;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  line-height: 1.6;
+
+  ol { margin: 0; padding-left: 1.2rem; }
+  a { color: ${({ theme }) => theme.colors.accent}; text-decoration: none; &:hover { text-decoration: underline; } }
+`;
+
+const StatusText = styled.span`
+  font-size: 0.78rem;
+  color: ${({ theme }) => theme.colors.textMuted};
+`;
+
+const ErrorText = styled.span`
+  font-size: 0.78rem;
+  color: ${({ theme }) => theme.colors.error};
+`;
+
+const SectionLabel = styled.div`
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+`;
+
+const PasteArea = styled.textarea`
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.surface};
+  color: ${({ theme }) => theme.colors.text};
+  font-size: 0.85rem;
+  font-family: ${({ theme }) => theme.font.sans};
+  resize: vertical;
+  outline: none;
+  transition:
+    border-color ${({ theme }) => theme.transition.fast},
+    box-shadow ${({ theme }) => theme.transition.fast};
+
+  &:focus {
+    border-color: ${({ theme }) => theme.colors.accent};
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.accentMuted};
+  }
+
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.textMuted};
+  }
+`;
+
+const PasteActions = styled.div`
+  display: flex;
+  gap: ${({ theme }) => theme.spacing.sm};
+  margin-top: ${({ theme }) => theme.spacing.xs};
+`;
+
+const CodeInput = styled.input`
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.surface};
+  color: ${({ theme }) => theme.colors.text};
+  font-size: 0.85rem;
+  font-family: ${({ theme }) => theme.font.sans};
+  outline: none;
+  transition:
+    border-color ${({ theme }) => theme.transition.fast},
+    box-shadow ${({ theme }) => theme.transition.fast};
+
+  &:focus {
+    border-color: ${({ theme }) => theme.colors.accent};
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.accentMuted};
+  }
+
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.textMuted};
+  }
+`;
+
 const Pagination = styled.div`
   display: flex;
   justify-content: center;
@@ -387,6 +538,15 @@ export function GameLibrary() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editScore, setEditScore] = useState("");
   const [showImport, setShowImport] = useState(false);
+  const [steamLoading, setSteamLoading] = useState(false);
+  const [steamCount, setSteamCount] = useState<number | null>(null);
+  const [steamError, setSteamError] = useState<string | null>(null);
+  const [epicStep, setEpicStep] = useState<"idle" | "waiting" | "loading">("idle");
+  const [epicCode, setEpicCode] = useState("");
+  const [epicCount, setEpicCount] = useState<number | null>(null);
+  const [epicError, setEpicError] = useState<string | null>(null);
+  const [pasteText, setPasteText] = useState("");
+  const [pasteError, setPasteError] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const q = inputValue.toLowerCase();
@@ -436,13 +596,16 @@ export function GameLibrary() {
     (text: string) => {
       const parsed = parseAnyFormat(text);
       if (parsed.length > 0) {
-        const existing = new Map(state.games.map((g) => [g.name.toLowerCase(), g]));
+        const existingIdx = new Map(state.games.map((g, i) => [g.name.trim().toLowerCase(), i]));
         const merged = [...state.games];
         for (const g of parsed) {
-          const key = g.name.toLowerCase();
-          if (!existing.has(key)) {
+          const key = g.name.trim().toLowerCase();
+          const idx = existingIdx.get(key);
+          if (idx === undefined) {
+            existingIdx.set(key, merged.length);
             merged.push(g);
-            existing.set(key, g);
+          } else {
+            merged[idx] = { ...g, id: merged[idx].id };
           }
         }
         setGames(merged);
@@ -451,6 +614,17 @@ export function GameLibrary() {
     },
     [state.games, setGames],
   );
+
+  const handlePaste = useCallback(() => {
+    setPasteError(null);
+    if (!pasteText.trim()) return;
+    try {
+      handleImport(pasteText);
+      setPasteText("");
+    } catch {
+      setPasteError("Could not parse pasted content.");
+    }
+  }, [pasteText, handleImport]);
 
   const handleExport = () => {
     const csv = gamesToCSV(state.games);
@@ -463,17 +637,92 @@ export function GameLibrary() {
     URL.revokeObjectURL(url);
   };
 
+  const handleSteamConnect = useCallback(async () => {
+    setSteamError(null);
+    setSteamLoading(true);
+    try {
+      const params = await openSteamLoginPopup();
+      const steamId = extractSteamIdFromParams(params);
+      if (!steamId) throw new Error("Could not extract Steam ID");
+
+      const games = await fetchSteamGames(steamId);
+      const mapped: Game[] = games.map((g) => ({
+        id: Math.random().toString(36).slice(2, 11),
+        name: g.name,
+        score: null,
+      }));
+
+      const existing = new Map(state.games.map((g) => [g.name.trim().toLowerCase(), g]));
+      const merged = [...state.games];
+      for (const g of mapped) {
+        if (!existing.has(g.name.trim().toLowerCase())) {
+          merged.push(g);
+          existing.set(g.name.trim().toLowerCase(), g);
+        }
+      }
+      setGames(merged);
+      setSteamCount(games.length);
+    } catch (err) {
+      setSteamError(err instanceof Error ? err.message : "Failed to connect to Steam");
+    }
+    setSteamLoading(false);
+  }, [state.games, setGames]);
+
+  const handleEpicLogin = () => {
+    openEpicLoginTab();
+    setEpicStep("waiting");
+    setEpicError(null);
+  };
+
+  const handleEpicSubmitCode = useCallback(async () => {
+    if (!epicCode.trim()) return;
+    setEpicError(null);
+    setEpicStep("loading");
+    try {
+      const games = await fetchEpicGames(epicCode.trim());
+      const mapped: Game[] = games.map((name) => ({
+        id: Math.random().toString(36).slice(2, 11),
+        name,
+        score: null,
+      }));
+      const existing = new Map(state.games.map((g) => [g.name.trim().toLowerCase(), g]));
+      const merged = [...state.games];
+      for (const g of mapped) {
+        if (!existing.has(g.name.trim().toLowerCase())) {
+          merged.push(g);
+          existing.set(g.name.trim().toLowerCase(), g);
+        }
+      }
+      setGames(merged);
+      setEpicCount(games.length);
+      setEpicStep("idle");
+      setEpicCode("");
+    } catch (err) {
+      setEpicError(err instanceof Error ? err.message : "Failed to import Epic games");
+      setEpicStep("waiting");
+    }
+  }, [epicCode, state.games, setGames]);
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    accept: { "text/*": [".csv", ".json", ".txt"] },
-    onDrop: (files) => {
-      if (files[0]) {
-        const reader = new FileReader();
-        reader.onload = () => handleImport(reader.result as string);
-        reader.readAsText(files[0]);
+    accept: { "text/*": [".csv", ".json", ".txt"], "application/json": [".json"] },
+    multiple: true,
+    onDrop: async (files) => {
+      for (const file of files) {
+        const text = await file.text();
+        handleImport(text);
       }
     },
     noClick: false,
   });
+
+  const handleClearLibrary = () => {
+    if (confirm(`Remove all ${state.games.length} games from your library?`)) {
+      setGames([]);
+      setSteamCount(null);
+      setEpicCount(null);
+      setEpicStep("idle");
+    }
+  };
 
   return (
     <Page>
@@ -507,19 +756,105 @@ export function GameLibrary() {
           >
             + Add Game
           </Btn>
+          {state.games.length > 0 && (
+            <Btn $variant="danger" onClick={handleClearLibrary}>
+              Clear Library
+            </Btn>
+          )}
         </Actions>
       </Header>
 
       {showImport && (
-        <DropZone {...getRootProps()} $active={isDragActive}>
-          <input {...getInputProps()} />
-          <p style={{ fontSize: "1.1rem", marginBottom: 8 }}>
-            {isDragActive ? "Drop your file here..." : "Drag & drop a CSV, JSON, or text file here"}
-          </p>
-          <p style={{ fontSize: "0.8rem" }}>
-            or click to browse — games will be merged with your existing library
-          </p>
-        </DropZone>
+        <ImportSection>
+          <div>
+            <SectionLabel>Connect platforms</SectionLabel>
+            <PlatformRow style={{ marginTop: 8 }}>
+              <PlatformBtn
+                type="button"
+                $connected={steamCount !== null}
+                onClick={handleSteamConnect}
+                disabled={steamLoading}
+              >
+                <img src="/steam-logo.svg" alt="" width="16" height="16" />
+                {steamLoading ? "Connecting…" : steamCount !== null ? `Steam (${steamCount} imported)` : "Import from Steam"}
+              </PlatformBtn>
+            </PlatformRow>
+            {steamError && <ErrorText>{steamError}</ErrorText>}
+            {steamCount !== null && (
+              <StatusText>
+                Imported {steamCount} games from Steam. Existing library entries were preserved.
+              </StatusText>
+            )}
+          </div>
+
+          <div>
+            <SectionLabel>Epic Games</SectionLabel>
+            <div style={{ marginTop: 8 }}>
+              {epicCount !== null ? (
+                <StatusText>Imported {epicCount} games from Epic Games.</StatusText>
+              ) : epicStep === "idle" ? (
+                <PlatformRow>
+                  <PlatformBtn type="button" onClick={handleEpicLogin}>
+                    <img src="/epic-logo.svg" alt="" width="16" height="16" />
+                    Connect Epic Games
+                  </PlatformBtn>
+                </PlatformRow>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <StatusText>
+                    A new tab opened to Epic Games. Log in, then copy the authorization code shown on the page and paste it below.
+                  </StatusText>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <CodeInput
+                      placeholder="Paste authorization code…"
+                      value={epicCode}
+                      onChange={(e) => setEpicCode(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") handleEpicSubmitCode(); }}
+                    />
+                    <Btn
+                      $variant="primary"
+                      onClick={handleEpicSubmitCode}
+                      disabled={epicStep === "loading" || !epicCode.trim()}
+                    >
+                      {epicStep === "loading" ? "Importing…" : "Import"}
+                    </Btn>
+                  </div>
+                </div>
+              )}
+              {epicError && <ErrorText>{epicError}</ErrorText>}
+            </div>
+          </div>
+
+          <div>
+            <SectionLabel>File import</SectionLabel>
+            <DropZone {...getRootProps()} $active={isDragActive} style={{ marginTop: 8, marginBottom: 0 }}>
+              <input {...getInputProps()} />
+              <p style={{ fontSize: "1.1rem", marginBottom: 8 }}>
+                {isDragActive ? "Drop your file here..." : "Drag & drop CSV, JSON, or text files here"}
+              </p>
+              <p style={{ fontSize: "0.8rem" }}>
+                or click to browse — multiple files supported, games merge with your existing library
+              </p>
+            </DropZone>
+          </div>
+
+          <div>
+            <SectionLabel>Or paste data</SectionLabel>
+            <PasteArea
+              rows={5}
+              placeholder="Paste CSV, JSON array, or one game per line…"
+              value={pasteText}
+              onChange={(e) => setPasteText(e.target.value)}
+              style={{ marginTop: 8 }}
+            />
+            <PasteActions>
+              <Btn $variant="secondary" onClick={handlePaste} disabled={!pasteText.trim()}>
+                Parse pasted text
+              </Btn>
+            </PasteActions>
+            {pasteError && <ErrorText>{pasteError}</ErrorText>}
+          </div>
+        </ImportSection>
       )}
 
       <Stats>
