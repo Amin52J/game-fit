@@ -3,7 +3,7 @@
 import React from "react";
 import { Icon } from "@/shared/ui";
 import type { Game } from "@/shared/types";
-import type { SortField, SortDir } from "./types";
+import type { SortField, SortDir } from "./GameLibrary.types";
 import { GameRow } from "./GameRow";
 import {
   Table,
@@ -12,7 +12,7 @@ import {
   SortArrow,
   TableHeaderActionsLabel,
   Empty,
-} from "./styles";
+} from "./GameLibrary.styles";
 
 export function GameTable({
   tableRef,

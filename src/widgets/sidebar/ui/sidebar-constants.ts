@@ -1,3 +1,4 @@
+// REMOVE ME — this file is unused dead code
 import type { IconName } from "@/shared/ui";
 
 export const NAV_ITEMS: readonly { href: string; label: string; icon: IconName }[] = [

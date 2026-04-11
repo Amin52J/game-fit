@@ -1,3 +1,4 @@
+// REMOVE ME — this file is unused dead code
 export const PAGE_SIZE = 20;
 
 export type ViewMode = "detailed" | "list";

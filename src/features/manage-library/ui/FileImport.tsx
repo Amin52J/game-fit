@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useDropzone } from "react-dropzone";
-import { DropZone, SectionLabel, DropZoneTitle, DropZoneHint } from "./styles";
+import { DropZone, SectionLabel, DropZoneTitle, DropZoneHint } from "./GameLibrary.styles";
 
 export function FileImport({ handleImport }: { handleImport: (text: string) => void }) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({

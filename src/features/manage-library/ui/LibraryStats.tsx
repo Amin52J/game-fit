@@ -2,7 +2,7 @@
 
 import React from "react";
 import type { Game } from "@/shared/types";
-import { Stats, StatCard, StatValue, StatLabel } from "./styles";
+import { Stats, StatCard, StatValue, StatLabel } from "./GameLibrary.styles";
 
 export function LibraryStats({ games, scored, avgScore }: { games: Game[]; scored: Game[]; avgScore: number }) {
   return (

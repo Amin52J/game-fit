@@ -11,7 +11,7 @@ import {
   InlineNameInput,
   RowActions,
   IconBtn,
-} from "./styles";
+} from "./GameLibrary.styles";
 
 export function GameRow({
   game,

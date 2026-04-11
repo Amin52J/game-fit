@@ -9,7 +9,7 @@ import {
   HelpStepItem,
   HelpHeading,
   HelpRecommendNote,
-} from "../wizard-styles";
+} from "../SetupWizard.styles";
 
 export function ApiKeyGuide({ provider }: { provider: AIProviderType }) {
   const [open, setOpen] = useState(false);

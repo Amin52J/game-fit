@@ -1,3 +1,4 @@
+// REMOVE ME — this file is unused dead code
 export const PAGE_SIZE = 50;
 
 export const SCORE_RANGES = [

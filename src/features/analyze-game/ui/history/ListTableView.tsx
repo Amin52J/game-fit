@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import type { EnrichedResult } from "../history-types";
-import { formatPrice, formatDateShort } from "../history-helpers";
+import type { EnrichedResult } from "../HistoryPage.types";
+import { formatPrice, formatDateShort } from "../HistoryPage.utils";
 import { ExpandedContent } from "./ExpandedContent";
 import {
   ListTable,
@@ -22,7 +22,7 @@ import {
   ListMobileMeta,
   ListDeleteBtn,
   ReanalyzeBtn,
-} from "../history-styles";
+} from "../HistoryPage.styles";
 
 export function ListTableView({
   visible,

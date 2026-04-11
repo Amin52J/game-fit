@@ -4,7 +4,7 @@ import React from "react";
 import { Button, Input, Select, SectionCard, SectionTitle, SectionDesc } from "@/shared/ui";
 import type { AIProviderType } from "@/shared/types";
 import { DEFAULT_MODELS } from "@/shared/types";
-import { FormRow, FormGroup, KeyFieldWrap, RevealKeyButton, MarginedButtonRow } from "./settings-styles";
+import { FormRow, FormGroup, KeyFieldWrap, RevealKeyButton, MarginedButtonRow } from "./SettingsPage.styles";
 
 export function ProviderSection({
   providerType,

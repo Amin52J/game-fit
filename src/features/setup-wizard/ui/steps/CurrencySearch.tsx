@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { CURRENCIES } from "../wizard-constants";
+import { CURRENCIES } from "../SetupWizard.utils";
 import {
   CurrencyWrap,
   TextInput,
   CurrencyDropdown,
   CurrencyOption,
-} from "../wizard-styles";
+} from "../SetupWizard.styles";
 
 export function CurrencySearch({
   value,

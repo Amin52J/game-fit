@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Icon } from "@/shared/ui";
-import { STEPS } from "../wizard-constants";
+import { STEPS } from "../SetupWizard.utils";
 import {
   Stepper,
   StepItem,
@@ -10,7 +10,7 @@ import {
   StepCircle,
   StepLine,
   StepLabel,
-} from "../wizard-styles";
+} from "../SetupWizard.styles";
 
 export function ProgressStepper({ currentStep }: { currentStep: number }) {
   return (

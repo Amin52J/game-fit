@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button, Input, Checkbox, PageWrapper, PageHeader, PageTitle, PageSubtitle, ButtonRow } from "@/shared/ui";
 import { calculateGameScore, parseTimeInput, type GameScore } from "../lib/gameScorer";
-import { FormCard } from "./score-calculator-styles";
+import { FormCard } from "./ScoreCalculatorPage.styles";
 import { ScoreResult } from "./ScoreResult";
 
 export function ScoreCalculatorPage() {

@@ -2,11 +2,11 @@
 
 import React from "react";
 import { Button, PageTitle, PageHeader, ButtonRow } from "@/shared/ui";
-import { useHistoryPage } from "./history/useHistoryPage";
+import { useHistoryPage } from "./HistoryPage.hooks";
 import { HistoryToolbar } from "./history/HistoryToolbar";
 import { DetailedCardView } from "./history/DetailedCardView";
 import { ListTableView } from "./history/ListTableView";
-import { Page, Sentinel, EmptyState } from "./history-styles";
+import { Page, Sentinel, EmptyState } from "./HistoryPage.styles";
 
 export function HistoryPage() {
   const h = useHistoryPage();

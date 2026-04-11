@@ -15,7 +15,7 @@ import {
   EpicAuthStack,
   EpicCodeRow,
   EpicInputWrap,
-} from "./styles";
+} from "./GameLibrary.styles";
 
 export function EpicImport() {
   const { state, setGames } = useApp();

@@ -1,3 +1,4 @@
+// REMOVE ME — this file is unused dead code
 "use client";
 
 import styled from "styled-components";

@@ -1,3 +1,4 @@
+// REMOVE ME — this file is unused dead code
 import styled, { keyframes } from "styled-components";
 import Image from "next/image";
 

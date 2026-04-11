@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ImportSectionRoot } from "./styles";
+import { ImportSectionRoot } from "./GameLibrary.styles";
 import { SteamImport } from "./SteamImport";
 import { EpicImport } from "./EpicImport";
 import { FileImport } from "./FileImport";

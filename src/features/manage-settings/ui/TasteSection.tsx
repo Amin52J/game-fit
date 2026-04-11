@@ -4,7 +4,7 @@ import React from "react";
 import { Button, SectionCard, SectionTitle, SectionDesc } from "@/shared/ui";
 import { StepPreferences } from "@/features/setup-wizard/ui/SetupWizard";
 import type { SetupAnswers } from "@/shared/types";
-import { MarginedButtonRow } from "./settings-styles";
+import { MarginedButtonRow } from "./SettingsPage.styles";
 
 export function TasteSection({
   tasteAnswers,

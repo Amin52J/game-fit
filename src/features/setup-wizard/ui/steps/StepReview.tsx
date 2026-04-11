@@ -7,7 +7,7 @@ import {
   SectionTitle,
   SummaryList,
   SummaryItem,
-} from "../wizard-styles";
+} from "../SetupWizard.styles";
 
 export function StepReview({
   aiConfig,

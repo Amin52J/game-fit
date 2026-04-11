@@ -28,7 +28,7 @@ import {
   PreviewLabel,
   PreviewValue,
   PreviewScoreCircle,
-} from "./result-card-styles";
+} from "./ResultCard.styles";
 
 export { parseResponseSections, MarkdownBody };
 

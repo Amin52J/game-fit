@@ -22,7 +22,7 @@ import {
   SteamBtn,
   ErrorMsg,
   SuccessMsg,
-} from "./auth-styles";
+} from "./AuthPage.styles";
 
 type Mode = "login" | "signup";
 

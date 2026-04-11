@@ -1,3 +1,4 @@
+// REMOVE ME — this file is unused dead code
 import type { RiskLevel } from "@/features/analyze-game/lib/response-parser";
 import type { SectionAccent } from "./result-card-styles";
 

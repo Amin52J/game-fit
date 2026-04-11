@@ -1,3 +1,4 @@
+// REMOVE ME — this file is unused dead code
 import styled, { css } from "styled-components";
 import Link from "next/link";
 import Image from "next/image";

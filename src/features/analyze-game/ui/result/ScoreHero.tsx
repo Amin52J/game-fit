@@ -15,7 +15,7 @@ import {
   CurrentScoreNote,
   SkeletonBarSpaced,
   SkeletonRing,
-} from "../result-card-styles";
+} from "../ResultCard.styles";
 
 export function renderScoreHero(
   sections: ParsedSection[],

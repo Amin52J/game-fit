@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import { Button, PageWrapper, PageHeader, PageTitle, PageSubtitle, ButtonRow } from "@/shared/ui";
-import { useGameLibrary } from "./useGameLibrary";
+import { useGameLibrary } from "./GameLibrary.hooks";
 import { ImportSection } from "./ImportSection";
 import { LibraryStats } from "./LibraryStats";
 import { LibraryToolbar } from "./LibraryToolbar";

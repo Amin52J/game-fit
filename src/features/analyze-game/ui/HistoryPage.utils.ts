@@ -1,7 +1,6 @@
-// REMOVE ME — this file is unused dead code
-import type { ViewMode } from "./types";
-
 export const PAGE_SIZE = 20;
+
+export type ViewMode = "detailed" | "list";
 
 export const SCORE_FILTERS = [
   { key: "excellent", label: "80 +", min: 80, max: 100 },

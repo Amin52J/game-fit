@@ -1,3 +1,4 @@
+// REMOVE ME — this file is unused dead code
 import type React from "react";
 import type { AIProviderConfig, Game, SetupAnswers } from "@/shared/types";
 

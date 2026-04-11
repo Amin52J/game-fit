@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AuthPage } from "@/features/auth";
-import { DOWNLOAD_URL, FEATURES, HOW_IT_WORKS_STEPS, WinIcon } from "./landing-constants";
+import { DOWNLOAD_URL, FEATURES, HOW_IT_WORKS_STEPS, WinIcon } from "./LandingPage.utils";
 import {
   Page,
   Nav,
@@ -32,7 +32,7 @@ import {
   StepTitle,
   StepDesc,
   LandingFooter,
-} from "./landing-styles";
+} from "./LandingPage.styles";
 
 export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
   return (

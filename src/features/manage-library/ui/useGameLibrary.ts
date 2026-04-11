@@ -1,3 +1,4 @@
+// REMOVE ME — this file is unused dead code
 "use client";
 
 import { useState, useMemo, useCallback } from "react";

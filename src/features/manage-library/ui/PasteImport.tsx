@@ -2,7 +2,7 @@
 
 import React, { useCallback, useState } from "react";
 import { Button, TextArea } from "@/shared/ui";
-import { SectionLabel, ImportBlock, ErrorText, PasteButtonRow } from "./styles";
+import { SectionLabel, ImportBlock, ErrorText, PasteButtonRow } from "./GameLibrary.styles";
 
 export function PasteImport({
   handleImport,

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Button, Icon } from "@/shared/ui";
-import { Pagination } from "./styles";
+import { Pagination } from "./GameLibrary.styles";
 
 export function LibraryPagination({
   clampedPage,

@@ -7,7 +7,7 @@ import { generateInstructions } from "@/features/setup-wizard/lib/prompt-generat
 import { defaultSetupAnswers } from "@/features/setup-wizard/ui/SetupWizard";
 import type { AIProviderConfig, AIProviderType, SetupAnswers } from "@/shared/types";
 import { DEFAULT_MODELS } from "@/shared/types";
-import { SettingsPageTitle, Toast } from "./settings-styles";
+import { SettingsPageTitle, Toast } from "./SettingsPage.styles";
 import { ProviderSection } from "./ProviderSection";
 import { TasteSection } from "./TasteSection";
 import { DangerSection } from "./DangerSection";

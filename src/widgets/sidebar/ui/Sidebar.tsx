@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { useNavigation } from "@/app/providers/NavigationProvider";
 import { Icon } from "@/shared/ui";
-import { NAV_ITEMS, isNavActive } from "./sidebar-constants";
+import { NAV_ITEMS, isNavActive } from "./Sidebar.utils";
 import {
   SidebarRoot,
   LogoBlock,
@@ -30,7 +30,7 @@ import {
   ModalBtn,
   MenuToggle,
   MenuBar,
-} from "./sidebar-styles";
+} from "./Sidebar.styles";
 
 export function Sidebar() {
   const { activePath, setIntent } = useNavigation();

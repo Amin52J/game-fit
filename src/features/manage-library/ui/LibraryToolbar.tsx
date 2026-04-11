@@ -2,8 +2,8 @@
 
 import React from "react";
 import { Input, FilterChip } from "@/shared/ui";
-import { SCORE_RANGES } from "./constants";
-import { Toolbar, ToolbarSearchWrap, FilterBar, FilterLabel } from "./styles";
+import { SCORE_RANGES } from "./GameLibrary.utils";
+import { Toolbar, ToolbarSearchWrap, FilterBar, FilterLabel } from "./GameLibrary.styles";
 
 export function LibraryToolbar({
   inputValue,

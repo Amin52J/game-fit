@@ -6,7 +6,7 @@ import { parseAnyFormat } from "@/entities/game/lib/csv-parser";
 import { openSteamLoginPopup, fetchSteamGames, extractSteamIdFromParams } from "@/features/auth/lib/steam";
 import { openEpicLoginTab, fetchEpicGames } from "@/features/auth/lib/epic";
 import type { Game } from "@/shared/types";
-import { mergeGameLists, computeScoreBuckets, generateId } from "../wizard-helpers";
+import { mergeGameLists, computeScoreBuckets, generateId } from "../SetupWizard.utils";
 import {
   FieldGroup,
   SectionTitle,
@@ -31,7 +31,7 @@ import {
   PlatformRow,
   PlatformBtn,
   PlatformStatusText,
-} from "../wizard-styles";
+} from "../SetupWizard.styles";
 
 export function StepImportLibrary({
   importedGames,

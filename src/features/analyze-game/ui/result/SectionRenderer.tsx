@@ -15,9 +15,9 @@ import {
   RefundBanner,
   RefundIconWrap,
   RefundTitle,
-} from "../result-card-styles";
-import type { SectionAccent } from "../result-card-styles";
-import { riskAccent, riskColor, displaySortKey } from "../result-card-helpers";
+} from "../ResultCard.styles";
+import type { SectionAccent } from "../ResultCard.styles";
+import { riskAccent, riskColor, displaySortKey } from "../ResultCard.utils";
 
 export { displaySortKey, isInternalSection };
 

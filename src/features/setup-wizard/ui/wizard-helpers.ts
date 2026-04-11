@@ -1,3 +1,4 @@
+// REMOVE ME — this file is unused dead code
 import type { Game } from "@/shared/types";
 
 /**

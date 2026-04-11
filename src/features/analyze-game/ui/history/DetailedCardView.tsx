@@ -2,8 +2,8 @@
 
 import React from "react";
 import { HistoryPreview } from "../ResultCard";
-import type { EnrichedResult } from "../history-types";
-import { formatPrice, formatDate } from "../history-helpers";
+import type { EnrichedResult } from "../HistoryPage.types";
+import { formatPrice, formatDate } from "../HistoryPage.utils";
 import { ExpandedContent } from "./ExpandedContent";
 import {
   List,
@@ -22,7 +22,7 @@ import {
   ExpandedSection,
   InlineMiniScore,
   EarlyAccessTag,
-} from "../history-styles";
+} from "../HistoryPage.styles";
 
 export function DetailedCardView({
   visible,

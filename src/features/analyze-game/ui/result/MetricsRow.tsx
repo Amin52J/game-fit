@@ -10,13 +10,13 @@ import {
   MetricLabel,
   MetricValue,
   SkeletonBar,
-} from "../result-card-styles";
+} from "../ResultCard.styles";
 import {
   riskColor,
   confidenceColor,
   priceColor,
   formatCurrencyValue,
-} from "../result-card-helpers";
+} from "../ResultCard.utils";
 
 export function renderMetricsRow(
   sections: ParsedSection[],

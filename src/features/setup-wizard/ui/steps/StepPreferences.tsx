@@ -33,7 +33,7 @@ import {
   CustomChip,
   RemoveBtn,
   Btn,
-} from "../wizard-styles";
+} from "../SetupWizard.styles";
 
 export function StepPreferences({
   answers,

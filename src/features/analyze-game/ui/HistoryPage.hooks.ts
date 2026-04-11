@@ -1,24 +1,14 @@
-// REMOVE ME — this file is unused dead code
-"use client";
-
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useApp } from "@/app/providers/AppProvider";
-import {
-  parseResponseSections,
-  extractMetrics,
-} from "@/features/analyze-game/lib/response-parser";
 import { useNavigation } from "@/app/providers/NavigationProvider";
+import { parseResponseSections, extractMetrics } from "@/features/analyze-game/lib/response-parser";
 import { sessionCache } from "@/features/analyze-game/model/session-cache";
-import type { ViewMode, EnrichedResult } from "./types";
-import {
-  PAGE_SIZE,
-  readInitialParams,
-  matchesScoreFilter,
-  matchesRiskFilter,
-} from "./constants";
+import { PAGE_SIZE, SCORE_FILTERS, RISK_FILTERS, readInitialParams, matchesScoreFilter, matchesRiskFilter } from "./HistoryPage.utils";
+import type { ViewMode } from "./HistoryPage.utils";
+import type { EnrichedResult } from "./HistoryPage.types";
 
-export function useHistoryFilters() {
+export function useHistoryPage() {
   const { state, deleteAnalysis, clearHistory } = useApp();
   const { setIntent } = useNavigation();
   const pathname = usePathname();
@@ -39,13 +29,11 @@ export function useHistoryFilters() {
 
   const sentinelRef = useRef<HTMLDivElement>(null);
 
-  /* Debounce search */
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(inputValue), 300);
     return () => clearTimeout(timer);
   }, [inputValue]);
 
-  /* Reset visible count on filter change */
   const scoreKey = useMemo(() => [...scoreFilters].sort().join(","), [scoreFilters]);
   const riskKey = useMemo(() => [...riskFilters].sort().join(","), [riskFilters]);
 
@@ -56,7 +44,6 @@ export function useHistoryFilters() {
     setVisibleCount(PAGE_SIZE);
   }
 
-  /* Sync state to URL when active */
   useEffect(() => {
     if (!isActive) return;
     const params = new URLSearchParams();
@@ -69,7 +56,6 @@ export function useHistoryFilters() {
     window.history.replaceState(null, "", `/history${qs ? `?${qs}` : ""}`);
   }, [isActive, debouncedSearch, scoreKey, riskKey, eaFilter, viewMode]);
 
-  /* Enrich results with parsed metrics */
   const enriched = useMemo<EnrichedResult[]>(
     () =>
       state.analysisHistory.map((item) => {
@@ -80,7 +66,6 @@ export function useHistoryFilters() {
     [state.analysisHistory],
   );
 
-  /* Filter and sort */
   const filtered = useMemo(() => {
     let results = enriched;
 
@@ -107,7 +92,6 @@ export function useHistoryFilters() {
   const visible = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
 
-  /* Intersection observer for infinite scroll */
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
@@ -125,7 +109,6 @@ export function useHistoryFilters() {
     return () => observer.disconnect();
   }, [filtered.length, visibleCount]);
 
-  /* Callbacks */
   const toggle = useCallback((id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
   }, []);
@@ -230,5 +213,7 @@ export function useHistoryFilters() {
     handleReanalyze,
     currency,
     totalCount,
+    SCORE_FILTERS,
+    RISK_FILTERS,
   };
 }

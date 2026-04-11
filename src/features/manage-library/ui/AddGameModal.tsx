@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Button, Input } from "@/shared/ui";
-import { ModalBackdrop, ModalCard, ModalTitle, ModalActions } from "./styles";
+import { ModalBackdrop, ModalCard, ModalTitle, ModalActions } from "./GameLibrary.styles";
 
 export function AddGameModal({
   addName,

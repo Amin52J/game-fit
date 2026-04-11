@@ -11,7 +11,7 @@ import {
   SectionLabel,
   StatusText,
   ErrorText,
-} from "./styles";
+} from "./GameLibrary.styles";
 
 export function SteamImport() {
   const { state, setGames } = useApp();

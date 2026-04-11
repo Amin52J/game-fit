@@ -7,9 +7,8 @@ import { generateInstructions } from "@/features/setup-wizard/lib/prompt-generat
 import { fetchSteamGames } from "@/features/auth/lib/steam";
 import { AIClient } from "@/entities/ai-provider/api/client";
 import type { AIProviderConfig, Game, SetupAnswers } from "@/shared/types";
-import { defaultSetupAnswers, defaultAiConfig } from "./wizard-constants";
-import { mergeGameLists, generateId } from "./wizard-helpers";
-import { Page, Center, Hero, Title, Subtitle, Card, StepContent, NavRow, Btn, NavRowActions, StatusPillTopMd } from "./wizard-styles";
+import { defaultSetupAnswers, defaultAiConfig, mergeGameLists, generateId } from "./SetupWizard.utils";
+import { Page, Center, Hero, Title, Subtitle, Card, StepContent, NavRow, Btn, NavRowActions, StatusPillTopMd } from "./SetupWizard.styles";
 import { ProgressStepper } from "./steps/ProgressStepper";
 import { StepAiProvider } from "./steps/StepAiProvider";
 import { StepImportLibrary } from "./steps/StepImportLibrary";

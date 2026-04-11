@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Button, SectionCard, SectionDesc } from "@/shared/ui";
-import { DangerSectionTitle, MarginedButtonRow } from "./settings-styles";
+import { DangerSectionTitle, MarginedButtonRow } from "./SettingsPage.styles";
 
 export function DangerSection({ onReset }: { onReset: () => void }) {
   return (

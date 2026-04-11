@@ -22,7 +22,7 @@ import {
   ProviderCard,
   ProviderName,
   ProviderDesc,
-} from "../wizard-styles";
+} from "../SetupWizard.styles";
 
 export function StepAiProvider({
   config,

@@ -1,3 +1,4 @@
+// REMOVE ME — this file is unused dead code
 import type { AIProviderConfig, SetupAnswers } from "@/shared/types";
 import { DEFAULT_MODELS } from "@/shared/types";
 

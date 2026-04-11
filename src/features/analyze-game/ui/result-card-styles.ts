@@ -1,3 +1,4 @@
+// REMOVE ME — this file is unused dead code
 "use client";
 
 import styled, { css, keyframes } from "styled-components";

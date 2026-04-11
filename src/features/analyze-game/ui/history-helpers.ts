@@ -1,3 +1,4 @@
+// REMOVE ME — this file is unused dead code
 import { SCORE_FILTERS } from "./history-constants";
 import type { ViewMode } from "./history-constants";
 

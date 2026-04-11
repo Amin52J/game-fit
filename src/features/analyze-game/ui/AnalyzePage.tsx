@@ -1,49 +1,13 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import styled from "styled-components";
 import { useAnalysis } from "@/features/analyze-game/model/useAnalysis";
 import { sessionCache } from "@/features/analyze-game/model/session-cache";
 import { AnalyzeForm } from "./AnalyzeForm";
 import { ResultCard } from "./ResultCard";
-import { Button, PageWrapper, ButtonRow } from "@/shared/ui";
-
-const Page = styled(PageWrapper)`
-  @media (max-width: 1024px) {
-    padding: ${({ theme }) => `${theme.spacing.xl} ${theme.spacing.md}`};
-  }
-
-  @media (max-width: 767px) {
-    padding: ${({ theme }) => theme.spacing.sm} 0;
-  }
-`;
-
-const Toolbar = styled(ButtonRow)`
-  justify-content: flex-end;
-  margin-top: ${({ theme }) => theme.spacing.md};
-
-  @media (max-width: 767px) {
-    padding: 0 ${({ theme }) => theme.spacing.sm};
-  }
-`;
-
-const ErrorBox = styled.div`
-  margin-top: ${({ theme }) => theme.spacing.lg};
-  padding: ${({ theme }) => theme.spacing.md};
-  font-family: ${({ theme }) => theme.font.sans};
-  font-size: 0.875rem;
-  line-height: 1.5;
-  color: ${({ theme }) => theme.colors.error};
-  background: ${({ theme }) => theme.colors.errorMuted};
-  border: 1px solid ${({ theme }) => theme.colors.error};
-  border-radius: ${({ theme }) => theme.radius.md};
-`;
-
-function errorMessage(err: unknown): string {
-  if (err instanceof Error) return err.message;
-  if (typeof err === "string") return err;
-  return "Something went wrong. Try again.";
-}
+import { Button } from "@/shared/ui";
+import { Page, Toolbar, ErrorBox } from "./AnalyzePage.styles";
+import { errorMessage } from "./AnalyzePage.utils";
 
 export function AnalyzePage() {
   const {

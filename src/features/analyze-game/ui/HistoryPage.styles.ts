@@ -1,4 +1,5 @@
-// REMOVE ME — this file is unused dead code
+"use client";
+
 import styled, { keyframes } from "styled-components";
 import { PageWrapper } from "@/shared/ui";
 
@@ -162,7 +163,7 @@ export const List = styled.ul`
   }
 `;
 
-export const HistoryCardWrapper = styled.li<{ $expanded: boolean }>`
+export const HistoryCard = styled.li<{ $expanded: boolean }>`
   background: ${({ theme }) => theme.colors.surface};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radius.lg};
@@ -396,7 +397,7 @@ export const ListHeader = styled.div`
   }
 `;
 
-export const ListItemWrapper = styled.div`
+export const ListItem = styled.div`
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
 
   &:last-child {
@@ -488,6 +489,26 @@ export const MiniScore = styled.span<{ $score: number | null }>`
     height: 34px;
     font-size: 0.7rem;
   }
+`;
+
+export const InlineMiniScore = styled(MiniScore)`
+  width: auto;
+  height: auto;
+  border-radius: ${({ theme }) => theme.radius.md};
+  padding: 1px ${({ theme }) => theme.spacing.sm};
+  font-size: 0.75rem;
+  margin-right: 6px;
+  display: inline-flex;
+
+  @media (max-width: 640px) {
+    width: auto;
+    height: auto;
+    font-size: 0.75rem;
+  }
+`;
+
+export const ListRowActionsCell = styled.div`
+  text-align: right;
 `;
 
 export const ListGameName = styled.span`
@@ -599,25 +620,6 @@ export const ListDeleteBtn = styled.button<{ $confirm?: boolean }>`
     border-color: ${({ theme }) => theme.colors.error};
     background: ${({ theme }) => theme.colors.errorMuted};
   }
-`;
-
-export const InlineMiniScore = styled(MiniScore)`
-  width: auto;
-  height: auto;
-  border-radius: ${({ theme }) => theme.radius.md};
-  padding: 1px ${({ theme }) => theme.spacing.sm};
-  font-size: 0.75rem;
-  margin-right: 6px;
-  display: inline-flex;
-
-  @media (max-width: 640px) {
-    width: auto;
-    height: auto;
-  }
-`;
-
-export const ListRowActionsCell = styled.div`
-  text-align: right;
 `;
 
 export const Sentinel = styled.div`

@@ -2,8 +2,8 @@
 
 import React from "react";
 import { Icon, FilterChip } from "@/shared/ui";
-import type { ViewMode } from "../history-constants";
-import { SCORE_FILTERS, RISK_FILTERS } from "../history-constants";
+import type { ViewMode } from "../HistoryPage.utils";
+import { SCORE_FILTERS, RISK_FILTERS } from "../HistoryPage.utils";
 import {
   Toolbar,
   SearchRow,
@@ -15,7 +15,7 @@ import {
   FilterGroup,
   FilterLabel,
   ResultCount,
-} from "../history-styles";
+} from "../HistoryPage.styles";
 
 export function HistoryToolbar({
   inputValue,

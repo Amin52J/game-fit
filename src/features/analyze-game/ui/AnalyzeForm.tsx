@@ -15,26 +15,12 @@ import {
   PriceField,
   ErrorBanner,
   FieldError,
-} from "./analyze-form-styles";
+} from "./AnalyzeForm.styles";
+import { currencyPrefixFromSettings } from "./AnalyzeForm.utils";
 
 export interface AnalyzeFormProps {
   onSubmit: (gameName: string, price: number) => void;
   isLoading: boolean;
-}
-
-function currencyPrefixFromSettings(currencyCode: string | undefined): string {
-  if (!currencyCode) return "$";
-  try {
-    const parts = new Intl.NumberFormat(undefined, {
-      style: "currency",
-      currency: currencyCode,
-      currencyDisplay: "narrowSymbol",
-    }).formatToParts(0);
-    const sym = parts.find((p) => p.type === "currency");
-    return sym?.value ?? currencyCode;
-  } catch {
-    return currencyCode;
-  }
 }
 
 export function AnalyzeForm({ onSubmit, isLoading }: AnalyzeFormProps) {

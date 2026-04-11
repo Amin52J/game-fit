@@ -11,7 +11,7 @@ import {
   DetailLabel,
   DetailValue,
   CompletionNote,
-} from "./score-calculator-styles";
+} from "./ScoreCalculatorPage.styles";
 
 export function ScoreResult({ result }: { result: GameScore }) {
   return (
