@@ -53,13 +53,13 @@ export const ScoreMax = styled.span`
 
 export const DetailGrid = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: ${({ theme }) => theme.spacing.md};
   margin-top: ${({ theme }) => theme.spacing.md};
   text-align: left;
 
-  @media (max-width: 400px) {
-    grid-template-columns: 1fr;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    grid-template-columns: 1fr 1fr;
   }
 `;
 

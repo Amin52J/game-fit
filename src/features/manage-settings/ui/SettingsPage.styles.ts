@@ -42,10 +42,10 @@ export const FormRow = styled.div`
 
 export const FormGroup = styled.div`
   flex: 1;
-  min-width: 200px;
+  min-width: 100%;
 
-  @media (max-width: 767px) {
-    min-width: 100%;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    min-width: 200px;
   }
 `;
 
@@ -64,10 +64,10 @@ const toastSlideIn = (theme: Theme) => keyframes`
 export const Toast = styled.div<{ $type: "success" | "error" }>`
   position: fixed;
   top: ${({ theme }) => theme.spacing.lg};
-  left: calc(50% + 120px);
+  left: 50%;
   transform: translateX(-50%);
   z-index: 900;
-  padding: 10px ${({ theme }) => theme.spacing.lg};
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
   border-radius: ${({ theme }) => theme.radius.md};
   background: ${({ theme, $type }) =>
     $type === "success" ? theme.colors.successMuted : theme.colors.errorMuted};
@@ -82,12 +82,12 @@ export const Toast = styled.div<{ $type: "success" | "error" }>`
   animation: ${({ theme }) => toastSlideIn(theme)} 250ms ease;
   pointer-events: none;
 
-  @media (max-width: 1024px) {
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
     left: calc(50% + ${({ theme }) => theme.spacing.xl});
+    padding: 10px ${({ theme }) => theme.spacing.lg};
   }
 
-  @media (max-width: 767px) {
-    left: 50%;
-    padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    left: calc(50% + 120px);
   }
 `;

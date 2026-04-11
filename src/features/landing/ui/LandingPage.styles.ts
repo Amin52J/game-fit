@@ -22,14 +22,14 @@ export const Nav = styled.nav`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: ${({ theme }) => theme.spacing.md} 40px;
+  padding: 12px 20px;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   background: rgba(8, 8, 14, 0.7);
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
 
-  @media (max-width: 640px) {
-    padding: 12px 20px;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    padding: ${({ theme }) => theme.spacing.md} 40px;
   }
 `;
 
@@ -58,15 +58,15 @@ export const LogoText = styled.span`
 
 export const NavActions = styled.div`
   display: flex;
-  gap: 12px;
+  gap: ${({ theme }) => theme.spacing.sm};
 
-  @media (max-width: 767px) {
-    gap: ${({ theme }) => theme.spacing.sm};
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    gap: 12px;
   }
 `;
 
 export const NavBtn = styled.button<{ $primary?: boolean }>`
-  padding: ${({ theme }) => theme.spacing.sm} 20px;
+  padding: 6px 14px;
   border-radius: ${({ theme }) => theme.radius.md};
   border: 1px solid
     ${({ $primary, theme }) =>
@@ -75,7 +75,7 @@ export const NavBtn = styled.button<{ $primary?: boolean }>`
     $primary ? theme.colors.accent : "transparent"};
   color: ${({ $primary, theme }) =>
     $primary ? theme.colors.text : theme.colors.textSecondary};
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
   font-family: ${({ theme }) => theme.font.sans};
   cursor: pointer;
@@ -92,9 +92,9 @@ export const NavBtn = styled.button<{ $primary?: boolean }>`
     transform: scale(0.97);
   }
 
-  @media (max-width: 767px) {
-    padding: 6px 14px;
-    font-size: 0.8rem;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    padding: ${({ theme }) => theme.spacing.sm} 20px;
+    font-size: 0.85rem;
   }
 `;
 
@@ -103,17 +103,17 @@ export const Hero = styled.section`
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 160px ${({ theme }) => theme.spacing.lg} 80px;
+  padding: 120px ${({ theme }) => theme.spacing.md} 60px;
   max-width: 800px;
   margin: 0 auto;
   animation: ${fadeUp} 0.6s ease;
 
-  @media (max-width: 1024px) {
-    padding-top: 140px;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    padding: 140px ${({ theme }) => theme.spacing.lg} 80px;
   }
 
-  @media (max-width: 767px) {
-    padding: 120px ${({ theme }) => theme.spacing.md} 60px;
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    padding-top: 160px;
   }
 `;
 
@@ -155,6 +155,7 @@ export const HeroSub = styled.p`
 `;
 
 export const HeroCTA = styled.button`
+  width: 100%;
   padding: 14px 36px;
   border-radius: ${({ theme }) => theme.radius.md};
   border: none;
@@ -177,21 +178,23 @@ export const HeroCTA = styled.button`
     transform: translateY(0) scale(0.98);
   }
 
-  @media (max-width: 767px) {
-    width: 100%;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    width: auto;
   }
 `;
 
 export const HeroActions = styled.div`
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: ${({ theme }) => theme.spacing.md};
   flex-wrap: wrap;
   justify-content: center;
+  width: 100%;
 
-  @media (max-width: 767px) {
-    flex-direction: column;
-    width: 100%;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    flex-direction: row;
+    width: auto;
   }
 `;
 
@@ -210,6 +213,8 @@ export const DownloadBtn = styled.a`
   cursor: pointer;
   text-decoration: none;
   transition: all ${({ theme }) => theme.transition.fast};
+  width: 100%;
+  justify-content: center;
 
   &:hover {
     background: ${({ theme }) => theme.colors.surfaceHover};
@@ -222,28 +227,28 @@ export const DownloadBtn = styled.a`
     transform: translateY(0) scale(0.98);
   }
 
-  @media (max-width: 767px) {
-    width: 100%;
-    justify-content: center;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    width: auto;
+    justify-content: flex-start;
   }
 `;
 
 export const Features = styled.section`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: ${({ theme }) => theme.spacing.lg};
+  gap: ${({ theme }) => theme.spacing.md};
   max-width: 960px;
   margin: 0 auto;
-  padding: 0 ${({ theme }) => theme.spacing.lg} 100px;
+  padding: 0 ${({ theme }) => theme.spacing.md} 60px;
   animation: ${fadeUp} 0.6s ease 0.15s both;
 
-  @media (max-width: 1024px) {
-    padding-bottom: 80px;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    gap: ${({ theme }) => theme.spacing.lg};
+    padding: 0 ${({ theme }) => theme.spacing.lg} 80px;
   }
 
-  @media (max-width: 767px) {
-    gap: ${({ theme }) => theme.spacing.md};
-    padding: 0 ${({ theme }) => theme.spacing.md} 60px;
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    padding-bottom: 100px;
   }
 `;
 
@@ -289,12 +294,12 @@ export const FeatureDesc = styled.p`
 export const Section = styled.section`
   max-width: 720px;
   margin: 0 auto;
-  padding: 0 ${({ theme }) => theme.spacing.lg} 100px;
+  padding: 0 ${({ theme }) => theme.spacing.md} 60px;
   text-align: center;
   animation: ${fadeUp} 0.6s ease 0.3s both;
 
-  @media (max-width: 767px) {
-    padding: 0 ${({ theme }) => theme.spacing.md} 60px;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    padding: 0 ${({ theme }) => theme.spacing.lg} 100px;
   }
 `;
 
@@ -310,21 +315,21 @@ export const Steps = styled.ol`
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.xl};
+  gap: ${({ theme }) => theme.spacing.lg};
   text-align: left;
 
-  @media (max-width: 767px) {
-    gap: ${({ theme }) => theme.spacing.lg};
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    gap: ${({ theme }) => theme.spacing.xl};
   }
 `;
 
 export const Step = styled.li`
   display: flex;
-  gap: 20px;
+  gap: ${({ theme }) => theme.spacing.md};
   align-items: flex-start;
 
-  @media (max-width: 767px) {
-    gap: ${({ theme }) => theme.spacing.md};
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    gap: 20px;
   }
 `;
 

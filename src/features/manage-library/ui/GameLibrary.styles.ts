@@ -5,14 +5,15 @@ import { ButtonRow } from "@/shared/ui/Layout";
 
 export const Toolbar = styled.div`
   display: flex;
+  flex-direction: column;
   gap: ${({ theme }) => theme.spacing.md};
-  align-items: center;
+  align-items: stretch;
   flex-wrap: wrap;
   margin-bottom: ${({ theme }) => theme.spacing.md};
 
-  @media (max-width: 767px) {
-    flex-direction: column;
-    align-items: stretch;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    flex-direction: row;
+    align-items: center;
   }
 `;
 
@@ -28,13 +29,13 @@ export const TableHeaderActionsLabel = styled.span`
 `;
 
 export const Stats = styled.div`
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: ${({ theme }) => theme.spacing.lg};
   margin-bottom: ${({ theme }) => theme.spacing.lg};
 
-  @media (max-width: 767px) {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    display: flex;
   }
 `;
 
@@ -42,13 +43,13 @@ export const StatCard = styled.div`
   background: ${({ theme }) => theme.colors.surface};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radius.md};
-  padding: ${({ theme }) => theme.spacing.md};
+  padding: ${({ theme }) => theme.spacing.sm};
   flex: 1;
-  min-width: 120px;
+  min-width: 0;
 
-  @media (max-width: 767px) {
-    padding: ${({ theme }) => theme.spacing.sm};
-    min-width: 0;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    padding: ${({ theme }) => theme.spacing.md};
+    min-width: 120px;
   }
 `;
 
@@ -73,20 +74,20 @@ export const Table = styled.div`
 
 export const TableHeader = styled.div`
   display: grid;
-  grid-template-columns: 1fr 100px 80px;
-  padding: 12px 20px;
+  grid-template-columns: 1fr 50px 50px;
+  padding: ${({ theme }) => theme.spacing.sm} 10px;
   background: ${({ theme }) => theme.colors.surfaceElevated};
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: ${({ theme }) => theme.colors.textSecondary};
   text-transform: uppercase;
   letter-spacing: 0.05em;
 
-  @media (max-width: 767px) {
-    grid-template-columns: 1fr 50px 50px;
-    padding: ${({ theme }) => theme.spacing.sm} 10px;
-    font-size: 0.7rem;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    grid-template-columns: 1fr 100px 80px;
+    padding: 12px 20px;
+    font-size: 0.8rem;
   }
 `;
 
@@ -129,8 +130,9 @@ export const FilterLabel = styled.span`
 
 export const Row = styled.div<{ $editing?: boolean }>`
   display: grid;
-  grid-template-columns: 1fr 100px 80px;
-  padding: 10px 20px;
+  grid-template-columns: 1fr 50px 50px;
+  padding: ${({ theme }) => theme.spacing.sm} 10px;
+  font-size: 0.8rem;
   align-items: center;
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
   transition: background ${({ theme }) => theme.transition.fast};
@@ -145,20 +147,21 @@ export const Row = styled.div<{ $editing?: boolean }>`
     border-bottom: none;
   }
 
-  @media (max-width: 767px) {
-    grid-template-columns: 1fr 50px 50px;
-    padding: ${({ theme }) => theme.spacing.sm} 10px;
-    font-size: 0.8rem;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    grid-template-columns: 1fr 100px 80px;
+    padding: 10px 20px;
+    font-size: unset;
   }
 `;
 
 export const GameName = styled.div`
-  font-size: 0.9rem;
+  font-size: 0.8125rem;
   color: ${({ theme }) => theme.colors.text};
+  word-break: break-word;
 
-  @media (max-width: 767px) {
-    font-size: 0.8125rem;
-    word-break: break-word;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    font-size: 0.9rem;
+    word-break: normal;
   }
 `;
 
@@ -201,11 +204,11 @@ export const InlineNameInput = styled.input`
   border: 1px solid ${({ theme }) => theme.colors.accent};
   background: ${({ theme }) => theme.colors.bg};
   color: ${({ theme }) => theme.colors.text};
-  font-size: 0.85rem;
+  font-size: 0.8125rem;
   outline: none;
 
-  @media (max-width: 767px) {
-    font-size: 0.8125rem;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    font-size: 0.85rem;
   }
 `;
 
@@ -242,7 +245,7 @@ export const DropZone = styled.div<{ $active: boolean; $marginTop?: boolean; $fl
   border: 2px dashed
     ${({ theme, $active }) => ($active ? theme.colors.accent : theme.colors.border)};
   border-radius: ${({ theme }) => theme.radius.lg};
-  padding: ${({ theme }) => theme.spacing.xl};
+  padding: ${({ theme }) => theme.spacing.sm};
   text-align: center;
   color: ${({ theme, $active }) => ($active ? theme.colors.accent : theme.colors.textSecondary)};
   margin-top: ${({ theme, $marginTop }) => ($marginTop ? theme.spacing.sm : 0)};
@@ -251,8 +254,8 @@ export const DropZone = styled.div<{ $active: boolean; $marginTop?: boolean; $fl
   transition: all ${({ theme }) => theme.transition.normal};
   background: ${({ theme, $active }) => ($active ? theme.colors.accentMuted : "transparent")};
 
-  @media (max-width: 767px) {
-    padding: ${({ theme }) => theme.spacing.sm};
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    padding: ${({ theme }) => theme.spacing.xl};
   }
 `;
 
@@ -292,7 +295,6 @@ export const PlatformBtn = styled.button<{ $connected?: boolean }>`
 
   &:hover:not(:disabled) {
     background: ${({ theme }) => theme.colors.surfaceHover};
-    transform: translateY(-1px);
   }
 
   &:disabled {
@@ -300,8 +302,10 @@ export const PlatformBtn = styled.button<{ $connected?: boolean }>`
     cursor: not-allowed;
   }
 
-  @media (max-width: 1024px) {
-    &:hover:not(:disabled) { transform: none; }
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
   }
 
   img { flex-shrink: 0; }

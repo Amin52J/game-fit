@@ -2,37 +2,34 @@ import styled, { css } from "styled-components";
 import Link from "next/link";
 import Image from "next/image";
 
-const MOBILE_MAX = "767px";
-const TABLET_MIN = "768px";
-const TABLET_MAX = "1024px";
-
 export const SidebarRoot = styled.aside<{ $open: boolean }>`
   display: flex;
   flex-direction: column;
   width: 240px;
   height: 100vh;
   height: 100dvh;
-  position: sticky;
+  position: fixed;
+  left: 0;
   top: 0;
+  bottom: 0;
   background: ${({ theme }) => theme.colors.surface};
   border-right: 1px solid ${({ theme }) => theme.colors.border};
   flex-shrink: 0;
   z-index: 200;
   transition: transform ${({ theme }) => theme.transition.normal};
+  box-shadow: ${({ theme }) => theme.shadow.lg};
+  transform: translateX(${({ $open }) => ($open ? "0" : "-100%")});
 
-  @media (min-width: ${TABLET_MIN}) and (max-width: ${TABLET_MAX}) {
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    position: sticky;
+    bottom: auto;
     width: 64px;
+    box-shadow: none;
+    transform: none;
   }
 
-  @media (max-width: ${MOBILE_MAX}) {
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    height: 100vh;
-    height: 100dvh;
-    box-shadow: ${({ theme }) => theme.shadow.lg};
-    transform: translateX(${({ $open }) => ($open ? "0" : "-100%")});
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    width: 240px;
   }
 `;
 
@@ -41,6 +38,7 @@ export const LogoBlock = styled(Link)`
   align-items: center;
   gap: ${({ theme }) => theme.spacing.sm};
   padding: ${({ theme }) => theme.spacing.lg} ${({ theme }) => theme.spacing.md};
+  padding-left: 72px;
   text-decoration: none;
   color: ${({ theme }) => theme.colors.text};
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
@@ -50,13 +48,14 @@ export const LogoBlock = styled(Link)`
     background: ${({ theme }) => theme.colors.surfaceHover};
   }
 
-  @media (min-width: ${TABLET_MIN}) and (max-width: ${TABLET_MAX}) {
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
     justify-content: center;
     padding: ${({ theme }) => theme.spacing.md};
   }
 
-  @media (max-width: ${MOBILE_MAX}) {
-    padding-left: 72px;
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    justify-content: flex-start;
+    padding: ${({ theme }) => theme.spacing.lg} ${({ theme }) => theme.spacing.md};
   }
 `;
 
@@ -79,8 +78,12 @@ export const LogoText = styled.span`
   background-clip: text;
   color: transparent;
 
-  @media (min-width: ${TABLET_MIN}) and (max-width: ${TABLET_MAX}) {
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
     display: none;
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    display: inline;
   }
 `;
 
@@ -92,8 +95,12 @@ export const Nav = styled.nav`
   padding: ${({ theme }) => theme.spacing.md};
   overflow-y: auto;
 
-  @media (min-width: ${TABLET_MIN}) and (max-width: ${TABLET_MAX}) {
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
     padding: ${({ theme }) => theme.spacing.sm};
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    padding: ${({ theme }) => theme.spacing.md};
   }
 `;
 
@@ -133,9 +140,14 @@ export const NavLink = styled(Link)<{ $active: boolean }>`
     transform: translateX(2px) scale(0.98);
   }
 
-  @media (min-width: ${TABLET_MIN}) and (max-width: ${TABLET_MAX}) {
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
     justify-content: center;
     padding: ${({ theme }) => theme.spacing.sm};
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    justify-content: flex-start;
+    padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
   }
 
   ${({ $active }) => $active && navLinkActive}
@@ -150,8 +162,12 @@ export const NavIcon = styled.span`
 `;
 
 export const NavLabel = styled.span`
-  @media (min-width: ${TABLET_MIN}) and (max-width: ${TABLET_MAX}) {
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
     display: none;
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    display: inline;
   }
 `;
 
@@ -160,8 +176,12 @@ export const Footer = styled.div`
   border-top: 1px solid ${({ theme }) => theme.colors.border};
   margin-top: auto;
 
-  @media (min-width: ${TABLET_MIN}) and (max-width: ${TABLET_MAX}) {
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
     padding: ${({ theme }) => theme.spacing.sm};
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    padding: ${({ theme }) => theme.spacing.md};
   }
 `;
 
@@ -196,11 +216,17 @@ export const FooterBtn = styled.button`
     outline-offset: 2px;
   }
 
-  @media (min-width: ${TABLET_MIN}) and (max-width: ${TABLET_MAX}) {
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
     display: flex;
     align-items: center;
     justify-content: center;
     padding: ${({ theme }) => theme.spacing.sm};
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    display: block;
+    text-align: left;
+    padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
   }
 `;
 
@@ -209,8 +235,12 @@ export const UserBlock = styled.div`
   margin-bottom: ${({ theme }) => theme.spacing.xs};
   overflow: hidden;
 
-  @media (min-width: ${TABLET_MIN}) and (max-width: ${TABLET_MAX}) {
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
     display: none;
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    display: block;
   }
 `;
 
@@ -235,34 +265,42 @@ export const UserEmail = styled.div`
 `;
 
 export const FooterBtnText = styled.span`
-  @media (min-width: ${TABLET_MIN}) and (max-width: ${TABLET_MAX}) {
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
     display: none;
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    display: inline;
   }
 `;
 
 export const LogoutIcon = styled.span`
   display: none;
 
-  @media (min-width: ${TABLET_MIN}) and (max-width: ${TABLET_MAX}) {
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
     display: flex;
     align-items: center;
     justify-content: center;
   }
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    display: none;
+  }
 `;
 
 export const Backdrop = styled.div<{ $visible: boolean }>`
-  display: none;
+  display: block;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 150;
+  opacity: ${({ $visible }) => ($visible ? 1 : 0)};
+  pointer-events: ${({ $visible }) => ($visible ? "auto" : "none")};
+  transition: opacity ${({ theme }) => theme.transition.normal};
+  backdrop-filter: blur(2px);
 
-  @media (max-width: ${MOBILE_MAX}) {
-    display: block;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.55);
-    z-index: 150;
-    opacity: ${({ $visible }) => ($visible ? 1 : 0)};
-    pointer-events: ${({ $visible }) => ($visible ? "auto" : "none")};
-    transition: opacity ${({ theme }) => theme.transition.normal};
-    backdrop-filter: blur(2px);
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    display: none;
   }
 `;
 
@@ -346,38 +384,38 @@ export const ModalBtn = styled.button<{ $danger?: boolean }>`
 `;
 
 export const MenuToggle = styled.button`
-  display: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  left: ${({ theme }) => theme.spacing.md};
+  top: ${({ theme }) => theme.spacing.md};
+  z-index: 250;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.colors.surfaceElevated};
+  color: ${({ theme }) => theme.colors.text};
+  cursor: pointer;
+  box-shadow: ${({ theme }) => theme.shadow.md};
+  transition:
+    background ${({ theme }) => theme.transition.fast},
+    border-color ${({ theme }) => theme.transition.fast};
 
-  @media (max-width: ${MOBILE_MAX}) {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: fixed;
-    left: ${({ theme }) => theme.spacing.md};
-    top: ${({ theme }) => theme.spacing.md};
-    z-index: 250;
-    width: 44px;
-    height: 44px;
-    padding: 0;
-    border: 1px solid ${({ theme }) => theme.colors.border};
-    border-radius: ${({ theme }) => theme.radius.md};
-    background: ${({ theme }) => theme.colors.surfaceElevated};
-    color: ${({ theme }) => theme.colors.text};
-    cursor: pointer;
-    box-shadow: ${({ theme }) => theme.shadow.md};
-    transition:
-      background ${({ theme }) => theme.transition.fast},
-      border-color ${({ theme }) => theme.transition.fast};
+  &:hover {
+    background: ${({ theme }) => theme.colors.surfaceHover};
+    border-color: ${({ theme }) => theme.colors.borderLight};
+  }
 
-    &:hover {
-      background: ${({ theme }) => theme.colors.surfaceHover};
-      border-color: ${({ theme }) => theme.colors.borderLight};
-    }
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.accent};
+    outline-offset: 2px;
+  }
 
-    &:focus-visible {
-      outline: 2px solid ${({ theme }) => theme.colors.accent};
-      outline-offset: 2px;
-    }
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    display: none;
   }
 `;
 

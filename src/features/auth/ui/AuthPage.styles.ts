@@ -141,20 +141,21 @@ export const SubmitBtn = styled.button`
 
   &:hover:not(:disabled) {
     background: ${({ theme }) => theme.colors.accentHover};
-    transform: translateY(-1px);
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(0) scale(0.98);
-  }
-
-  @media (max-width: 1024px) {
-    &:hover:not(:disabled), &:active:not(:disabled) { transform: none; }
   }
 
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0) scale(0.98);
+    }
   }
 `;
 
@@ -202,20 +203,21 @@ export const SocialBtn = styled.button`
   &:hover:not(:disabled) {
     background: ${({ theme }) => theme.colors.surfaceHover};
     border-color: ${({ theme }) => theme.colors.borderLight};
-    transform: translateY(-1px);
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(0) scale(0.97);
-  }
-
-  @media (max-width: 1024px) {
-    &:hover:not(:disabled), &:active:not(:disabled) { transform: none; }
   }
 
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0) scale(0.97);
+    }
   }
 `;
 
@@ -241,20 +243,21 @@ export const SteamBtn = styled.button`
     background: #1b2838;
     border-color: #66c0f4;
     color: ${({ theme }) => theme.colors.text};
-    transform: translateY(-1px);
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(0) scale(0.97);
-  }
-
-  @media (max-width: 1024px) {
-    &:hover:not(:disabled), &:active:not(:disabled) { transform: none; }
   }
 
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0) scale(0.97);
+    }
   }
 `;
 

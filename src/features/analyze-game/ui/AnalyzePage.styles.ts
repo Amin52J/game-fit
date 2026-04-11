@@ -4,21 +4,24 @@ import styled from "styled-components";
 import { PageWrapper, ButtonRow } from "@/shared/ui";
 
 export const Page = styled(PageWrapper)`
-  @media (max-width: 1024px) {
+  padding: ${({ theme }) => theme.spacing.sm} 0;
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
     padding: ${({ theme }) => `${theme.spacing.xl} ${theme.spacing.md}`};
   }
 
-  @media (max-width: 767px) {
-    padding: ${({ theme }) => theme.spacing.sm} 0;
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    padding: 0;
   }
 `;
 
 export const Toolbar = styled(ButtonRow)`
   justify-content: flex-end;
   margin-top: ${({ theme }) => theme.spacing.md};
+  padding: 0 ${({ theme }) => theme.spacing.sm};
 
-  @media (max-width: 767px) {
-    padding: 0 ${({ theme }) => theme.spacing.sm};
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    padding: 0;
   }
 `;
 

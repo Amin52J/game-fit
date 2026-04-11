@@ -27,11 +27,11 @@ export const Main = styled.main<{ $fullWidth: boolean }>`
   min-width: 0;
   overflow-y: auto;
   scrollbar-gutter: stable;
-  padding: ${({ theme }) => theme.spacing.lg};
+  padding: ${({ theme }) => theme.spacing.sm};
+  padding-top: ${({ $fullWidth, theme }) =>
+    $fullWidth ? theme.spacing.sm : `calc(${theme.spacing.sm} + 64px)`};
 
-  @media (max-width: 767px) {
-    padding: ${({ theme }) => theme.spacing.sm};
-    padding-top: ${({ $fullWidth, theme }) =>
-      $fullWidth ? theme.spacing.sm : `calc(${theme.spacing.sm} + 64px)`};
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    padding: ${({ theme }) => theme.spacing.lg};
   }
 `;

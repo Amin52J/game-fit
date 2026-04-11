@@ -19,8 +19,8 @@ export const pulse = keyframes`
 
 export const MarkdownBody = styled.div`
   font-family: ${({ theme }) => theme.font.sans};
-  font-size: 0.9375rem;
-  line-height: 1.65;
+  font-size: 0.8125rem;
+  line-height: 1.55;
   color: ${({ theme }) => theme.colors.text};
 
   h1, h2, h3, h4, h5, h6 {
@@ -31,15 +31,15 @@ export const MarkdownBody = styled.div`
     line-height: 1.35;
   }
   h1:first-child, h2:first-child, h3:first-child { margin-top: 0; }
-  h1 { font-size: 1.375rem; }
-  h2 { font-size: 1.2rem; }
-  h3 { font-size: 1.05rem; }
+  h1 { font-size: 1.1rem; }
+  h2 { font-size: 1rem; }
+  h3 { font-size: 0.9375rem; }
 
   p { margin: 0.65em 0; }
   p:first-child { margin-top: 0; }
   p:last-child { margin-bottom: 0; }
 
-  ul, ol { margin: 0.65em 0; padding-left: 1.35rem; }
+  ul, ol { margin: 0.65em 0; padding-left: 1.1rem; }
   li { margin: 0.3em 0; }
   li::marker { color: ${({ theme }) => theme.colors.textMuted}; }
 
@@ -64,12 +64,12 @@ export const MarkdownBody = styled.div`
 
   pre {
     margin: 0.85em 0;
-    padding: ${({ theme }) => theme.spacing.md};
+    padding: ${({ theme }) => theme.spacing.sm};
     border-radius: ${({ theme }) => theme.radius.md};
     background: ${({ theme }) => theme.colors.bg};
     border: 1px solid ${({ theme }) => theme.colors.border};
     overflow-x: auto;
-    code { padding: 0; border: none; background: transparent; font-size: 0.8125rem; }
+    code { padding: 0; border: none; background: transparent; font-size: 0.75rem; }
   }
 
   blockquote {
@@ -83,19 +83,19 @@ export const MarkdownBody = styled.div`
 
   hr { display: none; }
 
-  @media (max-width: 767px) {
-    font-size: 0.8125rem;
-    line-height: 1.55;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    font-size: 0.9375rem;
+    line-height: 1.65;
 
-    h1 { font-size: 1.1rem; }
-    h2 { font-size: 1rem; }
-    h3 { font-size: 0.9375rem; }
+    h1 { font-size: 1.375rem; }
+    h2 { font-size: 1.2rem; }
+    h3 { font-size: 1.05rem; }
 
-    ul, ol { padding-left: 1.1rem; }
+    ul, ol { padding-left: 1.35rem; }
 
     pre {
-      padding: ${({ theme }) => theme.spacing.sm};
-      code { font-size: 0.75rem; }
+      padding: ${({ theme }) => theme.spacing.md};
+      code { font-size: 0.8125rem; }
     }
   }
 
@@ -136,43 +136,44 @@ export const ThinkingLabel = styled.span`
 `;
 
 export const Card = styled.article`
-  margin-top: ${({ theme }) => theme.spacing.xl};
+  margin-top: ${({ theme }) => theme.spacing.md};
   background: ${({ theme }) => theme.colors.surface};
   border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radius.lg};
-  box-shadow: ${({ theme }) => theme.shadow.md};
+  border-left: none;
+  border-right: none;
+  border-radius: 0;
   overflow: hidden;
   animation: ${fadeUp} ${({ theme }) => theme.transition.normal};
 
-  @media (max-width: 767px) {
-    margin-top: ${({ theme }) => theme.spacing.md};
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-    box-shadow: none;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    margin-top: ${({ theme }) => theme.spacing.xl};
+    border-left: 1px solid ${({ theme }) => theme.colors.border};
+    border-right: 1px solid ${({ theme }) => theme.colors.border};
+    border-radius: ${({ theme }) => theme.radius.lg};
+    box-shadow: ${({ theme }) => theme.shadow.md};
   }
 `;
 
 export const Header = styled.header`
-  padding: ${({ theme }) => `${theme.spacing.md} ${theme.spacing.lg}`};
+  padding: 8px 12px;
   background: ${({ theme }) => theme.colors.surfaceElevated};
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
 
-  @media (max-width: 767px) {
-    padding: 8px 12px;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    padding: ${({ theme }) => `${theme.spacing.md} ${theme.spacing.lg}`};
   }
 `;
 
 export const GameTitle = styled.h2`
   margin: 0;
   font-family: ${({ theme }) => theme.font.sans};
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 700;
   color: ${({ theme }) => theme.colors.text};
   line-height: 1.3;
 
-  @media (max-width: 767px) {
-    font-size: 1rem;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    font-size: 1.25rem;
   }
 `;
 
@@ -201,35 +202,36 @@ export const EarlyAccessBadge = styled.span`
 
 export const ScoreHero = styled.div`
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: ${({ theme }) => theme.spacing.lg};
-  padding: ${({ theme }) => theme.spacing.lg};
+  text-align: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+  padding: 12px;
   background: ${({ theme }) => theme.colors.bg};
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
 
-  @media (max-width: 767px) {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: ${({ theme }) => theme.spacing.sm};
-    padding: 12px;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    flex-direction: row;
+    text-align: left;
+    gap: ${({ theme }) => theme.spacing.lg};
+    padding: ${({ theme }) => theme.spacing.lg};
   }
 `;
 
 export const ScoreRing = styled.div<{ $score: number }>`
   flex-shrink: 0;
-  width: 88px;
-  height: 88px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: ${({ theme }) => theme.font.sans};
-  font-size: 1.75rem;
+  font-size: 1.2rem;
   font-weight: 800;
   color: ${({ theme }) => theme.colors.text};
   background: ${({ theme }) => theme.colors.surface};
-  border: 4px solid ${({ $score, theme }) =>
+  border: 3px solid ${({ $score, theme }) =>
     $score >= 80
       ? theme.colors.success
       : $score >= 60
@@ -246,11 +248,11 @@ export const ScoreRing = styled.div<{ $score: number }>`
           ? theme.colors.warningMuted
           : theme.colors.errorMuted};
 
-  @media (max-width: 767px) {
-    width: 56px;
-    height: 56px;
-    font-size: 1.2rem;
-    border-width: 3px;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    width: 88px;
+    height: 88px;
+    font-size: 1.75rem;
+    border-width: 4px;
   }
 `;
 
@@ -273,9 +275,10 @@ export const ScoreRingTag = styled.span`
 export const ScoreDetails = styled.div`
   flex: 1;
   min-width: 0;
+  width: 100%;
 
-  @media (max-width: 767px) {
-    width: 100%;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    width: auto;
   }
 `;
 
@@ -289,14 +292,14 @@ export const ScoreLabel = styled.div`
 `;
 
 export const ScoreSummaryText = styled.div`
-  font-size: 0.875rem;
-  line-height: 1.5;
+  font-size: 0.8125rem;
+  line-height: 1.4;
   color: ${({ theme }) => theme.colors.textSecondary};
   margin-top: ${({ theme }) => theme.spacing.xs};
 
-  @media (max-width: 767px) {
-    font-size: 0.8125rem;
-    line-height: 1.4;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    font-size: 0.875rem;
+    line-height: 1.5;
   }
 `;
 
@@ -308,31 +311,35 @@ export const CurrentScoreNote = styled.div`
 `;
 
 export const MetricsRow = styled.div`
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 1px;
   background: ${({ theme }) => theme.colors.border};
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
 
-  @media (max-width: 767px) {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    display: flex;
   }
 `;
 
 export const MetricCell = styled.div<{ $accent?: string }>`
   flex: 1;
-  padding: ${({ theme }) => `${theme.spacing.md} ${theme.spacing.md}`};
+  padding: 8px 10px;
   background: ${({ theme }) => theme.colors.surface};
   display: flex;
   flex-direction: column;
   gap: 4px;
   min-width: 0;
 
-  @media (max-width: 767px) {
-    padding: 8px 10px;
+  &:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    padding: ${({ theme }) => `${theme.spacing.md} ${theme.spacing.md}`};
 
     &:last-child:nth-child(odd) {
-      grid-column: 1 / -1;
+      grid-column: auto;
     }
   }
 `;
@@ -366,17 +373,17 @@ export const SkeletonBarSpaced = styled(SkeletonBar)`
 
 export const SkeletonRing = styled.div`
   flex-shrink: 0;
-  width: 88px;
-  height: 88px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   background: ${({ theme }) => theme.colors.surfaceElevated};
-  border: 4px solid ${({ theme }) => theme.colors.border};
+  border: 3px solid ${({ theme }) => theme.colors.border};
   animation: ${pulse} 1.8s ease-in-out infinite;
 
-  @media (max-width: 767px) {
-    width: 56px;
-    height: 56px;
-    border-width: 3px;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    width: 88px;
+    height: 88px;
+    border-width: 4px;
   }
 `;
 
@@ -400,12 +407,12 @@ const accentBorder = (accent: SectionAccent) => css`
 `;
 
 export const SectionCard = styled.div<{ $accent: SectionAccent }>`
-  padding: ${({ theme }) => theme.spacing.lg};
+  padding: 10px 12px;
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
   ${({ $accent }) => accentBorder($accent)};
 
-  @media (max-width: 767px) {
-    padding: 10px 12px;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    padding: ${({ theme }) => theme.spacing.lg};
   }
 `;
 
@@ -421,21 +428,21 @@ export const SectionHeading = styled.h3<{ $color?: string }>`
 
 export const SectionContent = styled.div`
   font-family: ${({ theme }) => theme.font.sans};
-  font-size: 0.9375rem;
-  line-height: 1.65;
+  font-size: 0.8125rem;
+  line-height: 1.55;
   color: ${({ theme }) => theme.colors.text};
 
-  @media (max-width: 767px) {
-    font-size: 0.8125rem;
-    line-height: 1.55;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    font-size: 0.9375rem;
+    line-height: 1.65;
   }
 `;
 
 export const RefundBanner = styled.div<{ $required: boolean }>`
   display: flex;
   align-items: flex-start;
-  gap: ${({ theme }) => theme.spacing.md};
-  padding: ${({ theme }) => theme.spacing.md} ${({ theme }) => theme.spacing.lg};
+  gap: ${({ theme }) => theme.spacing.sm};
+  padding: 12px;
   background: ${({ theme, $required }) =>
     $required ? theme.colors.warningMuted : theme.colors.accentMuted};
   border-bottom: 1px solid ${({ theme, $required }) =>
@@ -443,9 +450,9 @@ export const RefundBanner = styled.div<{ $required: boolean }>`
   border-left: 3px solid ${({ theme, $required }) =>
     $required ? theme.colors.warning : theme.colors.accent};
 
-  @media (max-width: 767px) {
-    padding: 12px;
-    gap: ${({ theme }) => theme.spacing.sm};
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    gap: ${({ theme }) => theme.spacing.md};
+    padding: ${({ theme }) => theme.spacing.md} ${({ theme }) => theme.spacing.lg};
   }
 `;
 
@@ -467,10 +474,10 @@ export const RefundTitle = styled.div<{ $required: boolean }>`
 `;
 
 export const FallbackBody = styled.div`
-  padding: ${({ theme }) => theme.spacing.lg};
+  padding: ${({ theme }) => theme.spacing.sm};
 
-  @media (max-width: 767px) {
-    padding: ${({ theme }) => theme.spacing.sm};
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    padding: ${({ theme }) => theme.spacing.lg};
   }
 `;
 
@@ -531,19 +538,19 @@ export const PreviewWrap = styled.div`
 export const RefundStrip = styled.div<{ $required: boolean }>`
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: ${({ theme }) => `${theme.spacing.md}`};
+  gap: 4px;
+  padding: ${({ theme }) => theme.spacing.sm};
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
   font-family: ${({ theme }) => theme.font.sans};
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: ${({ theme, $required }) =>
     $required ? theme.colors.warning : theme.colors.accent};
 
   svg { flex-shrink: 0; }
 
-  @media (max-width: 767px) {
-    padding: ${({ theme }) => `${theme.spacing.sm}`};
-    font-size: 0.75rem;
-    gap: 4px;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    gap: 6px;
+    padding: ${({ theme }) => theme.spacing.md};
+    font-size: 0.8125rem;
   }
 `;

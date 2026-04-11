@@ -3,10 +3,6 @@
 import styled from "styled-components";
 import { Skeleton } from "@/shared/ui";
 
-export const MOBILE_MAX = "767px";
-export const TABLET_MIN = "768px";
-export const TABLET_MAX = "1024px";
-
 export const Root = styled.div`
   display: flex;
   min-height: 100vh;
@@ -29,23 +25,23 @@ export const Root = styled.div`
 /* ——— Sidebar skeleton ——— */
 
 export const SidebarSkeleton = styled.aside`
-  display: flex;
-  flex-direction: column;
-  width: 240px;
-  height: 100vh;
-  height: 100dvh;
-  position: sticky;
-  top: 0;
-  background: ${({ theme }) => theme.colors.surface};
-  border-right: 1px solid ${({ theme }) => theme.colors.border};
-  flex-shrink: 0;
+  display: none;
 
-  @media (min-width: ${TABLET_MIN}) and (max-width: ${TABLET_MAX}) {
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    display: flex;
+    flex-direction: column;
     width: 64px;
+    height: 100vh;
+    height: 100dvh;
+    position: sticky;
+    top: 0;
+    background: ${({ theme }) => theme.colors.surface};
+    border-right: 1px solid ${({ theme }) => theme.colors.border};
+    flex-shrink: 0;
   }
 
-  @media (max-width: ${MOBILE_MAX}) {
-    display: none;
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    width: 240px;
   }
 `;
 
@@ -56,15 +52,24 @@ export const SidebarLogo = styled.div`
   padding: ${({ theme }) => theme.spacing.lg} ${({ theme }) => theme.spacing.md};
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
 
-  @media (min-width: ${TABLET_MIN}) and (max-width: ${TABLET_MAX}) {
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
     justify-content: center;
     padding: ${({ theme }) => theme.spacing.md};
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    justify-content: flex-start;
+    padding: ${({ theme }) => theme.spacing.lg} ${({ theme }) => theme.spacing.md};
   }
 `;
 
 export const SidebarLogoText = styled.div`
-  @media (min-width: ${TABLET_MIN}) and (max-width: ${TABLET_MAX}) {
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
     display: none;
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    display: block;
   }
 `;
 
@@ -75,8 +80,12 @@ export const SidebarNav = styled.div`
   gap: ${({ theme }) => theme.spacing.xs};
   padding: ${({ theme }) => theme.spacing.md};
 
-  @media (min-width: ${TABLET_MIN}) and (max-width: ${TABLET_MAX}) {
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
     padding: ${({ theme }) => theme.spacing.sm};
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    padding: ${({ theme }) => theme.spacing.md};
   }
 `;
 
@@ -86,15 +95,24 @@ export const NavItemSkeleton = styled.div`
   gap: ${({ theme }) => theme.spacing.sm};
   padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
 
-  @media (min-width: ${TABLET_MIN}) and (max-width: ${TABLET_MAX}) {
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
     justify-content: center;
     padding: ${({ theme }) => theme.spacing.sm};
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    justify-content: flex-start;
+    padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
   }
 `;
 
 export const NavItemLabel = styled.div`
-  @media (min-width: ${TABLET_MIN}) and (max-width: ${TABLET_MAX}) {
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
     display: none;
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    display: block;
   }
 `;
 
@@ -106,9 +124,14 @@ export const SidebarFooter = styled.div`
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.xs};
 
-  @media (min-width: ${TABLET_MIN}) and (max-width: ${TABLET_MAX}) {
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
     padding: ${({ theme }) => theme.spacing.sm};
     align-items: center;
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    padding: ${({ theme }) => theme.spacing.md};
+    align-items: stretch;
   }
 `;
 
@@ -118,22 +141,26 @@ export const SidebarFooterDesktop = styled.div`
   gap: ${({ theme }) => theme.spacing.xs};
   width: 100%;
 
-  @media (min-width: ${TABLET_MIN}) and (max-width: ${TABLET_MAX}) {
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
     display: none;
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    display: flex;
   }
 `;
 
 /* ——— Mobile menu button skeleton ——— */
 
 export const MobileMenuSkeleton = styled.div`
-  display: none;
+  display: block;
+  position: fixed;
+  left: ${({ theme }) => theme.spacing.md};
+  top: ${({ theme }) => theme.spacing.md};
+  z-index: 250;
 
-  @media (max-width: ${MOBILE_MAX}) {
-    display: block;
-    position: fixed;
-    left: ${({ theme }) => theme.spacing.md};
-    top: ${({ theme }) => theme.spacing.md};
-    z-index: 250;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    display: none;
   }
 `;
 
@@ -142,26 +169,26 @@ export const MobileMenuSkeleton = styled.div`
 export const Content = styled.div`
   flex: 1;
   min-width: 0;
-  padding: ${({ theme }) => theme.spacing.lg};
+  padding: ${({ theme }) => theme.spacing.sm};
+  padding-top: calc(${({ theme }) => theme.spacing.sm} + 64px);
   overflow: hidden;
 
-  @media (max-width: ${MOBILE_MAX}) {
-    padding: ${({ theme }) => theme.spacing.sm};
-    padding-top: calc(${({ theme }) => theme.spacing.sm} + 64px);
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    padding: ${({ theme }) => theme.spacing.lg};
   }
 `;
 
 export const ContentInner = styled.div`
   max-width: 900px;
   margin: 0 auto;
-  padding: ${({ theme }) => `${theme.spacing.xl} ${theme.spacing.lg}`};
+  padding: ${({ theme }) => theme.spacing.sm} 0;
   display: flex;
   flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.lg};
+  gap: ${({ theme }) => theme.spacing.md};
 
-  @media (max-width: ${MOBILE_MAX}) {
-    padding: ${({ theme }) => theme.spacing.sm} 0;
-    gap: ${({ theme }) => theme.spacing.md};
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    padding: ${({ theme }) => `${theme.spacing.xl} ${theme.spacing.lg}`};
+    gap: ${({ theme }) => theme.spacing.lg};
   }
 `;
 
@@ -169,26 +196,29 @@ export const FormBlock = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.sm};
+  padding: 0 ${({ theme }) => theme.spacing.sm};
 
-  @media (max-width: ${MOBILE_MAX}) {
-    padding: 0 ${({ theme }) => theme.spacing.sm};
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    padding: 0;
   }
 `;
 
 export const CardBlock = styled.div`
   background: ${({ theme }) => theme.colors.surface};
   border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radius.lg};
-  padding: ${({ theme }) => theme.spacing.lg};
+  border-left: none;
+  border-right: none;
+  border-radius: 0;
+  padding: ${({ theme }) => theme.spacing.sm};
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.md};
 
-  @media (max-width: ${MOBILE_MAX}) {
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-    padding: ${({ theme }) => theme.spacing.sm};
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    border-left: 1px solid ${({ theme }) => theme.colors.border};
+    border-right: 1px solid ${({ theme }) => theme.colors.border};
+    border-radius: ${({ theme }) => theme.radius.lg};
+    padding: ${({ theme }) => theme.spacing.lg};
   }
 `;
 

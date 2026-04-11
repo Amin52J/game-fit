@@ -131,18 +131,13 @@ const StyledButton = styled.button<{
   ${({ theme, $variant }) => variantStyles(theme, $variant)}
   width: ${({ $fullWidth }) => ($fullWidth ? "100%" : "auto")};
 
-  &:hover:not(:disabled) {
-    transform: translateY(-1px);
-  }
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
 
-  &:active:not(:disabled) {
-    transform: translateY(0) scale(0.97);
-  }
-
-  @media (max-width: 1024px) {
-    &:hover:not(:disabled),
     &:active:not(:disabled) {
-      transform: none;
+      transform: translateY(0) scale(0.97);
     }
   }
 

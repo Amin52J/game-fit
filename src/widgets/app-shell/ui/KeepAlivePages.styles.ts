@@ -74,10 +74,11 @@ export const NotFoundLink = styled(Link)`
 
   &:hover {
     background: ${({ theme }) => theme.colors.accentHover};
-    transform: translateY(-1px);
   }
 
-  @media (max-width: 1024px) {
-    &:hover { transform: none; }
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    &:hover {
+      transform: translateY(-1px);
+    }
   }
 `;

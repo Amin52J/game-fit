@@ -80,12 +80,13 @@ export const Btn = styled.button<{ $primary?: boolean }>`
   color: ${({ theme }) => theme.colors.text};
 
   &:hover {
-    transform: translateY(-1px);
     background: ${({ theme, $primary }) =>
       $primary ? theme.colors.accentHover : theme.colors.surfaceHover};
   }
 
-  @media (max-width: 1024px) {
-    &:hover { transform: none; }
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    &:hover {
+      transform: translateY(-1px);
+    }
   }
 `;

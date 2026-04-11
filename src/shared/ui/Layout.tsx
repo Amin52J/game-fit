@@ -6,23 +6,25 @@ export const PageWrapper = styled.div`
   max-width: 900px;
   width: 100%;
   margin: 0 auto;
+  padding: 0 ${({ theme }) => theme.spacing.sm};
 
-  @media (max-width: 767px) {
-    padding: 0 ${({ theme }) => theme.spacing.sm};
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    padding: 0;
   }
 `;
 
 export const PageHeader = styled.div`
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   flex-wrap: wrap;
+  flex-direction: column;
   gap: ${({ theme }) => theme.spacing.md};
   margin-bottom: ${({ theme }) => theme.spacing.lg};
 
-  @media (max-width: 767px) {
-    flex-direction: column;
-    align-items: flex-start;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    flex-direction: row;
+    align-items: center;
   }
 `;
 
@@ -44,13 +46,13 @@ export const PageSubtitle = styled.p`
 export const SectionCard = styled.section`
   background: ${({ theme }) => theme.colors.surface};
   border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radius.lg};
-  padding: ${({ theme }) => theme.spacing.lg};
+  border-radius: ${({ theme }) => theme.radius.md};
+  padding: ${({ theme }) => theme.spacing.sm};
   margin-bottom: ${({ theme }) => theme.spacing.lg};
 
-  @media (max-width: 767px) {
-    padding: ${({ theme }) => theme.spacing.sm};
-    border-radius: ${({ theme }) => theme.radius.md};
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    padding: ${({ theme }) => theme.spacing.lg};
+    border-radius: ${({ theme }) => theme.radius.lg};
   }
 `;
 

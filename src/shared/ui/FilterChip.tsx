@@ -22,17 +22,15 @@ export const FilterChip = styled.button<{ $active: boolean }>`
   &:hover {
     border-color: ${({ theme }) => theme.colors.accent};
     color: ${({ theme }) => theme.colors.text};
-    transform: translateY(-1px);
   }
 
-  &:active {
-    transform: translateY(0) scale(0.95);
-  }
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    &:hover {
+      transform: translateY(-1px);
+    }
 
-  @media (max-width: 1024px) {
-    &:hover,
     &:active {
-      transform: none;
+      transform: translateY(0) scale(0.95);
     }
   }
 `;

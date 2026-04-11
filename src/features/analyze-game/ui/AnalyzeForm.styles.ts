@@ -5,12 +5,13 @@ import styled from "styled-components";
 export const FormRoot = styled.form`
   display: flex;
   flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.lg};
+  gap: ${({ theme }) => theme.spacing.md};
   width: 100%;
+  padding: 0 ${({ theme }) => theme.spacing.sm};
 
-  @media (max-width: 767px) {
-    padding: 0 ${({ theme }) => theme.spacing.sm};
-    gap: ${({ theme }) => theme.spacing.md};
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    gap: ${({ theme }) => theme.spacing.lg};
+    padding: 0;
   }
 `;
 
@@ -30,9 +31,9 @@ export const Label = styled.label`
 
 export const GameNameField = styled.input<{ $invalid?: boolean }>`
   width: 100%;
-  padding: ${({ theme }) => `${theme.spacing.md} ${theme.spacing.lg}`};
+  padding: ${({ theme }) => `${theme.spacing.sm} ${theme.spacing.md}`};
   font-family: ${({ theme }) => theme.font.sans};
-  font-size: 1.375rem;
+  font-size: 1.125rem;
   font-weight: 600;
   line-height: 1.3;
   color: ${({ theme }) => theme.colors.text};
@@ -61,9 +62,9 @@ export const GameNameField = styled.input<{ $invalid?: boolean }>`
     cursor: not-allowed;
   }
 
-  @media (max-width: 767px) {
-    font-size: 1.125rem;
-    padding: ${({ theme }) => `${theme.spacing.sm} ${theme.spacing.md}`};
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    font-size: 1.375rem;
+    padding: ${({ theme }) => `${theme.spacing.md} ${theme.spacing.lg}`};
   }
 `;
 

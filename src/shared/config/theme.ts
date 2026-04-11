@@ -45,6 +45,10 @@ export const theme = {
     lg: "0 8px 30px rgba(0,0,0,0.6)",
     glow: "0 0 20px rgba(124, 138, 255, 0.15)",
   },
+  breakpoint: {
+    tablet: "768px",
+    desktop: "1025px",
+  },
   transition: {
     fast: "150ms ease",
     normal: "250ms ease",

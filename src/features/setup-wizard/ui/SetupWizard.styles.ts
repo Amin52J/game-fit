@@ -9,12 +9,12 @@ const stepSlideIn = keyframes`
 
 export const Page = styled.div`
   min-height: 100vh;
-  padding: ${({ theme }) => theme.spacing.xl} ${({ theme }) => theme.spacing.md};
+  padding: ${({ theme }) => theme.spacing.lg} ${({ theme }) => theme.spacing.sm};
   background: ${({ theme }) => theme.colors.bg};
   font-family: ${({ theme }) => theme.font.sans};
 
-  @media (max-width: 767px) {
-    padding: ${({ theme }) => theme.spacing.lg} ${({ theme }) => theme.spacing.sm};
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    padding: ${({ theme }) => theme.spacing.xl} ${({ theme }) => theme.spacing.md};
   }
 `;
 
@@ -30,13 +30,13 @@ export const Hero = styled.header`
 
 export const Title = styled.h1`
   margin: 0 0 ${({ theme }) => theme.spacing.sm};
-  font-size: 1.75rem;
+  font-size: 1.4rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: ${({ theme }) => theme.colors.text};
 
-  @media (max-width: 767px) {
-    font-size: 1.4rem;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    font-size: 1.75rem;
   }
 `;
 
@@ -50,13 +50,13 @@ export const Subtitle = styled.p`
 export const Card = styled.div`
   background: ${({ theme }) => theme.colors.surfaceElevated};
   border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radius.xl};
-  padding: ${({ theme }) => theme.spacing.xl};
+  border-radius: ${({ theme }) => theme.radius.lg};
+  padding: ${({ theme }) => theme.spacing.md};
   box-shadow: ${({ theme }) => theme.shadow.lg};
 
-  @media (max-width: 767px) {
-    padding: ${({ theme }) => theme.spacing.md};
-    border-radius: ${({ theme }) => theme.radius.lg};
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    padding: ${({ theme }) => theme.spacing.xl};
+    border-radius: ${({ theme }) => theme.radius.xl};
   }
 `;
 
@@ -197,13 +197,13 @@ export const NavRow = styled.div`
   justify-content: space-between;
   align-items: center;
   gap: ${({ theme }) => theme.spacing.md};
-  margin-top: ${({ theme }) => theme.spacing.xl};
-  padding-top: ${({ theme }) => theme.spacing.lg};
+  margin-top: ${({ theme }) => theme.spacing.lg};
+  padding-top: ${({ theme }) => theme.spacing.md};
   border-top: 1px solid ${({ theme }) => theme.colors.border};
 
-  @media (max-width: 767px) {
-    margin-top: ${({ theme }) => theme.spacing.lg};
-    padding-top: ${({ theme }) => theme.spacing.md};
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    margin-top: ${({ theme }) => theme.spacing.xl};
+    padding-top: ${({ theme }) => theme.spacing.lg};
   }
 `;
 
@@ -321,11 +321,11 @@ export const Stepper = styled.div`
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: ${({ theme }) => theme.spacing.xl};
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
   gap: ${({ theme }) => theme.spacing.xs};
 
-  @media (max-width: 767px) {
-    margin-bottom: ${({ theme }) => theme.spacing.lg};
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    margin-bottom: ${({ theme }) => theme.spacing.xl};
   }
 `;
 
@@ -344,27 +344,27 @@ export const StepTrack = styled.div`
 `;
 
 export const StepCircle = styled.div<{ $state: "done" | "current" | "todo" }>`
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 700;
   z-index: 1;
-
-  @media (max-width: 767px) {
-    width: 30px;
-    height: 30px;
-    font-size: 0.75rem;
-  }
   transition:
     background ${({ theme }) => theme.transition.fast},
     border-color ${({ theme }) => theme.transition.fast},
     color ${({ theme }) => theme.transition.fast},
     box-shadow ${({ theme }) => theme.transition.fast};
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    width: 36px;
+    height: 36px;
+    font-size: 0.8125rem;
+  }
 
   ${({ theme, $state }) =>
     $state === "current"
@@ -399,7 +399,7 @@ export const StepLine = styled.div<{ $filled: boolean }>`
 
 export const StepLabel = styled.span<{ $active: boolean }>`
   margin-top: ${({ theme }) => theme.spacing.sm};
-  font-size: 0.6875rem;
+  font-size: 0.5625rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -407,8 +407,8 @@ export const StepLabel = styled.span<{ $active: boolean }>`
   color: ${({ theme, $active }) => ($active ? theme.colors.text : theme.colors.textMuted)};
   line-height: 1.2;
 
-  @media (max-width: 767px) {
-    font-size: 0.5625rem;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    font-size: 0.6875rem;
   }
 `;
 
@@ -416,11 +416,11 @@ export const StepLabel = styled.span<{ $active: boolean }>`
 
 export const ProviderGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: ${({ theme }) => theme.spacing.sm};
 
-  @media (max-width: 640px) {
-    grid-template-columns: 1fr;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    grid-template-columns: repeat(2, 1fr);
   }
 `;
 
@@ -531,11 +531,11 @@ export const HelpRecommendNote = styled.div`
 
 export const PlayGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
   gap: ${({ theme }) => theme.spacing.sm};
 
-  @media (max-width: 720px) {
-    grid-template-columns: 1fr;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    grid-template-columns: repeat(3, 1fr);
   }
 `;
 
@@ -558,15 +558,16 @@ export const OptionCard = styled.button<{ $selected: boolean }>`
 
   &:hover {
     background: ${({ theme }) => theme.colors.surfaceHover};
-    transform: translateY(-1px);
   }
 
-  &:active {
-    transform: translateY(0) scale(0.97);
-  }
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    &:hover {
+      transform: translateY(-1px);
+    }
 
-  @media (max-width: 1024px) {
-    &:hover, &:active { transform: none; }
+    &:active {
+      transform: translateY(0) scale(0.97);
+    }
   }
 
   &:focus-visible {
@@ -588,11 +589,11 @@ export const OptionCardDesc = styled.div`
 
 export const SliderGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: ${({ theme }) => theme.spacing.lg};
 
-  @media (max-width: 640px) {
-    grid-template-columns: 1fr;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    grid-template-columns: repeat(2, 1fr);
   }
 `;
 
@@ -647,11 +648,11 @@ export const RangeInput = styled.input`
 
 export const ChipGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: ${({ theme }) => theme.spacing.sm};
 
-  @media (max-width: 560px) {
-    grid-template-columns: 1fr;
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    grid-template-columns: repeat(2, 1fr);
   }
 `;
 
@@ -897,7 +898,6 @@ export const PlatformBtn = styled.button<{ $color: string; $connected?: boolean 
 
   &:hover:not(:disabled) {
     opacity: 0.9;
-    transform: translateY(-1px);
   }
 
   &:disabled {
@@ -905,8 +905,10 @@ export const PlatformBtn = styled.button<{ $color: string; $connected?: boolean 
     cursor: not-allowed;
   }
 
-  @media (max-width: 1024px) {
-    &:hover:not(:disabled) { transform: none; }
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
   }
 
   svg { fill: currentColor; }
