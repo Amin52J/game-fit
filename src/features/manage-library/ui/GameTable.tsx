@@ -32,6 +32,7 @@ export function GameTable({
   startEdit,
   handleDeleteGame,
   setConfirmDeleteId,
+  onCalcScore,
 }: {
   tableRef: React.RefObject<HTMLDivElement | null>;
   pageGames: Game[];
@@ -50,6 +51,7 @@ export function GameTable({
   startEdit: (g: Game) => void;
   handleDeleteGame: (id: string) => void;
   setConfirmDeleteId: (id: string | null) => void;
+  onCalcScore: (g: Game) => void;
 }) {
   return (
     <Table ref={tableRef}>
@@ -90,6 +92,7 @@ export function GameTable({
             startEdit={startEdit}
             handleDeleteGame={handleDeleteGame}
             setConfirmDeleteId={setConfirmDeleteId}
+            onCalcScore={onCalcScore}
           />
         ))
       )}

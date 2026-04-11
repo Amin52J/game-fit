@@ -210,6 +210,7 @@ export function useGameLibrary() {
     handleClearLibrary,
     handleDeleteGame,
     handleAddGame,
+    updateGame,
     setGames,
   };
 }

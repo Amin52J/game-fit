@@ -11,6 +11,7 @@ import {
   InlineNameInput,
   RowActions,
   IconBtn,
+  ScoreContainer,
 } from "./GameLibrary.styles";
 
 export function GameRow({
@@ -26,6 +27,7 @@ export function GameRow({
   startEdit,
   handleDeleteGame,
   setConfirmDeleteId,
+  onCalcScore,
 }: {
   game: Game;
   editingId: string | null;
@@ -39,6 +41,7 @@ export function GameRow({
   startEdit: (g: Game) => void;
   handleDeleteGame: (id: string) => void;
   setConfirmDeleteId: (id: string | null) => void;
+  onCalcScore: (g: Game) => void;
 }) {
   const isEditing = editingId === game.id;
 
@@ -59,7 +62,7 @@ export function GameRow({
           game.name
         )}
       </GameName>
-      <div>
+      <ScoreContainer>
         {isEditing ? (
           <InlineInput
             value={editScore}
@@ -79,11 +82,9 @@ export function GameRow({
             inputMode="numeric"
           />
         ) : (
-          <ScoreBadge $score={game.score}>
-            {game.score !== null ? game.score : "—"}
-          </ScoreBadge>
+          <ScoreBadge $score={game.score}>{game.score !== null ? game.score : "—"}</ScoreBadge>
         )}
-      </div>
+      </ScoreContainer>
       <RowActions>
         {isEditing ? (
           <>
@@ -96,6 +97,9 @@ export function GameRow({
           </>
         ) : (
           <>
+            <IconBtn onClick={() => onCalcScore(game)} title="Calculate score">
+              <Icon name="calculator" size={16} />
+            </IconBtn>
             <IconBtn onClick={() => startEdit(game)} title="Edit">
               <Icon name="edit" size={16} />
             </IconBtn>
