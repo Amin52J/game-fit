@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: Deno.env.get("EMAIL_FROM") ?? "GameFit <noreply@gamefit.pages.dev>",
+        from: Deno.env.get("EMAIL_FROM") ?? "GameFit <onboarding@resend.dev>",
         to: [user.email],
         subject: SUBJECTS[email_data.email_action_type] ?? "GameFit",
         html: html(email_data.email_action_type, verifyUrl, name),

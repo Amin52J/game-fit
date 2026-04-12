@@ -127,7 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = useCallback(async (email: string, password: string, name?: string): Promise<string | null> => {
-    const { error } = await getSupabase().auth.signUp({
+    const { data, error } = await getSupabase().auth.signUp({
       email,
       password,
       options: {
@@ -135,7 +135,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         emailRedirectTo: isTauri() ? undefined : window.location.origin,
       },
     });
-    return error?.message ?? null;
+    if (error) return error.message;
+    if (data.user && data.user.identities?.length === 0) {
+      return "An account with this email already exists. Try signing in instead.";
+    }
+    return null;
   }, []);
 
   const signIn = useCallback(async (email: string, password: string): Promise<string | null> => {
