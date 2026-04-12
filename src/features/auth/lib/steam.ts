@@ -85,23 +85,24 @@ async function openSteamLoginTauri(): Promise<Record<string, string>> {
     let settled = false;
     let unlistenFn: (() => void) | null = null;
 
-    const cleanup = () => {
-      if (unlistenFn) unlistenFn();
-    };
-
     const settle = (result: Record<string, string> | Error) => {
       if (settled) return;
       settled = true;
-      cleanup();
+      if (unlistenFn) unlistenFn();
       if (result instanceof Error) reject(result);
       else resolve(result);
     };
 
+    async function closeSteamWindow() {
+      try {
+        const win = await WebviewWindow.getByLabel("steam-auth");
+        if (win) await win.close();
+      } catch {}
+    }
+
     listen<Record<string, string>>("steam-auth-callback", (event) => {
+      closeSteamWindow();
       settle(event.payload);
-      import("@tauri-apps/api/webviewWindow").then(({ WebviewWindow: WW }) =>
-        WW.getByLabel("steam-auth").then((win) => win?.close()),
-      ).catch(() => {});
     }).then((fn) => {
       unlistenFn = fn;
       if (settled) fn();

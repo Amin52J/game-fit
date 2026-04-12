@@ -4,7 +4,6 @@
   "description": "enables the default permissions",
   "windows": [
     "main",
-    "oauth",
     "steam-auth"
   ],
   "permissions": [
@@ -16,6 +15,8 @@
     "fs:default",
     "fs:allow-read-text-file",
     "fs:allow-write-text-file",
-    "store:default"
+    "store:default",
+    "opener:default",
+    "deep-link:default"
   ]
 }

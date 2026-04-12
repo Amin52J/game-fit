@@ -19,78 +19,74 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+const DEEP_LINK_CALLBACK = "gamefit://auth/callback";
+const OAUTH_TIMEOUT_MS = 5 * 60 * 1000;
+
 async function signInWithProviderTauri(provider: "google" | "github" | "discord"): Promise<string | null> {
   const sb = getSupabase();
-  const redirectTo = `${window.location.origin}/auth-callback.html`;
 
   const { data, error } = await sb.auth.signInWithOAuth({
     provider,
-    options: { skipBrowserRedirect: true, redirectTo },
+    options: { skipBrowserRedirect: true, redirectTo: DEEP_LINK_CALLBACK },
   });
 
   if (error) return error.message;
   if (!data.url) return "Failed to get OAuth URL";
 
-  const { WebviewWindow } = await import("@tauri-apps/api/webviewWindow");
-  const { listen } = await import("@tauri-apps/api/event");
+  const { openUrl } = await import("@tauri-apps/plugin-opener");
+  const { onOpenUrl } = await import("@tauri-apps/plugin-deep-link");
 
   return new Promise<string | null>((resolve) => {
     let settled = false;
-    let unlistenFn: (() => void) | null = null;
+    let unlisten: (() => void) | null = null;
 
-    const cleanup = () => {
-      if (unlistenFn) unlistenFn();
-    };
+    const timer = setTimeout(() => settle("Login timed out. Please try again."), OAUTH_TIMEOUT_MS);
 
-    const settle = (result: string | null) => {
+    function settle(result: string | null) {
       if (settled) return;
       settled = true;
-      cleanup();
+      clearTimeout(timer);
+      if (unlisten) unlisten();
       resolve(result);
-    };
+    }
 
-    listen<{ access_token?: string; refresh_token?: string; code?: string }>(
-      "oauth-callback",
-      async (event) => {
+    onOpenUrl((urls) => {
+      const cbUrl = urls.find((u) => u.startsWith(DEEP_LINK_CALLBACK));
+      if (!cbUrl) return;
+
+      (async () => {
         try {
-          const { access_token, refresh_token, code } = event.payload;
-          if (access_token && refresh_token) {
-            const { error: sessErr } = await sb.auth.setSession({ access_token, refresh_token });
-            settle(sessErr?.message ?? null);
-          } else if (code) {
-            const { error: exchErr } = await sb.auth.exchangeCodeForSession(code);
-            settle(exchErr?.message ?? null);
-          } else {
-            settle("No auth data received from callback");
+          const parsed = new URL(cbUrl);
+          const code = parsed.searchParams.get("code");
+
+          if (code) {
+            const { error: err } = await sb.auth.exchangeCodeForSession(code);
+            settle(err?.message ?? null);
+            return;
           }
+
+          const hash = parsed.hash.substring(1);
+          const hp = new URLSearchParams(hash);
+          const accessToken = hp.get("access_token");
+          const refreshToken = hp.get("refresh_token");
+
+          if (accessToken && refreshToken) {
+            const { error: err } = await sb.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+            settle(err?.message ?? null);
+            return;
+          }
+
+          settle("No auth data received from callback");
         } catch (e) {
           settle(e instanceof Error ? e.message : "OAuth callback failed");
         }
-        try {
-          const win = await WebviewWindow.getByLabel("oauth");
-          if (win) await win.close();
-        } catch {}
-      },
-    ).then((fn) => {
-      unlistenFn = fn;
+      })();
+    }).then((fn) => {
+      unlisten = fn;
       if (settled) fn();
     });
 
-    const authWin = new WebviewWindow("oauth", {
-      url: data.url,
-      title: `Sign in with ${provider.charAt(0).toUpperCase() + provider.slice(1)}`,
-      width: 800,
-      height: 700,
-      center: true,
-    });
-
-    authWin.once("tauri://error", () => {
-      settle("Failed to open login window");
-    });
-
-    authWin.once("tauri://destroyed", () => {
-      setTimeout(() => settle("Login window was closed"), 300);
-    });
+    openUrl(data.url).catch(() => settle("Failed to open browser for login"));
   });
 }
 
@@ -129,7 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email,
       password,
       options: {
-        data: { full_name: name || email.split("@")[0] },
+        data: { full_name: name || email.split("@")[0], has_password: true },
         emailRedirectTo: isTauri() ? undefined : window.location.origin,
       },
     });
@@ -164,7 +160,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const updatePassword = useCallback(async (password: string): Promise<string | null> => {
-    const { error } = await getSupabase().auth.updateUser({ password });
+    const { error } = await getSupabase().auth.updateUser({ password, data: { has_password: true } });
     if (!error) setRecoveryMode(false);
     return error?.message ?? null;
   }, []);

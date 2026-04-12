@@ -12,8 +12,7 @@ export function AccountSection({ onToast }: { onToast: (msg: string, type: "succ
   const [busy, setBusy] = useState(false);
   const { updatePassword } = useAuth();
 
-  const hasPasswordProvider = user?.app_metadata?.providers?.includes("email") ?? false;
-  if (!hasPasswordProvider) return null;
+  if (!user?.user_metadata?.has_password) return null;
 
   const handleChangePassword = async () => {
     if (newPassword.length < 6) {
