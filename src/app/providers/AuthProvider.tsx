@@ -22,12 +22,18 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 const DEEP_LINK_CALLBACK = "gamefit://auth/callback";
 const OAUTH_TIMEOUT_MS = 5 * 60 * 1000;
 
+function getOAuthRedirectUrl(): string {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (appUrl) return `${appUrl.replace(/\/$/, "")}/oauth-complete.html`;
+  return DEEP_LINK_CALLBACK;
+}
+
 async function signInWithProviderTauri(provider: "google" | "github" | "discord"): Promise<string | null> {
   const sb = getSupabase();
 
   const { data, error } = await sb.auth.signInWithOAuth({
     provider,
-    options: { skipBrowserRedirect: true, redirectTo: DEEP_LINK_CALLBACK },
+    options: { skipBrowserRedirect: true, redirectTo: getOAuthRedirectUrl() },
   });
 
   if (error) return error.message;

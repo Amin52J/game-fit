@@ -93,16 +93,15 @@ async function openSteamLoginTauri(): Promise<Record<string, string>> {
       else resolve(result);
     };
 
-    async function closeSteamWindow() {
-      try {
-        const win = await WebviewWindow.getByLabel("steam-auth");
-        if (win) await win.close();
-      } catch {}
+    function closeSteamWindow() {
+      WebviewWindow.getByLabel("steam-auth")
+        .then((win) => win?.destroy())
+        .catch(() => {});
     }
 
     listen<Record<string, string>>("steam-auth-callback", (event) => {
-      closeSteamWindow();
       settle(event.payload);
+      closeSteamWindow();
     }).then((fn) => {
       unlistenFn = fn;
       if (settled) fn();

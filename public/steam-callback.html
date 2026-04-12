@@ -14,8 +14,15 @@
   });
 
   if (Object.keys(params).length > 0) {
-    window.__TAURI__.event.emit("steam-auth-callback", params);
-    setTimeout(function () { window.close(); }, 500);
+    window.__TAURI__.event.emit("steam-auth-callback", params).then(function () {
+      setTimeout(function () {
+        try {
+          window.__TAURI__.webviewWindow.getCurrentWebviewWindow().destroy();
+        } catch (e) {
+          try { window.close(); } catch (_) {}
+        }
+      }, 400);
+    });
   }
 })();
 </script>

@@ -1,10 +1,23 @@
-use tauri::{Manager, PhysicalPosition, PhysicalSize, Position, Size, WindowEvent};
+use tauri::{Emitter, Manager, PhysicalPosition, PhysicalSize, Position, Size, WindowEvent};
 use tauri_plugin_store::StoreExt;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   tauri::Builder::default()
-    .plugin(tauri_plugin_single_instance::init(|_app, _args, _cwd| {}))
+    .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
+      let urls: Vec<String> = args
+        .iter()
+        .filter(|a| a.starts_with("gamefit://"))
+        .cloned()
+        .collect();
+      if !urls.is_empty() {
+        let _ = app.emit("deep-link://new-url", &urls);
+      }
+      if let Some(w) = app.get_webview_window("main") {
+        let _ = w.unminimize();
+        let _ = w.set_focus();
+      }
+    }))
     .plugin(tauri_plugin_deep_link::init())
     .plugin(tauri_plugin_opener::init())
     .plugin(tauri_plugin_dialog::init())
