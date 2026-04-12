@@ -25,7 +25,9 @@ async function withRetry<T>(fn: () => Promise<T>, retries = MAX_RETRIES): Promis
         (err instanceof Error && /overloaded|529|rate.?limit|too many requests/i.test(err.message));
       if (!isRetryable || attempt === retries) {
         if (isRetryable && err instanceof Error) {
-          throw new Error(`The AI service is currently overloaded. Retried ${retries} times but it's still busy — please try again in a minute.`);
+          throw new Error(
+            `The AI service is currently overloaded. Retried ${retries} times but it's still busy, please try again in a minute.`,
+          );
         }
         throw err;
       }
@@ -70,7 +72,8 @@ export class AIClient {
     onStream?: (chunk: string) => void,
     signal?: AbortSignal,
   ): Promise<string> {
-    const system = "You are a game analysis assistant. The user has already received a core analysis and is now requesting additional detail sections. Generate ONLY the requested sections using ## headings. Be concise and analytical.";
+    const system =
+      "You are a game analysis assistant. The user has already received a core analysis and is now requesting additional detail sections. Generate ONLY the requested sections using ## headings. Be concise and analytical.";
     const user = `Here is the core analysis for **${gameName}**:\n\n${originalResponse}\n\n---\n\nNow provide these additional sections:\n${sectionNames.map((n) => `- **${n}**`).join("\n")}\n\nUse ## headings for each section. Base your answers on the information already in the analysis. Do not repeat information from the core analysis.`;
 
     if (onStream) {
@@ -188,7 +191,11 @@ export class AIClient {
     return body;
   }
 
-  private async anthropicRequest(system: string, user: string, signal?: AbortSignal): Promise<string> {
+  private async anthropicRequest(
+    system: string,
+    user: string,
+    signal?: AbortSignal,
+  ): Promise<string> {
     return withRetry(async () => {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
@@ -290,7 +297,10 @@ export class AIClient {
             if (block?.type === "thinking") {
               thinkingAccum = "";
             } else if (block?.type === "server_tool_use" || block?.type === "tool_use") {
-              const label = block.name === "web_search" ? "Searching the web\u2026" : `Running ${block.name}\u2026`;
+              const label =
+                block.name === "web_search"
+                  ? "Searching the web\u2026"
+                  : `Running ${block.name}\u2026`;
               onThinking(label);
             }
           }
@@ -305,7 +315,11 @@ export class AIClient {
             }
           }
         } catch (e) {
-          if (e instanceof RetryableError || (e instanceof Error && e.message.includes("stream error"))) throw e;
+          if (
+            e instanceof RetryableError ||
+            (e instanceof Error && e.message.includes("stream error"))
+          )
+            throw e;
         }
       }
     }

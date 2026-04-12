@@ -277,3 +277,30 @@ export const SuccessMsg = styled.div`
   font-size: 0.82rem;
   text-align: center;
 `;
+
+export const BackBtn = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: transparent;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-family: ${({ theme }) => theme.font.sans};
+  cursor: pointer;
+  transition: all ${({ theme }) => theme.transition.fast};
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.surfaceHover};
+    border-color: ${({ theme }) => theme.colors.borderLight};
+    color: ${({ theme }) => theme.colors.text};
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+`;

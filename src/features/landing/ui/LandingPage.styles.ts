@@ -68,13 +68,9 @@ export const NavActions = styled.div`
 export const NavBtn = styled.button<{ $primary?: boolean }>`
   padding: 6px 14px;
   border-radius: ${({ theme }) => theme.radius.md};
-  border: 1px solid
-    ${({ $primary, theme }) =>
-      $primary ? "transparent" : theme.colors.border};
-  background: ${({ $primary, theme }) =>
-    $primary ? theme.colors.accent : "transparent"};
-  color: ${({ $primary, theme }) =>
-    $primary ? theme.colors.text : theme.colors.textSecondary};
+  border: 1px solid ${({ $primary, theme }) => ($primary ? "transparent" : theme.colors.border)};
+  background: ${({ $primary, theme }) => ($primary ? theme.colors.accent : "transparent")};
+  color: ${({ $primary, theme }) => ($primary ? theme.colors.text : theme.colors.textSecondary)};
   font-size: 0.8rem;
   font-weight: 600;
   font-family: ${({ theme }) => theme.font.sans};
@@ -84,8 +80,7 @@ export const NavBtn = styled.button<{ $primary?: boolean }>`
   &:hover {
     background: ${({ $primary, theme }) =>
       $primary ? theme.colors.accentHover : theme.colors.surfaceHover};
-    border-color: ${({ $primary, theme }) =>
-      $primary ? "transparent" : theme.colors.borderLight};
+    border-color: ${({ $primary, theme }) => ($primary ? "transparent" : theme.colors.borderLight)};
   }
 
   &:active {
@@ -360,6 +355,63 @@ export const StepDesc = styled.p`
   color: ${({ theme }) => theme.colors.textSecondary};
   line-height: 1.6;
   margin: 0;
+`;
+
+export const ContributeSection = styled.section`
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0 ${({ theme }) => theme.spacing.md} 60px;
+  text-align: center;
+  animation: ${fadeUp} 0.6s ease 0.45s both;
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    padding: 0 ${({ theme }) => theme.spacing.lg} 80px;
+  }
+`;
+
+export const ContributeCard = styled.a`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.md};
+  padding: ${({ theme }) => theme.spacing.xl};
+  border-radius: ${({ theme }) => theme.radius.lg};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.surface};
+  text-decoration: none;
+  transition: all ${({ theme }) => theme.transition.normal};
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.borderLight};
+    transform: translateY(-2px);
+    box-shadow: ${({ theme }) => theme.shadow.md};
+  }
+`;
+
+export const ContributeIcon = styled.div`
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: ${({ theme }) => theme.colors.accentMuted};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${({ theme }) => theme.colors.accent};
+`;
+
+export const ContributeTitle = styled.h3`
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.text};
+  margin: 0;
+`;
+
+export const ContributeDesc = styled.p`
+  font-size: 0.85rem;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  line-height: 1.6;
+  margin: 0;
+  max-width: 420px;
 `;
 
 export const LandingFooter = styled.footer`
