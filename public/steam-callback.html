@@ -4,8 +4,19 @@
 <body>
 <p>Completing Steam login&hellip;</p>
 <script>
-// The parent window polls this popup's URL for the OpenID params.
-// This page just stays open briefly until the parent reads the URL and closes the popup.
+(function () {
+  if (!window.__TAURI__) return;
+
+  var params = {};
+  var search = new URLSearchParams(window.location.search);
+  search.forEach(function (value, key) {
+    if (key.indexOf("openid.") === 0) params[key] = value;
+  });
+
+  if (Object.keys(params).length > 0) {
+    window.__TAURI__.event.emit("steam-auth-callback", params);
+  }
+})();
 </script>
 </body>
 </html>

@@ -22,10 +22,11 @@ import {
   SteamBtn,
   ErrorMsg,
   SuccessMsg,
+  ForgotLink,
   BackBtn,
 } from "./AuthPage.styles";
 
-type Mode = "login" | "signup";
+type Mode = "login" | "signup" | "forgot" | "recovery";
 
 interface AuthPageProps {
   initialMode?: Mode;
@@ -33,8 +34,8 @@ interface AuthPageProps {
 }
 
 export function AuthPage({ initialMode = "login", onBack }: AuthPageProps) {
-  const { signIn, signUp, signInWithProvider } = useAuth();
-  const [mode, setMode] = useState<Mode>(initialMode);
+  const { signIn, signUp, signInWithProvider, resetPassword, updatePassword, recoveryMode, clearRecoveryMode } = useAuth();
+  const [mode, setMode] = useState<Mode>(recoveryMode ? "recovery" : initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -54,6 +55,31 @@ export function AuthPage({ initialMode = "login", onBack }: AuthPageProps) {
         setError(err);
       } else {
         setSuccess("Check your email for a confirmation link.");
+      }
+    } else if (mode === "forgot") {
+      if (!email) {
+        setError("Please enter your email address.");
+        setBusy(false);
+        return;
+      }
+      const err = await resetPassword(email);
+      if (err) {
+        setError(err);
+      } else {
+        setSuccess("Check your email for a password reset link.");
+      }
+    } else if (mode === "recovery") {
+      if (password.length < 6) {
+        setError("Password must be at least 6 characters.");
+        setBusy(false);
+        return;
+      }
+      const err = await updatePassword(password);
+      if (err) {
+        setError(err);
+      } else {
+        setSuccess("Password updated successfully!");
+        clearRecoveryMode();
       }
     } else {
       const err = await signIn(email, password);
@@ -94,6 +120,90 @@ export function AuthPage({ initialMode = "login", onBack }: AuthPageProps) {
     setBusy(false);
   };
 
+  const switchMode = (next: Mode) => {
+    setMode(next);
+    setError(null);
+    setSuccess(null);
+  };
+
+  if (mode === "recovery") {
+    return (
+      <Page>
+        <Card>
+          <LogoRow>
+            <LogoImg src="/icon.svg" alt="" width={40} height={40} />
+            <LogoText>GameFit</LogoText>
+          </LogoRow>
+
+          {error && <ErrorMsg>{error}</ErrorMsg>}
+          {success && <SuccessMsg>{success}</SuccessMsg>}
+
+          <Form onSubmit={handleSubmit}>
+            <InputWrap>
+              <Label htmlFor="auth-new-password">New Password</Label>
+              <Input
+                id="auth-new-password"
+                type="password"
+                placeholder="Min 6 characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                autoComplete="new-password"
+                autoFocus
+              />
+            </InputWrap>
+            <SubmitBtn type="submit" disabled={busy}>
+              {busy ? "Please wait..." : "Set New Password"}
+            </SubmitBtn>
+          </Form>
+        </Card>
+      </Page>
+    );
+  }
+
+  if (mode === "forgot") {
+    return (
+      <Page>
+        <Card>
+          <BackBtn type="button" onClick={() => switchMode("login")}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="m15 18-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Back to Log In
+          </BackBtn>
+
+          <LogoRow>
+            <LogoImg src="/icon.svg" alt="" width={40} height={40} />
+            <LogoText>GameFit</LogoText>
+          </LogoRow>
+
+          {error && <ErrorMsg>{error}</ErrorMsg>}
+          {success && <SuccessMsg>{success}</SuccessMsg>}
+
+          <Form onSubmit={handleSubmit}>
+            <InputWrap>
+              <Label htmlFor="auth-reset-email">Email</Label>
+              <Input
+                id="auth-reset-email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                autoFocus
+              />
+            </InputWrap>
+            <SubmitBtn type="submit" disabled={busy}>
+              {busy ? "Please wait..." : "Send Reset Link"}
+            </SubmitBtn>
+          </Form>
+        </Card>
+      </Page>
+    );
+  }
+
   return (
     <Page>
       <Card>
@@ -112,10 +222,10 @@ export function AuthPage({ initialMode = "login", onBack }: AuthPageProps) {
         </LogoRow>
 
         <TabRow>
-          <TabBtn $active={mode === "login"} onClick={() => { setMode("login"); setError(null); setSuccess(null); }}>
+          <TabBtn $active={mode === "login"} onClick={() => switchMode("login")}>
             Log In
           </TabBtn>
-          <TabBtn $active={mode === "signup"} onClick={() => { setMode("signup"); setError(null); setSuccess(null); }}>
+          <TabBtn $active={mode === "signup"} onClick={() => switchMode("signup")}>
             Sign Up
           </TabBtn>
         </TabRow>
@@ -163,6 +273,11 @@ export function AuthPage({ initialMode = "login", onBack }: AuthPageProps) {
               autoComplete={mode === "signup" ? "new-password" : "current-password"}
             />
           </InputWrap>
+          {mode === "login" && (
+            <ForgotLink type="button" onClick={() => switchMode("forgot")}>
+              Forgot password?
+            </ForgotLink>
+          )}
           <SubmitBtn type="submit" disabled={busy}>
             {busy ? "Please wait..." : mode === "login" ? "Log In" : "Create Account"}
           </SubmitBtn>

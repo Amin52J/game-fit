@@ -1,4 +1,4 @@
-import { getSupabase } from "@/shared/api/supabase";
+import { getSupabase, isTauri } from "@/shared/api/supabase";
 
 const STEAM_OPENID_URL = "https://steamcommunity.com/openid/login";
 
@@ -7,7 +7,7 @@ export function buildSteamOpenIdUrl(returnTo: string): string {
     "openid.ns": "http://specs.openid.net/auth/2.0",
     "openid.mode": "checkid_setup",
     "openid.return_to": returnTo,
-    "openid.realm": window.location.origin,
+    "openid.realm": new URL(returnTo).origin,
     "openid.identity":
       "http://specs.openid.net/auth/2.0/identifier_select",
     "openid.claimed_id":
@@ -32,7 +32,7 @@ export function parseSteamCallbackParams(
   return result;
 }
 
-export function openSteamLoginPopup(): Promise<Record<string, string>> {
+function openSteamLoginWeb(): Promise<Record<string, string>> {
   return new Promise((resolve, reject) => {
     const returnUrl = `${window.location.origin}/steam-callback.html`;
     const loginUrl = buildSteamOpenIdUrl(returnUrl);
@@ -72,6 +72,61 @@ export function openSteamLoginPopup(): Promise<Record<string, string>> {
       }
     }, 500);
   });
+}
+
+async function openSteamLoginTauri(): Promise<Record<string, string>> {
+  const returnUrl = `${window.location.origin}/steam-callback.html`;
+  const loginUrl = buildSteamOpenIdUrl(returnUrl);
+
+  const { WebviewWindow } = await import("@tauri-apps/api/webviewWindow");
+  const { listen } = await import("@tauri-apps/api/event");
+
+  return new Promise<Record<string, string>>((resolve, reject) => {
+    let settled = false;
+    let unlistenFn: (() => void) | null = null;
+
+    const cleanup = () => {
+      if (unlistenFn) unlistenFn();
+    };
+
+    const settle = (result: Record<string, string> | Error) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      if (result instanceof Error) reject(result);
+      else resolve(result);
+    };
+
+    listen<Record<string, string>>("steam-auth-callback", (event) => {
+      settle(event.payload);
+      import("@tauri-apps/api/webviewWindow").then(({ WebviewWindow: WW }) =>
+        WW.getByLabel("steam-auth").then((win) => win?.close()),
+      ).catch(() => {});
+    }).then((fn) => {
+      unlistenFn = fn;
+      if (settled) fn();
+    });
+
+    const steamWin = new WebviewWindow("steam-auth", {
+      url: loginUrl,
+      title: "Steam Login",
+      width: 800,
+      height: 600,
+      center: true,
+    });
+
+    steamWin.once("tauri://error", () => {
+      settle(new Error("Failed to open Steam login window"));
+    });
+
+    steamWin.once("tauri://destroyed", () => {
+      setTimeout(() => settle(new Error("Steam login window was closed")), 300);
+    });
+  });
+}
+
+export function openSteamLoginPopup(): Promise<Record<string, string>> {
+  return isTauri() ? openSteamLoginTauri() : openSteamLoginWeb();
 }
 
 export async function verifySteamLogin(

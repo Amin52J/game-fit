@@ -15,7 +15,7 @@ import { noopSubscribe, getTauri, getTauriServer } from "./AppShell.utils";
 import type { AppShellProps } from "./AppShell.types";
 
 export function AppShell({ children }: AppShellProps) {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, recoveryMode } = useAuth();
   const { state, hydrated } = useApp();
   const pathname = usePathname();
   const forceSetup = pathname === "/setup";
@@ -29,6 +29,10 @@ export function AppShell({ children }: AppShellProps) {
 
   if (!user) {
     return isTauri ? <AuthPage /> : <LandingOrAuth />;
+  }
+
+  if (recoveryMode) {
+    return <AuthPage initialMode="recovery" />;
   }
 
   if (!hydrated) {

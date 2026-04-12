@@ -300,6 +300,25 @@ export const SuccessMsg = styled.div`
   text-align: center;
 `;
 
+export const ForgotLink = styled.button`
+  background: none;
+  border: none;
+  color: ${({ theme }) => theme.colors.textMuted};
+  font-size: 0.78rem;
+  font-family: ${({ theme }) => theme.font.sans};
+  cursor: pointer;
+  text-decoration: none;
+  align-self: flex-end;
+  margin-top: -${({ theme }) => theme.spacing.xs};
+  padding: 2px 0;
+  transition: color ${({ theme }) => theme.transition.fast};
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.accent};
+    text-decoration: underline;
+  }
+`;
+
 export const BackBtn = styled.button`
   display: inline-flex;
   align-items: center;

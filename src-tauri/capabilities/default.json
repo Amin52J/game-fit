@@ -3,10 +3,13 @@
   "identifier": "default",
   "description": "enables the default permissions",
   "windows": [
-    "main"
+    "main",
+    "oauth",
+    "steam-auth"
   ],
   "permissions": [
     "core:default",
+    "core:webview:allow-create-webview-window",
     "dialog:default",
     "dialog:allow-open",
     "dialog:allow-save",
