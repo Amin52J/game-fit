@@ -58,8 +58,9 @@ export function UpdateNotification() {
     setDismissed(true);
   };
 
-  const handleDownload = () => {
-    window.open(RELEASES_URL, "_blank");
+  const handleDownload = async () => {
+    const { openUrl } = await import("@tauri-apps/plugin-opener");
+    await openUrl(RELEASES_URL);
   };
 
   return (
