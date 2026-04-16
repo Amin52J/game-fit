@@ -237,6 +237,153 @@ export const DownloadBtn = styled.a`
   }
 `;
 
+/* Starter analyses callout */
+
+export const FreeTrialSection = styled.section`
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 ${({ theme }) => theme.spacing.md} 60px;
+  animation: ${fadeUp} 0.6s ease 0.08s both;
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    padding: 0 ${({ theme }) => theme.spacing.lg} 80px;
+  }
+`;
+
+export const FreeTrialCard = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: ${({ theme }) => theme.spacing.xl};
+  border-radius: ${({ theme }) => theme.radius.lg};
+  border: 1px solid ${({ theme }) => theme.colors.accent};
+  background: ${({ theme }) => theme.colors.surface};
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      ellipse at 50% 0%,
+      ${({ theme }) => theme.colors.accentMuted} 0%,
+      transparent 70%
+    );
+    pointer-events: none;
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    padding: 40px ${({ theme }) => theme.spacing.xxl};
+  }
+`;
+
+export const FreeTrialBadge = styled.span`
+  position: relative;
+  display: inline-block;
+  padding: 5px ${({ theme }) => theme.spacing.md};
+  border-radius: 100px;
+  border: 1px solid ${({ theme }) => theme.colors.accent};
+  background: ${({ theme }) => theme.colors.accentMuted};
+  color: ${({ theme }) => theme.colors.accent};
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+`;
+
+export const FreeTrialTitle = styled.h2`
+  position: relative;
+  font-size: clamp(1.4rem, 3vw, 1.8rem);
+  font-weight: 800;
+  margin: 0 0 ${({ theme }) => theme.spacing.sm};
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+export const FreeTrialDesc = styled.p`
+  position: relative;
+  font-size: 0.9rem;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  line-height: 1.7;
+  margin: 0 0 ${({ theme }) => theme.spacing.lg};
+  max-width: 520px;
+`;
+
+export const FreeTrialHighlights = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.sm};
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
+  width: 100%;
+  max-width: 340px;
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    flex-direction: row;
+    max-width: 100%;
+    justify-content: center;
+    gap: ${({ theme }) => theme.spacing.lg};
+  }
+`;
+
+export const FreeTrialHighlight = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.textSecondary};
+`;
+
+export const FreeTrialHighlightIcon = styled.span`
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: ${({ theme }) => theme.colors.successMuted};
+  color: ${({ theme }) => theme.colors.success};
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+export const FreeTrialCTA = styled.button`
+  position: relative;
+  padding: 14px 40px;
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: none;
+  background: ${({ theme }) => theme.colors.accent};
+  color: ${({ theme }) => theme.colors.text};
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: ${({ theme }) => theme.font.sans};
+  cursor: pointer;
+  transition: all ${({ theme }) => theme.transition.fast};
+  box-shadow: 0 0 24px ${({ theme }) => theme.colors.accentMuted};
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.accentHover};
+    transform: translateY(-2px);
+    box-shadow: 0 4px 32px ${({ theme }) => theme.colors.accentGlow};
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
+  }
+`;
+
+export const FreeTrialFootnote = styled.p`
+  position: relative;
+  margin: ${({ theme }) => theme.spacing.md} 0 0;
+  font-size: 0.75rem;
+  color: ${({ theme }) => theme.colors.textMuted};
+  line-height: 1.5;
+`;
+
 export const WhatIsSection = styled.section`
   max-width: 720px;
   margin: 0 auto;

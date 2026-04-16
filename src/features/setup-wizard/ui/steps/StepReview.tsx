@@ -2,7 +2,7 @@
 
 import React from "react";
 import type { AIProviderConfig, Game, SetupAnswers } from "@/shared/types";
-import { DEALBREAKER_OPTIONS } from "@/shared/types";
+import { DEALBREAKER_OPTIONS, FREE_ANALYSIS_LIMIT } from "@/shared/types";
 import {
   FieldGroup,
   SectionTitle,
@@ -60,13 +60,16 @@ export function StepReview({
   aiConfig,
   importedGames,
   answers,
+  trialMode,
 }: {
   aiConfig: AIProviderConfig;
   importedGames: Game[];
   answers: SetupAnswers;
+  trialMode?: boolean;
 }) {
-  const providerLabel =
-    aiConfig.type === "anthropic"
+  const providerLabel = trialMode
+    ? `${FREE_ANALYSIS_LIMIT} starter analyses (our key)`
+    : aiConfig.type === "anthropic"
       ? "Anthropic (Claude)"
       : aiConfig.type === "openai"
         ? "OpenAI"
@@ -84,7 +87,8 @@ export function StepReview({
       <SectionTitle>Summary</SectionTitle>
       <SummaryList>
         <SummaryItem>
-          <strong>Provider:</strong> {providerLabel} · model {aiConfig.model || "—"}
+          <strong>Provider:</strong> {providerLabel}
+          {!trialMode && <> · model {aiConfig.model || "—"}</>}
         </SummaryItem>
         <SummaryItem>
           <strong>Games imported:</strong> {importedGames.length}

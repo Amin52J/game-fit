@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useApp } from "@/app/providers/AppProvider";
+import { FREE_ANALYSIS_LIMIT } from "@/shared/types";
 import { sessionCache } from "@/features/analyze-game/model/session-cache";
 import { Button } from "@/shared/ui/Button";
 import {
@@ -21,9 +22,10 @@ import { currencyPrefixFromSettings } from "./AnalyzeForm.utils";
 export interface AnalyzeFormProps {
   onSubmit: (gameName: string, price: number) => void;
   isLoading: boolean;
+  trialExhausted?: boolean;
 }
 
-export function AnalyzeForm({ onSubmit, isLoading }: AnalyzeFormProps) {
+export function AnalyzeForm({ onSubmit, isLoading, trialExhausted }: AnalyzeFormProps) {
   const { state, hydrated } = useApp();
   const pathname = usePathname();
   const nameRef = useRef<HTMLInputElement>(null);
@@ -38,8 +40,10 @@ export function AnalyzeForm({ onSubmit, isLoading }: AnalyzeFormProps) {
     }
   }, [pathname]);
 
-  const hasProvider = Boolean(state.aiProvider);
-  const showProviderError = hydrated && !hasProvider;
+  const hasOwnKey = Boolean(state.aiProvider?.apiKey?.trim());
+  const hasTrialLeft = state.freeAnalysesUsed < FREE_ANALYSIS_LIMIT;
+  const canAnalyze = hasOwnKey || hasTrialLeft;
+  const showProviderError = hydrated && !canAnalyze;
   const currencyPrefix = currencyPrefixFromSettings(state.setupAnswers?.currency);
 
   const priceNum = priceRaw.trim() === "" ? NaN : Number(priceRaw);
@@ -50,23 +54,19 @@ export function AnalyzeForm({ onSubmit, isLoading }: AnalyzeFormProps) {
     (e: React.FormEvent) => {
       e.preventDefault();
       setTouched(true);
-      if (!hasProvider) return;
+      if (!canAnalyze) return;
       const name = gameName.trim();
       const price = Number(priceRaw);
       if (!name || Number.isNaN(price) || price < 0) return;
       onSubmit(name, price);
     },
-    [gameName, priceRaw, hasProvider, onSubmit],
+    [gameName, priceRaw, canAnalyze, onSubmit],
   );
+
+  const disabled = isLoading || showProviderError || trialExhausted;
 
   return (
     <FormRoot onSubmit={handleSubmit} noValidate>
-      {showProviderError ? (
-        <ErrorBanner role="alert">
-          Configure an AI provider in settings before running an analysis.
-        </ErrorBanner>
-      ) : null}
-
       <FieldBlock>
         <Label htmlFor="analyze-game-name">Game name</Label>
         <GameNameField
@@ -77,7 +77,7 @@ export function AnalyzeForm({ onSubmit, isLoading }: AnalyzeFormProps) {
           autoComplete="off"
           value={gameName}
           onChange={(e) => { setGameName(e.target.value); sessionCache.set({ gameName: e.target.value }); }}
-          disabled={isLoading || showProviderError}
+          disabled={disabled}
           $invalid={nameInvalid}
           aria-invalid={nameInvalid || undefined}
         />
@@ -98,14 +98,14 @@ export function AnalyzeForm({ onSubmit, isLoading }: AnalyzeFormProps) {
             placeholder="0.00"
             value={priceRaw}
             onChange={(e) => { setPriceRaw(e.target.value); sessionCache.set({ priceRaw: e.target.value }); }}
-            disabled={isLoading || showProviderError}
+            disabled={disabled}
             aria-invalid={priceInvalid || undefined}
           />
         </PriceRow>
         {priceInvalid ? <FieldError>Enter a valid price (0 or greater).</FieldError> : null}
       </FieldBlock>
 
-      <Button type="submit" variant="primary" size="lg" fullWidth isLoading={isLoading} disabled={showProviderError}>
+      <Button type="submit" variant="primary" size="lg" fullWidth isLoading={isLoading} disabled={disabled}>
         Analyze
       </Button>
     </FormRoot>

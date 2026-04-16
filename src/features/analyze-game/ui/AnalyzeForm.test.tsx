@@ -68,19 +68,21 @@ describe("AnalyzeForm", () => {
     expect(screen.getByLabelText("Price")).toBeDisabled();
   });
 
-  it("shows provider error when no AI provider configured", () => {
+  it("allows form when no provider but free trial available", () => {
     mockAppContext.state = {
       ...mockAppContext.state,
       aiProvider: null,
+      freeAnalysesUsed: 0,
     };
     renderWithProviders(<AnalyzeForm onSubmit={vi.fn()} isLoading={false} />);
-    expect(screen.getByRole("alert")).toHaveTextContent(/configure an ai provider/i);
+    expect(screen.getByRole("button", { name: "Analyze" })).not.toBeDisabled();
   });
 
-  it("disables form when no provider configured", () => {
+  it("disables form when no provider and trial exhausted", () => {
     mockAppContext.state = {
       ...mockAppContext.state,
       aiProvider: null,
+      freeAnalysesUsed: 5,
     };
     renderWithProviders(<AnalyzeForm onSubmit={vi.fn()} isLoading={false} />);
     expect(screen.getByRole("button", { name: "Analyze" })).toBeDisabled();

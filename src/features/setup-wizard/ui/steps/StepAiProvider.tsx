@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import type { AIProviderConfig, AIProviderType } from "@/shared/types";
-import { DEFAULT_MODELS } from "@/shared/types";
+import { DEFAULT_MODELS, FREE_ANALYSIS_LIMIT } from "@/shared/types";
 import { ApiKeyInfoModal } from "@/features/help-guide";
 import { ApiKeyGuide } from "./ApiKeyGuide";
 import {
@@ -24,6 +24,11 @@ import {
   ProviderName,
   ProviderDesc,
   InlineLink,
+  TrialBanner,
+  TrialBannerTitle,
+  TrialBannerDesc,
+  TrialBannerBtn,
+  Divider,
 } from "../SetupWizard.styles";
 
 export function StepAiProvider({
@@ -34,6 +39,7 @@ export function StepAiProvider({
   testStatus,
   testLoading,
   onTest,
+  onSkipTrial,
 }: {
   config: AIProviderConfig;
   setConfig: React.Dispatch<React.SetStateAction<AIProviderConfig>>;
@@ -42,6 +48,7 @@ export function StepAiProvider({
   testStatus: "idle" | "ok" | "err";
   testLoading: boolean;
   onTest: () => void;
+  onSkipTrial?: () => void;
 }) {
   const [showApiKeyInfo, setShowApiKeyInfo] = useState(false);
   const models = DEFAULT_MODELS[config.type];
@@ -57,6 +64,22 @@ export function StepAiProvider({
 
   return (
     <FieldGroup>
+      {onSkipTrial && (
+        <>
+          <TrialBanner>
+            <TrialBannerTitle>Don&apos;t have an API key yet?</TrialBannerTitle>
+            <TrialBannerDesc>
+              Get {FREE_ANALYSIS_LIMIT} game analyses with our key — no setup needed.
+              Test the app before setting up your own provider.
+            </TrialBannerDesc>
+            <TrialBannerBtn type="button" onClick={onSkipTrial}>
+              Skip — use our key
+            </TrialBannerBtn>
+          </TrialBanner>
+          <Divider>or set up your own AI provider</Divider>
+        </>
+      )}
+
       <div>
         <SectionTitle>AI provider</SectionTitle>
         <SectionHint>Choose a provider and connect your API key. GameFit supports all major AI providers.</SectionHint>

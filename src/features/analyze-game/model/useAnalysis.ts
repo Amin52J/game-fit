@@ -1,9 +1,13 @@
 "use client";
 import { useState, useCallback, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { AIClient } from "@/entities/ai-provider/api/client";
+import { AIClient, trialAnalyze, TrialAnalysisError } from "@/entities/ai-provider/api/client";
 import { useApp } from "@/app/providers/AppProvider";
+import { useAuth } from "@/app/providers/AuthProvider";
 import type { AnalysisResult } from "@/shared/types";
+import { FREE_ANALYSIS_LIMIT } from "@/shared/types";
+import { loadFreeAnalysesUsed } from "@/shared/api/db";
+import { trackStarterAnalysis } from "@/shared/analytics";
 import { getExtendedSectionNames } from "@/features/setup-wizard/lib/prompt-generator";
 import { sessionCache } from "./session-cache";
 
@@ -22,7 +26,8 @@ function resolveCurrencySymbol(code: string | undefined): string {
 }
 
 export function useAnalysis() {
-  const { state, addAnalysis, updateAnalysisResponse } = useApp();
+  const { user } = useAuth();
+  const { state, addAnalysis, updateAnalysisResponse, setFreeAnalysesUsed } = useApp();
   const cached = sessionCache.get();
   const [streamedText, setStreamedText] = useState(cached.streamedText);
   const [thinkingText, setThinkingText] = useState("");
@@ -32,14 +37,23 @@ export function useAnalysis() {
   const [cachedResult, setCachedResult] = useState<AnalysisResult | null>(cached.result);
   const abortRef = useRef<AbortController | null>(null);
 
+  const hasOwnKey = Boolean(state.aiProvider?.apiKey?.trim());
+  const isTrialMode = !hasOwnKey;
+  const trialRemaining = FREE_ANALYSIS_LIMIT - state.freeAnalysesUsed;
+  const trialExhausted = isTrialMode && trialRemaining <= 0;
+
   const mutation = useMutation({
     mutationFn: async ({ gameName, price }: { gameName: string; price: number }) => {
-      if (!state.aiProvider) throw new Error("No AI provider configured");
+      if (!hasOwnKey && trialRemaining <= 0) {
+        throw new TrialAnalysisError(
+          "FREE_TRIAL_EXHAUSTED",
+          "You've used all 5 starter analyses. Set up your own API key to continue.",
+        );
+      }
 
       const abortController = new AbortController();
       abortRef.current = abortController;
 
-      const client = new AIClient(state.aiProvider);
       setStreamedText("");
       setThinkingText("");
       setCachedResult(null);
@@ -47,24 +61,46 @@ export function useAnalysis() {
       sessionCache.set({ streamedText: "", result: null });
       setIsStreaming(true);
 
-      const response = await client.analyze(
-        gameName,
-        price,
-        state.instructions,
-        state.games,
-        resolveCurrencySymbol(state.setupAnswers?.currency),
-        (chunk) => {
-          setStreamedText((prev) => {
-            const next = prev + chunk;
-            sessionCache.set({ streamedText: next });
-            return next;
-          });
-        },
-        abortController.signal,
-        (status) => {
-          setThinkingText(status);
-        },
-      );
+      const onChunk = (chunk: string) => {
+        setStreamedText((prev) => {
+          const next = prev + chunk;
+          sessionCache.set({ streamedText: next });
+          return next;
+        });
+      };
+      const onStatus = (status: string) => {
+        setThinkingText(status);
+      };
+
+      let response: string;
+
+      if (hasOwnKey) {
+        const client = new AIClient(state.aiProvider!);
+        response = await client.analyze(
+          gameName,
+          price,
+          state.instructions,
+          state.games,
+          resolveCurrencySymbol(state.setupAnswers?.currency),
+          onChunk,
+          abortController.signal,
+          onStatus,
+        );
+      } else {
+        response = await trialAnalyze(
+          gameName,
+          price,
+          state.instructions,
+          state.games,
+          resolveCurrencySymbol(state.setupAnswers?.currency),
+          onChunk,
+          abortController.signal,
+          onStatus,
+        );
+        const updated = await loadFreeAnalysesUsed();
+        setFreeAnalysesUsed(updated);
+        if (user) void trackStarterAnalysis(user, gameName, updated);
+      }
 
       setIsStreaming(false);
       abortRef.current = null;
@@ -82,9 +118,12 @@ export function useAnalysis() {
       sessionCache.set({ result, streamedText: response });
       return result;
     },
-    onError: () => {
+    onError: (err) => {
       setIsStreaming(false);
       abortRef.current = null;
+      if (err instanceof TrialAnalysisError) {
+        setFreeAnalysesUsed(FREE_ANALYSIS_LIMIT);
+      }
     },
   });
 
@@ -160,5 +199,8 @@ export function useAnalysis() {
     error: mutation.error,
     reset,
     stop,
+    isTrialMode,
+    trialRemaining,
+    trialExhausted,
   };
 }

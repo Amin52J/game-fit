@@ -14,6 +14,7 @@ interface SettingsRow {
   setup_answers: Record<string, unknown> | null;
   instructions: string;
   is_setup_complete: boolean;
+  free_analyses_used: number;
 }
 
 interface GameRow {
@@ -71,6 +72,7 @@ export async function loadUserState(): Promise<AppState> {
     instructions: s?.instructions ?? "",
     setupAnswers: (s?.setup_answers as unknown as SetupAnswers) ?? null,
     analysisHistory: history,
+    freeAnalysesUsed: s?.free_analyses_used ?? 0,
   };
 }
 
@@ -199,6 +201,19 @@ export async function clearHistory() {
   const id = await uid();
   if (!id) return;
   await getSupabase().from("analysis_history").delete().eq("user_id", id);
+}
+
+// ——— Starter analyses ———
+
+export async function loadFreeAnalysesUsed(): Promise<number> {
+  const id = await uid();
+  if (!id) return 0;
+  const { data } = await getSupabase()
+    .from("user_settings")
+    .select("free_analyses_used")
+    .eq("id", id)
+    .single();
+  return (data as { free_analyses_used: number } | null)?.free_analyses_used ?? 0;
 }
 
 // ——— Full Reset ———

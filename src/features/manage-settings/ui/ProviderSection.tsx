@@ -3,8 +3,8 @@
 import React from "react";
 import { Button, Input, Select, SectionCard, SectionTitle, SectionDesc } from "@/shared/ui";
 import type { AIProviderType } from "@/shared/types";
-import { DEFAULT_MODELS } from "@/shared/types";
-import { FormRow, FormGroup, KeyFieldWrap, RevealKeyButton, MarginedButtonRow } from "./SettingsPage.styles";
+import { DEFAULT_MODELS, FREE_ANALYSIS_LIMIT } from "@/shared/types";
+import { FormRow, FormGroup, KeyFieldWrap, RevealKeyButton, MarginedButtonRow, TrialStatusBox } from "./SettingsPage.styles";
 
 export function ProviderSection({
   providerType,
@@ -18,6 +18,7 @@ export function ProviderSection({
   showKey,
   setShowKey,
   onSave,
+  freeAnalysesUsed,
 }: {
   providerType: AIProviderType;
   setProviderType: (t: AIProviderType) => void;
@@ -30,11 +31,32 @@ export function ProviderSection({
   showKey: boolean;
   setShowKey: (v: boolean) => void;
   onSave: () => void;
+  freeAnalysesUsed: number;
 }) {
+  const hasOwnKey = Boolean(apiKey.trim());
+  const trialRemaining = FREE_ANALYSIS_LIMIT - freeAnalysesUsed;
+  const showTrialStatus = !hasOwnKey && freeAnalysesUsed > 0;
+
   return (
     <SectionCard>
       <SectionTitle>AI Provider</SectionTitle>
       <SectionDesc>Configure which AI model to use for game analysis.</SectionDesc>
+
+      {showTrialStatus && (
+        <TrialStatusBox $exhausted={trialRemaining <= 0}>
+          {trialRemaining > 0 ? (
+            <>
+              <strong>Starter analyses:</strong> {trialRemaining} of {FREE_ANALYSIS_LIMIT}{" "}
+              remaining. Add your own API key below for unlimited use.
+            </>
+          ) : (
+            <>
+              <strong>All 5 starter analyses used.</strong> Add your own API key below to
+              continue using GameFit.
+            </>
+          )}
+        </TrialStatusBox>
+      )}
 
       <FormRow>
         <FormGroup>

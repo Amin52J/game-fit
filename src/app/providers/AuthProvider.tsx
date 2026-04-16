@@ -1,7 +1,8 @@
 "use client";
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import type { User, Session } from "@supabase/supabase-js";
 import { getSupabase, isTauri } from "@/shared/api/supabase";
+import { trackSignup } from "@/shared/analytics";
 
 interface AuthContextValue {
   user: User | null;
@@ -101,6 +102,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [recoveryMode, setRecoveryMode] = useState(false);
+  /** After first auth callback: whether we already had a session (skip spurious SIGNED_IN while logged in). */
+  const authBaselineReady = useRef(false);
+  const hadUserBeforeCallback = useRef(false);
 
   useEffect(() => {
     const sb = getSupabase();
@@ -114,6 +118,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (event === "PASSWORD_RECOVERY") {
         setRecoveryMode(true);
       }
+
+      const hasUser = Boolean(s?.user);
+
+      if (event === "INITIAL_SESSION") {
+        authBaselineReady.current = true;
+        hadUserBeforeCallback.current = hasUser;
+      } else if (!authBaselineReady.current) {
+        authBaselineReady.current = true;
+        hadUserBeforeCallback.current = hasUser;
+      } else if (event === "SIGNED_IN" && s?.user && !hadUserBeforeCallback.current) {
+        const u = s.user;
+        const provider = u.app_metadata?.provider;
+        void trackSignup(u, {
+          auth_provider: typeof provider === "string" ? provider : "email",
+        });
+        hadUserBeforeCallback.current = true;
+      } else {
+        hadUserBeforeCallback.current = hasUser;
+      }
+
+      if (event === "SIGNED_OUT") {
+        hadUserBeforeCallback.current = false;
+      }
+
       setSession(s);
       setUser((prev) => {
         const next = s?.user ?? null;
@@ -135,7 +163,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         emailRedirectTo: isTauri() ? undefined : window.location.origin,
       },
     });
-    if (error) return error.message;
+    if (error) {
+      if (error.status === 429 || /rate|too many requests/i.test(error.message)) {
+        return "Too many signup attempts. Please wait a few minutes and try again.";
+      }
+      return error.message;
+    }
     if (data.user && data.user.identities?.length === 0) {
       return "An account with this email already exists. Try signing in instead.";
     }

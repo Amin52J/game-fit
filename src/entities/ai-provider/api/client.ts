@@ -1,4 +1,5 @@
 import type { AIProviderConfig, Game } from "@/shared/types";
+import { getSupabase } from "@/shared/api/supabase";
 
 interface Message {
   role: "system" | "user" | "assistant";
@@ -569,4 +570,102 @@ export async function testConnection(config: AIProviderConfig): Promise<boolean>
   } catch {
     return false;
   }
+}
+
+export class TrialAnalysisError extends Error {
+  code: string;
+  constructor(code: string, message: string) {
+    super(message);
+    this.name = "TrialAnalysisError";
+    this.code = code;
+  }
+}
+
+export async function trialAnalyze(
+  gameName: string,
+  price: number,
+  instructions: string,
+  games: Game[],
+  currencySymbol: string,
+  onStream: (chunk: string) => void,
+  signal?: AbortSignal,
+  onThinking?: (chunk: string) => void,
+): Promise<string> {
+  const scored = games.filter((g) => g.score !== null);
+  const libraryData = scored.map((g) => `${g.name}: ${g.score}/100`).join("\n");
+
+  const systemPrompt = instructions;
+  const userMessage = `Here is my game library:\n\n${libraryData}\n\n---\n\nAnalyze this game for me: **${gameName}** at **${currencySymbol}${price}**\n\nIMPORTANT: Search the web for "${gameName} Steam reviews" to find the current Steam review rating (e.g. Very Positive, Mixed), total review count, and the most common praise/complaints. Use ONLY factual review statistics — do not change your scoring based on individual reviewer opinions. Review data informs the Public Sentiment section and penalty evidence, but anchor games and the scoring procedure drive the Enjoyment Score.`;
+
+  const sb = getSupabase();
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) throw new Error("Not authenticated");
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const res = await fetch(`${supabaseUrl}/functions/v1/analyze-game`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ system: systemPrompt, user: userMessage, gameName }),
+    signal,
+  });
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({ error: "Unknown error" }));
+    if (errData.error === "FREE_TRIAL_EXHAUSTED") {
+      throw new TrialAnalysisError("FREE_TRIAL_EXHAUSTED", errData.message);
+    }
+    throw new Error(errData.error || `Analysis failed (${res.status})`);
+  }
+
+  // Parse Anthropic SSE stream (same format as direct calls)
+  const reader = res.body!.getReader();
+  const decoder = new TextDecoder();
+  let full = "";
+  let buffer = "";
+  let thinkingAccum = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
+      const json = line.slice(6);
+      if (json === "[DONE]") break;
+      try {
+        const evt = JSON.parse(json);
+
+        if (evt.type === "content_block_start" && onThinking) {
+          const block = evt.content_block;
+          if (block?.type === "server_tool_use" || block?.type === "tool_use") {
+            const label =
+              block.name === "web_search"
+                ? "Searching the web\u2026"
+                : `Running ${block.name}\u2026`;
+            onThinking(label);
+          }
+        }
+        if (evt.type === "content_block_delta") {
+          if (evt.delta?.type === "thinking_delta" && evt.delta.thinking && onThinking) {
+            thinkingAccum += evt.delta.thinking;
+            const tLines = thinkingAccum.split("\n").filter((l: string) => l.trim().length > 0);
+            const last = tLines.length > 0 ? tLines[tLines.length - 1].trim() : "Thinking\u2026";
+            onThinking(last.length > 150 ? last.slice(0, 147) + "\u2026" : last);
+          }
+          if (evt.delta?.text) {
+            full += evt.delta.text;
+            onStream(evt.delta.text);
+          }
+        }
+      } catch {
+        /* skip parse errors */
+      }
+    }
+  }
+  return full;
 }

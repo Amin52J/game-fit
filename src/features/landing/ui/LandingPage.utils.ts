@@ -129,8 +129,8 @@ export const FEATURES = [
   },
   {
     icon: PrivacyIcon(),
-    title: "Private & Flexible",
-    desc: "Bring your own API key for Claude, ChatGPT, or any compatible provider — your data never leaves your browser.",
+    title: "Ready Out of the Box",
+    desc: "Your first 5 analyses use our key — no setup needed. Then create your own API key for Claude, ChatGPT, or any compatible provider for unlimited use.",
   },
   {
     icon: DesktopIcon(),
@@ -146,7 +146,7 @@ export const HOW_IT_WORKS_STEPS = [
   },
   {
     title: "Set up your profile",
-    desc: "Connect your AI provider, answer taste questions, and import your game library.",
+    desc: "Choose \"Skip — use our key\" to skip the API key step, then answer taste questions and import your game library.",
   },
   {
     title: "Score your library",
@@ -154,6 +154,6 @@ export const HOW_IT_WORKS_STEPS = [
   },
   {
     title: "Analyze any game",
-    desc: "Type a game name and get an in-depth, personalized analysis of how much you'd enjoy it.",
+    desc: "Type a game name and get an in-depth, personalized analysis. Your first 5 analyses use our key — no setup required.",
   },
 ];

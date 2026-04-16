@@ -3,12 +3,14 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useApp } from "@/app/providers/AppProvider";
 import { useAnalysis } from "@/features/analyze-game/model/useAnalysis";
+import { TrialAnalysisError } from "@/entities/ai-provider/api/client";
 import { sessionCache } from "@/features/analyze-game/model/session-cache";
 import { OnboardingChecklist } from "@/features/onboarding";
 import { AnalyzeForm } from "./AnalyzeForm";
 import { ResultCard } from "./ResultCard";
+import { TrialExhaustedCard } from "./TrialExhaustedCard";
 import { Button, PageHeader, PageTitle, PageSubtitle, HashLink, GuidanceBanner } from "@/shared/ui";
-import { Page, Toolbar, ExpandBar, ExpandHint, ErrorBox } from "./AnalyzePage.styles";
+import { Page, Toolbar, ExpandBar, ExpandHint, ErrorBox, TrialBadge } from "./AnalyzePage.styles";
 import { errorMessage } from "./AnalyzePage.utils";
 
 export function AnalyzePage() {
@@ -25,6 +27,9 @@ export function AnalyzePage() {
     error,
     reset,
     stop,
+    isTrialMode,
+    trialRemaining,
+    trialExhausted,
   } = useAnalysis();
   const cached = sessionCache.get();
   const [session, setSession] = useState<{ gameName: string; price: number } | null>(
@@ -159,6 +164,14 @@ export function AnalyzePage() {
 
       <OnboardingChecklist />
 
+      {isTrialMode && !trialExhausted && showBanners && (
+        <TrialBadge>
+          {trialRemaining} starter {trialRemaining === 1 ? "analysis" : "analyses"} remaining
+        </TrialBadge>
+      )}
+
+      {trialExhausted && <TrialExhaustedCard />}
+
       {showBanners && (
         <GuidanceBanner
           variant="tip"
@@ -211,7 +224,7 @@ export function AnalyzePage() {
         </GuidanceBanner>
       )}
 
-      <AnalyzeForm key={formKey} onSubmit={handleSubmit} isLoading={isLoading} />
+      <AnalyzeForm key={formKey} onSubmit={handleSubmit} isLoading={isLoading} trialExhausted={trialExhausted} />
 
       {isStreaming || isLoading || isExpanding ? (
         <Toolbar>
@@ -249,7 +262,9 @@ export function AnalyzePage() {
         </>
       ) : null}
 
-      {error ? <ErrorBox role="alert">{errorMessage(error)}</ErrorBox> : null}
+      {error && !(error instanceof TrialAnalysisError) ? (
+        <ErrorBox role="alert">{errorMessage(error)}</ErrorBox>
+      ) : null}
 
       <div ref={bottomRef} />
     </Page>

@@ -25,6 +25,16 @@ import {
   HeroCTA,
   HeroActions,
   DownloadBtn,
+  FreeTrialSection,
+  FreeTrialCard,
+  FreeTrialBadge,
+  FreeTrialTitle,
+  FreeTrialDesc,
+  FreeTrialHighlights,
+  FreeTrialHighlight,
+  FreeTrialHighlightIcon,
+  FreeTrialCTA,
+  FreeTrialFootnote,
   WhatIsSection,
   WhatIsCard,
   WhatIsTitle,
@@ -90,6 +100,37 @@ export function LandingPage({
           </DownloadBtn>
         </HeroActions>
       </Hero>
+
+      <FreeTrialSection>
+        <FreeTrialCard>
+          <FreeTrialBadge>No credit card · No API key · No setup</FreeTrialBadge>
+          <FreeTrialTitle>5 analyses on us, then bring your own key</FreeTrialTitle>
+          <FreeTrialDesc>
+            Not sure if GameFit is for you? Sign up and get 5 game analyses instantly — no
+            API key required. Experience the full AI-powered analysis before deciding to continue.
+          </FreeTrialDesc>
+          <FreeTrialHighlights>
+            <FreeTrialHighlight>
+              <FreeTrialHighlightIcon>&#10003;</FreeTrialHighlightIcon>
+              Full AI analysis with web search
+            </FreeTrialHighlight>
+            <FreeTrialHighlight>
+              <FreeTrialHighlightIcon>&#10003;</FreeTrialHighlightIcon>
+              Personalized to your taste profile
+            </FreeTrialHighlight>
+            <FreeTrialHighlight>
+              <FreeTrialHighlightIcon>&#10003;</FreeTrialHighlightIcon>
+              Confidence score &amp; price recommendation
+            </FreeTrialHighlight>
+          </FreeTrialHighlights>
+          <FreeTrialCTA onClick={() => onGetStarted()}>
+            Get Started
+          </FreeTrialCTA>
+          <FreeTrialFootnote>
+            After 5 analyses, set up your own API key (takes ~2 min) for unlimited use.
+          </FreeTrialFootnote>
+        </FreeTrialCard>
+      </FreeTrialSection>
 
       <WhatIsSection>
         <WhatIsCard>

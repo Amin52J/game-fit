@@ -329,6 +329,81 @@ export const InlineActions = styled.div`
   margin-top: ${({ theme }) => theme.spacing.md};
 `;
 
+/* Trial banner */
+
+export const TrialBanner = styled.div`
+  padding: ${({ theme }) => theme.spacing.lg};
+  border-radius: ${({ theme }) => theme.radius.lg};
+  border: 1px solid ${({ theme }) => theme.colors.accent};
+  background: ${({ theme }) => theme.colors.accentMuted};
+  text-align: center;
+`;
+
+export const TrialBannerTitle = styled.h3`
+  margin: 0 0 ${({ theme }) => theme.spacing.xs};
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+export const TrialBannerDesc = styled.p`
+  margin: 0 0 ${({ theme }) => theme.spacing.md};
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: ${({ theme }) => theme.colors.textSecondary};
+`;
+
+export const TrialBannerBtn = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: ${({ theme }) => `${theme.spacing.sm} ${theme.spacing.xl}`};
+  min-height: 44px;
+  font-family: ${({ theme }) => theme.font.sans};
+  font-size: 0.9375rem;
+  font-weight: 700;
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: none;
+  cursor: pointer;
+  background: ${({ theme }) => theme.colors.accent};
+  color: ${({ theme }) => theme.colors.text};
+  transition:
+    background ${({ theme }) => theme.transition.fast},
+    transform ${({ theme }) => theme.transition.fast};
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.accentHover};
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.accent};
+    outline-offset: 2px;
+  }
+`;
+
+export const Divider = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.md};
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.textMuted};
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  &::before,
+  &::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: ${({ theme }) => theme.colors.border};
+  }
+`;
+
 /* Stepper */
 
 export const Stepper = styled.div`

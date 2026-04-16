@@ -74,6 +74,7 @@ export function SettingsPage() {
         showKey={showKey}
         setShowKey={setShowKey}
         onSave={saveProvider}
+        freeAnalysesUsed={state.freeAnalysesUsed}
       />
 
       <TasteSection

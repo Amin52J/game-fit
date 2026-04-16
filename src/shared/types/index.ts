@@ -97,6 +97,8 @@ export interface AnalysisResult {
   timestamp: number;
 }
 
+export const FREE_ANALYSIS_LIMIT = 5;
+
 export interface AppState {
   isSetupComplete: boolean;
   aiProvider: AIProviderConfig | null;
@@ -104,6 +106,7 @@ export interface AppState {
   instructions: string;
   setupAnswers: SetupAnswers | null;
   analysisHistory: AnalysisResult[];
+  freeAnalysesUsed: number;
 }
 
 export const INITIAL_STATE: AppState = {
@@ -113,4 +116,5 @@ export const INITIAL_STATE: AppState = {
   instructions: "",
   setupAnswers: null,
   analysisHistory: [],
+  freeAnalysesUsed: 0,
 };

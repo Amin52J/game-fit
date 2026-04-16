@@ -91,3 +91,21 @@ export const Toast = styled.div<{ $type: "success" | "error" }>`
     left: calc(50% + 120px);
   }
 `;
+
+export const TrialStatusBox = styled.div<{ $exhausted: boolean }>`
+  padding: ${({ theme }) => theme.spacing.md};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: 1px solid
+    ${({ theme, $exhausted }) =>
+      $exhausted ? theme.colors.warning : theme.colors.accent};
+  background: ${({ theme, $exhausted }) =>
+    $exhausted ? theme.colors.warningMuted : theme.colors.accentMuted};
+  color: ${({ theme }) => theme.colors.textSecondary};
+
+  strong {
+    color: ${({ theme }) => theme.colors.text};
+  }
+`;

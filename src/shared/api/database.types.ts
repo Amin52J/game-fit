@@ -24,6 +24,7 @@ export interface Database {
           setup_answers: Record<string, unknown> | null;
           instructions: string;
           is_setup_complete: boolean;
+          free_analyses_used: number;
           updated_at: string;
         };
         Insert: {
@@ -32,12 +33,14 @@ export interface Database {
           setup_answers?: Record<string, unknown> | null;
           instructions?: string;
           is_setup_complete?: boolean;
+          free_analyses_used?: number;
         };
         Update: {
           ai_provider?: Record<string, unknown> | null;
           setup_answers?: Record<string, unknown> | null;
           instructions?: string;
           is_setup_complete?: boolean;
+          free_analyses_used?: number;
           updated_at?: string;
         };
       };

@@ -58,3 +58,17 @@ export const ErrorBox = styled.div`
   border: 1px solid ${({ theme }) => theme.colors.error};
   border-radius: ${({ theme }) => theme.radius.md};
 `;
+
+export const TrialBadge = styled.div`
+  display: inline-flex;
+  align-items: center;
+  padding: ${({ theme }) => `${theme.spacing.xs} ${theme.spacing.md}`};
+  font-family: ${({ theme }) => theme.font.sans};
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.accent};
+  background: ${({ theme }) => theme.colors.accentMuted};
+  border: 1px solid ${({ theme }) => theme.colors.accent};
+  border-radius: ${({ theme }) => theme.radius.md};
+  margin-bottom: ${({ theme }) => theme.spacing.sm};
+`;

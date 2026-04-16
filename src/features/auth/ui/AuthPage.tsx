@@ -244,6 +244,7 @@ export function AuthPage({ initialMode = "login", onBack }: AuthPageProps) {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 autoComplete="name"
+                autoFocus
               />
             </InputWrap>
           )}
@@ -257,7 +258,7 @@ export function AuthPage({ initialMode = "login", onBack }: AuthPageProps) {
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
-              autoFocus
+              autoFocus={mode === "login"}
             />
           </InputWrap>
           <InputWrap>

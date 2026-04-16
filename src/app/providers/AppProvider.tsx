@@ -30,6 +30,7 @@ type Action =
   | { type: "UPDATE_ANALYSIS"; payload: { id: string; response: string } }
   | { type: "DELETE_ANALYSIS"; payload: string }
   | { type: "CLEAR_HISTORY" }
+  | { type: "SET_FREE_ANALYSES_USED"; payload: number }
   | { type: "RESET" };
 
 function reducer(state: ReducerState, action: Action): ReducerState {
@@ -73,6 +74,8 @@ function reducer(state: ReducerState, action: Action): ReducerState {
       };
     case "CLEAR_HISTORY":
       return { ...state, analysisHistory: [] };
+    case "SET_FREE_ANALYSES_USED":
+      return { ...state, freeAnalysesUsed: action.payload };
     case "RESET":
       return { ...INITIAL_STATE, hydrated: false };
     default:
@@ -96,6 +99,7 @@ interface AppContextValue {
   updateAnalysisResponse: (id: string, response: string) => void;
   deleteAnalysis: (id: string) => void;
   clearHistory: () => void;
+  setFreeAnalysesUsed: (count: number) => void;
   resetApp: () => void;
 }
 
@@ -184,6 +188,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     db.clearHistory();
   }, []);
 
+  const setFreeAnalysesUsed = useCallback((count: number) => {
+    dispatch({ type: "SET_FREE_ANALYSES_USED", payload: count });
+  }, []);
+
   const resetApp = useCallback(() => {
     dispatch({ type: "RESET" });
     db.resetUserData();
@@ -207,6 +215,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updateAnalysisResponse,
         deleteAnalysis,
         clearHistory,
+        setFreeAnalysesUsed,
         resetApp,
       }}
     >

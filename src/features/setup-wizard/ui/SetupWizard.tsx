@@ -104,6 +104,7 @@ export function SetupWizard() {
   const [testStatus, setTestStatus] = useState<"idle" | "ok" | "err">("idle");
   const [testLoading, setTestLoading] = useState(false);
   const [step1Error, setStep1Error] = useState<string | null>(null);
+  const [trialMode, setTrialMode] = useState(false);
   const [steamAutoImportCount, setSteamAutoImportCount] = useState<number | null>(null);
   const steamAutoImported = useRef(false);
 
@@ -169,8 +170,14 @@ export function SetupWizard() {
     else window.scrollTo({ top: 0 });
   };
 
+  const handleSkipTrial = () => {
+    setTrialMode(true);
+    setStep(2);
+    scrollTop();
+  };
+
   const goNext = () => {
-    if (!isDevMode && step === 1 && !validateStep1()) return;
+    if (!isDevMode && !trialMode && step === 1 && !validateStep1()) return;
     setStep((s) => Math.min(4, s + 1));
     scrollTop();
   };
@@ -190,15 +197,17 @@ export function SetupWizard() {
       router.push("/analyze");
       return;
     }
-    const cfg: AIProviderConfig = {
-      type: aiConfig.type,
-      apiKey: aiConfig.apiKey.trim(),
-      model: aiConfig.model.trim(),
-      ...(aiConfig.type === "custom" && aiConfig.baseUrl?.trim()
-        ? { baseUrl: aiConfig.baseUrl.trim() }
-        : {}),
-    };
-    setAIProvider(cfg);
+    if (!trialMode) {
+      const cfg: AIProviderConfig = {
+        type: aiConfig.type,
+        apiKey: aiConfig.apiKey.trim(),
+        model: aiConfig.model.trim(),
+        ...(aiConfig.type === "custom" && aiConfig.baseUrl?.trim()
+          ? { baseUrl: aiConfig.baseUrl.trim() }
+          : {}),
+      };
+      setAIProvider(cfg);
+    }
     setSetupAnswers(answers);
     setGames(importedGames);
     setInstructions(generateInstructions(answers));
@@ -230,6 +239,7 @@ export function SetupWizard() {
                   testStatus={testStatus}
                   testLoading={testLoading}
                   onTest={runTestConnection}
+                  onSkipTrial={handleSkipTrial}
                 />
                 {step1Error ? <StatusPillTopMd>{step1Error}</StatusPillTopMd> : null}
               </>
@@ -255,6 +265,7 @@ export function SetupWizard() {
                 aiConfig={aiConfig}
                 importedGames={importedGames}
                 answers={answers}
+                trialMode={trialMode}
               />
             ) : null}
           </StepContent>

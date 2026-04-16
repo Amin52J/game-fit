@@ -19,6 +19,7 @@ import {
 
 const SECTIONS = [
   { id: "what-is-gamefit", label: "What is GameFit?" },
+  { id: "free-trial", label: "Starter analyses" },
   { id: "api-key", label: "API keys explained" },
   { id: "library", label: "Your game library" },
   { id: "scoring", label: "How scoring works" },
@@ -77,6 +78,61 @@ export function HelpPage() {
           </strong>{" "}
           Even 10–15 scored games make a noticeable difference in accuracy.
         </Callout>
+      </Section>
+
+      {/* ───── Starter analyses ───── */}
+      <Section>
+        <SectionAnchor id="free-trial">Starter analyses</SectionAnchor>
+        <P>
+          Every new account comes with <strong>5 starter analyses</strong> using our API key, so you
+          can test the full AI-powered analysis without setting up anything first.
+        </P>
+
+        <SubHeading>How it works</SubHeading>
+        <OL>
+          <li>
+            During setup, click <strong>&quot;Skip — use our key&quot;</strong> on the AI Provider
+            step to skip the API key configuration entirely.
+          </li>
+          <li>
+            Complete the rest of setup — set your taste preferences and import your game library as
+            normal.
+          </li>
+          <li>
+            Go to the Analyze page and run your first analysis. You&apos;ll see a badge showing how
+            many starter analyses you have remaining.
+          </li>
+          <li>
+            Each analysis uses one of your 5 starter slots. Starter analyses use the same AI model
+            (Claude) and web search as BYOK analyses — there&apos;s no quality difference.
+          </li>
+        </OL>
+
+        <SubHeading>What happens after 5 analyses?</SubHeading>
+        <P>
+          Once you&apos;ve used all 5 starter analyses, you&apos;ll see a message on the Analyze
+          page with step-by-step instructions for adding your own API key. You can also add a key at
+          any time from <strong>Settings &rarr; AI Provider</strong>.
+        </P>
+        <P>
+          Adding your own API key unlocks <strong>unlimited analyses</strong> with no restrictions.
+          You can choose any supported provider (Anthropic, OpenAI, Google, or a custom endpoint)
+          and any model. Most providers offer free starter credits, so you can keep going without
+          paying anything.
+        </P>
+
+        <Callout $variant="tip">
+          <strong>Starter analyses are identical to regular ones.</strong> They use Claude with web
+          search enabled, personalized to your taste profile and scored library — the same quality
+          you&apos;d get with your own API key.
+        </Callout>
+
+        <SubHeading>Can I get more starter analyses?</SubHeading>
+        <P>
+          The 5 starter analyses are a one-time allowance per account. They cannot be reset or
+          replenished. However, setting up your own API key is quick (about 2 minutes) and each
+          analysis costs only a fraction of a cent.
+        </P>
       </Section>
 
       {/* ───── API keys explained ───── */}
@@ -356,6 +412,14 @@ export function HelpPage() {
       {/* ───── FAQ ───── */}
       <Section>
         <SectionAnchor id="faq">Frequently asked questions</SectionAnchor>
+
+        <SubHeading>Do I need an API key to use GameFit?</SubHeading>
+        <P>
+          Not right away. Every new account includes <strong>5 starter analyses</strong> using
+          our key — no setup needed. After that, you&apos;ll set up your own key from Anthropic,
+          OpenAI, or Google. See the <a href="#free-trial">Starter analyses</a> and{" "}
+          <a href="#api-key">API keys explained</a> sections for details.
+        </P>
 
         <SubHeading>Can I change my preferences after setup?</SubHeading>
         <P>

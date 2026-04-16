@@ -35,6 +35,7 @@ export const mockAppContext = {
   updateAnalysisResponse: vi.fn(),
   deleteAnalysis: vi.fn(),
   clearHistory: vi.fn(),
+  setFreeAnalysesUsed: vi.fn(),
   resetApp: vi.fn(),
 };
 
@@ -113,6 +114,7 @@ vi.mock("@/shared/api/db", () => ({
   deleteAnalysis: vi.fn(),
   clearHistory: vi.fn(),
   resetUserData: vi.fn(),
+  loadFreeAnalysesUsed: vi.fn().mockResolvedValue(0),
 }));
 
 function AllProviders({ children }: { children: React.ReactNode }) {
