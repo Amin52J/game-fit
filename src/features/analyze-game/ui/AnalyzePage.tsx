@@ -40,24 +40,54 @@ export function AnalyzePage() {
   }
 
   const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<Element | null>(null);
   const wasStreamingRef = useRef(false);
   const userScrolledRef = useRef(false);
+  const touchYRef = useRef(0);
+
+  useEffect(() => {
+    let el: Element | null = bottomRef.current;
+    while (el) {
+      const style = getComputedStyle(el);
+      if (/(auto|scroll)/.test(style.overflowY)) {
+        scrollContainerRef.current = el;
+        return;
+      }
+      el = el.parentElement;
+    }
+  }, []);
 
   useEffect(() => {
     const active = isStreaming || isExpanding;
     if (!active) return;
 
+    const container = scrollContainerRef.current;
     userScrolledRef.current = false;
-    const onUserScroll = () => {
-      const nearBottom =
-        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 50;
-      userScrolledRef.current = !nearBottom;
+
+    const onWheel = (e: WheelEvent) => {
+      if (e.deltaY < 0) userScrolledRef.current = true;
     };
-    window.addEventListener("wheel", onUserScroll, { passive: true });
-    window.addEventListener("touchmove", onUserScroll, { passive: true });
+    const onTouchStart = (e: TouchEvent) => {
+      touchYRef.current = e.touches[0].clientY;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches[0].clientY > touchYRef.current) userScrolledRef.current = true;
+    };
+    const onScroll = () => {
+      if (!container) return;
+      const nearBottom =
+        container.scrollTop + container.clientHeight >= container.scrollHeight - 50;
+      if (nearBottom) userScrolledRef.current = false;
+    };
+    window.addEventListener("wheel", onWheel, { passive: true });
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    (container ?? window).addEventListener("scroll", onScroll, { passive: true });
     return () => {
-      window.removeEventListener("wheel", onUserScroll);
-      window.removeEventListener("touchmove", onUserScroll);
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+      (container ?? window).removeEventListener("scroll", onScroll);
     };
   }, [isStreaming, isExpanding]);
 
@@ -70,7 +100,12 @@ export function AnalyzePage() {
       }
     } else if (wasStreamingRef.current) {
       wasStreamingRef.current = false;
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      const container = scrollContainerRef.current;
+      if (container) {
+        container.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
     }
   }, [isStreaming, isExpanding, streamedText]);
 
