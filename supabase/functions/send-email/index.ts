@@ -1,3 +1,4 @@
+// @ts-nocheck — Deno Edge Function; not checked by project tsconfig
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 
@@ -85,9 +86,7 @@ Deno.serve(async (req) => {
 
     const verifyUrl = buildVerifyUrl(email_data);
     const name =
-      (user.user_metadata?.full_name as string) ??
-      (user.user_metadata?.name as string) ??
-      "";
+      (user.user_metadata?.full_name as string) ?? (user.user_metadata?.name as string) ?? "";
 
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
