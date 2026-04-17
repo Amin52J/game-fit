@@ -165,9 +165,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (email: string, password: string, name?: string): Promise<string | null> => {
       try {
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
         const res = await fetch(`${supabaseUrl}/functions/v1/custom-signup`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${anonKey}`,
+          },
           body: JSON.stringify({ email, password, name: name || email.split("@")[0] }),
         });
         const body = await res.json();
@@ -210,9 +214,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const redirectTo = isTauri() ? undefined : window.location.origin;
+      const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
       const res = await fetch(`${supabaseUrl}/functions/v1/custom-recovery`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${anonKey}`,
+        },
         body: JSON.stringify({ email, redirectTo }),
       });
       const body = await res.json();
