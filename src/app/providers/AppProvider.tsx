@@ -125,7 +125,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: "INIT", payload: loaded, hydrated: true });
       }
     });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  // Re-hydrate state when the tab becomes visible again (e.g. user completed
+  // setup in another tab and switches back to this one).
+  useEffect(() => {
+    if (!userId) return;
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        db.loadUserState().then((loaded) => {
+          dispatch({ type: "INIT", payload: loaded, hydrated: true });
+        });
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
   }, [userId]);
 
   const setAIProvider = useCallback((config: AIProviderConfig) => {

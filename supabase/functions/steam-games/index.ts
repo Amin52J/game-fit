@@ -1,7 +1,6 @@
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 function jsonResponse(body: Record<string, unknown>, status = 200) {
@@ -32,23 +31,25 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "Steam API key not configured" }, 500);
     }
 
-    const steamUrl =
-      `https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=${apiKey}&steamid=${steamId}&include_appinfo=1&include_played_free_games=1&format=json`;
+    const steamUrl = `https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=${apiKey}&steamid=${steamId}&include_appinfo=1&include_played_free_games=1&format=json`;
 
     const steamRes = await fetch(steamUrl);
     if (!steamRes.ok) {
-      return jsonResponse({ error: "Failed to fetch games from Steam" }, 502);
+      const errBody = await steamRes.text().catch(() => "");
+      console.error(`Steam API error: status=${steamRes.status} body=${errBody}`);
+      return jsonResponse(
+        { error: `Failed to fetch games from Steam (status ${steamRes.status})` },
+        502,
+      );
     }
 
     const steamData = await steamRes.json();
     const rawGames = steamData?.response?.games ?? [];
 
-    const games = rawGames.map(
-      (g: { name: string; playtime_forever: number }) => ({
-        name: g.name,
-        playtimeHours: Math.round((g.playtime_forever / 60) * 10) / 10,
-      }),
-    );
+    const games = rawGames.map((g: { name: string; playtime_forever: number }) => ({
+      name: g.name,
+      playtimeHours: Math.round((g.playtime_forever / 60) * 10) / 10,
+    }));
 
     return jsonResponse({ games, count: games.length });
   } catch (err) {
