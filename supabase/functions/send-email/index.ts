@@ -36,12 +36,13 @@ const CTA_LABELS: Record<string, string> = {
 };
 
 function buildVerifyUrl(data: HookPayload["email_data"]): string {
+  const siteUrl = (data.site_url || "").replace(/\/+$/, "");
   const params = new URLSearchParams({
     token_hash: data.token_hash,
     type: data.email_action_type,
   });
   if (data.redirect_to) params.set("redirect_to", data.redirect_to);
-  return `${SUPABASE_URL}/auth/v1/verify?${params}`;
+  return `${siteUrl}/confirm.html?${params}`;
 }
 
 function html(type: string, url: string, name: string): string {
