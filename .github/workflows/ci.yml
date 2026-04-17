@@ -123,7 +123,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy out --project-name=GameOrWait
+          command: pages deploy out --project-name=game-or-wait
 
   release:
     needs: [deploy]
