@@ -237,6 +237,110 @@ export const DownloadBtn = styled.a`
   }
 `;
 
+/* Demo video */
+
+export const VideoSection = styled.section`
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 0 60px;
+  animation: ${fadeUp} 0.6s ease 0.06s both;
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    padding: 0 ${({ theme }) => theme.spacing.lg} 80px;
+  }
+`;
+
+export const VideoWrapper = styled.div`
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: #111120;
+  aspect-ratio: 4 / 3;
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    border-radius: ${({ theme }) => theme.radius.lg};
+    border: 1px solid ${({ theme }) => theme.colors.border};
+  }
+`;
+
+export const VideoNativePlayer = styled.video<{ $visible?: boolean }>`
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  background: #111120;
+  opacity: ${({ $visible }) => ($visible ? 1 : 0)};
+  transition: opacity 0.3s ease;
+`;
+
+export const VideoPlayOverlay = styled.div<{ $ended?: boolean }>`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  background: #111120;
+  cursor: pointer;
+  transition: background ${({ theme }) => theme.transition.fast};
+
+  &:hover > div:last-child {
+    transform: scale(1.1);
+  }
+`;
+
+export const VideoOverlayBrand = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+`;
+
+export const VideoBrandName = styled.span`
+  color: ${({ theme }) => theme.colors.text};
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    font-size: 2rem;
+  }
+`;
+
+export const VideoPlayButton = styled.div`
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: ${({ theme }) => theme.colors.accent};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 32px ${({ theme }) => theme.colors.accentGlow};
+  transition: transform ${({ theme }) => theme.transition.fast};
+
+  &::after {
+    content: "";
+    display: block;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 12px 0 12px 20px;
+    border-color: transparent transparent transparent ${({ theme }) => theme.colors.text};
+    margin-left: 3px;
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    width: 80px;
+    height: 80px;
+
+    &::after {
+      border-width: 14px 0 14px 24px;
+      margin-left: 4px;
+    }
+  }
+`;
+
 /* Starter analyses callout */
 
 export const FreeTrialSection = styled.section`

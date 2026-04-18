@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useRef, useState, useEffect } from "react";
 import { AuthPage } from "@/features/auth";
 import {
   DOWNLOAD_URL,
@@ -25,6 +25,13 @@ import {
   HeroCTA,
   HeroActions,
   DownloadBtn,
+  VideoSection,
+  VideoWrapper,
+  VideoPlayOverlay,
+  VideoOverlayBrand,
+  VideoBrandName,
+  VideoPlayButton,
+  VideoNativePlayer,
   FreeTrialSection,
   FreeTrialCard,
   FreeTrialBadge,
@@ -61,6 +68,74 @@ import {
   ContributeDesc,
   LandingFooter,
 } from "./LandingPage.styles";
+
+function DemoVideo() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [started, setStarted] = useState(false);
+  const [ended, setEnded] = useState(false);
+
+  const handleFirstPlay = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    setStarted(true);
+    setEnded(false);
+    video.play();
+  }, []);
+
+  const handleReplay = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.currentTime = 0;
+    video.play();
+    setEnded(false);
+  }, []);
+
+  const handleEnded = useCallback(() => {
+    setEnded(true);
+  }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const onPlay = () => setEnded(false);
+    video.addEventListener("play", onPlay);
+    return () => video.removeEventListener("play", onPlay);
+  }, []);
+
+  return (
+    <VideoSection>
+      <VideoWrapper>
+        <VideoNativePlayer
+          ref={videoRef}
+          src="/GameOrWait.mp4"
+          preload="none"
+          playsInline
+          controls={started && !ended}
+          onEnded={handleEnded}
+          $visible={started && !ended}
+        />
+        {!started && (
+          <VideoPlayOverlay onClick={handleFirstPlay}>
+            <VideoOverlayBrand>
+              <LogoImg src="/icon.svg" alt="" width={48} height={48} />
+              <VideoBrandName>GameOrWait</VideoBrandName>
+            </VideoOverlayBrand>
+            <VideoPlayButton />
+          </VideoPlayOverlay>
+        )}
+        {started && ended && (
+          <VideoPlayOverlay $ended onClick={handleReplay}>
+            <VideoOverlayBrand>
+              <LogoImg src="/icon.svg" alt="" width={48} height={48} />
+              <VideoBrandName>GameOrWait</VideoBrandName>
+            </VideoOverlayBrand>
+            <VideoPlayButton />
+          </VideoPlayOverlay>
+        )}
+      </VideoWrapper>
+    </VideoSection>
+  );
+}
 
 export function LandingPage({
   onGetStarted,
@@ -106,13 +181,15 @@ export function LandingPage({
         </HeroActions>
       </Hero>
 
+      <DemoVideo />
+
       <FreeTrialSection>
         <FreeTrialCard>
           <FreeTrialBadge>No credit card · No API key · No setup</FreeTrialBadge>
           <FreeTrialTitle>5 analyses on us, then bring your own key</FreeTrialTitle>
           <FreeTrialDesc>
-            Not sure if GameOrWait is for you? Sign up and get 5 game analyses instantly — no API key
-            required. Experience the full AI-powered analysis before deciding to continue.
+            Not sure if GameOrWait is for you? Sign up and get 5 game analyses instantly — no API
+            key required. Experience the full AI-powered analysis before deciding to continue.
           </FreeTrialDesc>
           <FreeTrialHighlights>
             <FreeTrialHighlight>
@@ -139,9 +216,9 @@ export function LandingPage({
         <WhatIsCard>
           <WhatIsTitle>What is GameOrWait?</WhatIsTitle>
           <WhatIsText>
-            GameOrWait is your personal game purchasing assistant. It uses AI to analyze whether a game
-            is a good fit <strong>for you specifically</strong> — based on your gaming taste, play
-            history, and preferences — rather than giving a generic review score.
+            GameOrWait is your personal game purchasing assistant. It uses AI to analyze whether a
+            game is a good fit <strong>for you specifically</strong> — based on your gaming taste,
+            play history, and preferences — rather than giving a generic review score.
           </WhatIsText>
           <WhatIsSteps>
             <Step>
@@ -149,8 +226,8 @@ export function LandingPage({
               <StepContent>
                 <StepTitle>Define your taste</StepTitle>
                 <StepDesc>
-                  Tell GameOrWait what you like — play style, difficulty preference, dealbreakers, and
-                  what matters most to you in a game (story, combat, exploration, etc.).
+                  Tell GameOrWait what you like — play style, difficulty preference, dealbreakers,
+                  and what matters most to you in a game (story, combat, exploration, etc.).
                 </StepDesc>
               </StepContent>
             </Step>
@@ -222,7 +299,9 @@ export function LandingPage({
         </ContributeCard>
       </ContributeSection>
 
-      <LandingFooter>&copy; {new Date().getFullYear()} GameOrWait. All rights reserved.</LandingFooter>
+      <LandingFooter>
+        &copy; {new Date().getFullYear()} GameOrWait. All rights reserved.
+      </LandingFooter>
     </Page>
   );
 }
