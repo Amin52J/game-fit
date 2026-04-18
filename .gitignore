@@ -24,3 +24,6 @@ supabase/.temp/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Large video assets (hosted on R2)
+public/*.mp4

@@ -107,7 +107,7 @@ function DemoVideo() {
       <VideoWrapper>
         <VideoNativePlayer
           ref={videoRef}
-          src="/GameOrWait.mp4"
+          src="https://assets.gameorwait.com/GameOrWait.mp4"
           preload="none"
           playsInline
           controls={started && !ended}
