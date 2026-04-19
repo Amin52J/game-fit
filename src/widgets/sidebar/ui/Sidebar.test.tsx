@@ -17,9 +17,9 @@ beforeEach(() => {
 describe("Sidebar", () => {
   it("renders navigation items", () => {
     renderWithProviders(<Sidebar />);
-    expect(screen.getByText("Analyze")).toBeInTheDocument();
-    expect(screen.getByText("Library")).toBeInTheDocument();
-    expect(screen.getByText("History")).toBeInTheDocument();
+    expect(screen.getAllByText("Analyze").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Library").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("History").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Settings")).toBeInTheDocument();
     expect(screen.getByText("Help")).toBeInTheDocument();
   });
@@ -76,10 +76,10 @@ describe("Sidebar", () => {
 
   it("has navigation links with correct hrefs", () => {
     renderWithProviders(<Sidebar />);
-    const analyzeLink = screen.getByText("Analyze").closest("a");
-    expect(analyzeLink).toHaveAttribute("href", "/analyze");
-    const libraryLink = screen.getByText("Library").closest("a");
-    expect(libraryLink).toHaveAttribute("href", "/library");
+    const analyzeLink = screen.getAllByText("Analyze").find((el) => el.closest("a"));
+    expect(analyzeLink?.closest("a")).toHaveAttribute("href", "/analyze");
+    const libraryLink = screen.getAllByText("Library").find((el) => el.closest("a"));
+    expect(libraryLink?.closest("a")).toHaveAttribute("href", "/library");
   });
 
   it("has hamburger menu toggle", () => {
@@ -167,7 +167,8 @@ describe("Sidebar", () => {
   it("calls setIntent when navigation link is clicked", async () => {
     const user = userEvent.setup();
     renderWithProviders(<Sidebar />);
-    await user.click(screen.getByText("Library"));
+    const libraryLink = screen.getAllByText("Library").find((el) => el.closest("a"))!;
+    await user.click(libraryLink);
     expect(mockNavigationContext.setIntent).toHaveBeenCalledWith("/library");
   });
 });
