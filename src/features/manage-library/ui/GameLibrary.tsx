@@ -27,7 +27,12 @@ function LibraryBanners({ games, scored }: { games: Game[]; scored: number }) {
 
   if (games.length > 0 && unscoredCount > 0 && scored >= 10) {
     return (
-      <GuidanceBanner variant="info" linkText="Learn about scoring" linkHref="/help#scoring">
+      <GuidanceBanner
+        variant="info"
+        linkText="Learn about scoring"
+        linkHref="/help#scoring"
+        dismissKey="library_scoring_banner"
+      >
         <strong>
           {scored} of {games.length} games scored.
         </strong>{" "}

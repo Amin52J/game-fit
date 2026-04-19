@@ -108,20 +108,6 @@ export function AnalyzePage() {
 
       {trialExhausted && <TrialExhaustedCard />}
 
-      {showBanners && (
-        <GuidanceBanner
-          variant="tip"
-          dismissKey="analyze_intro"
-          linkText="Learn more"
-          linkHref="/help#analyzing"
-        >
-          <strong>Enter a game you&apos;re thinking of buying</strong> and its current price. The AI
-          will search for reviews, compare them against your taste profile and scored library, and
-          tell you how much you&apos;ll likely enjoy it — plus a target price that reflects its
-          value <em>to you</em>.
-        </GuidanceBanner>
-      )}
-
       {showBanners && !hasLibrary && (
         <GuidanceBanner variant="warning" linkText="Go to Library" linkHref="/library">
           <strong>Your game library is empty.</strong> Import or add games and score them so the AI
