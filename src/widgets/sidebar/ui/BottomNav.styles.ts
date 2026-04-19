@@ -11,10 +11,10 @@ export const BottomNavRoot = styled.nav`
   right: 0;
   bottom: 0;
   z-index: 100;
-  height: 56px;
+  height: 88px;
   background: ${({ theme }) => theme.colors.surface};
   border-top: 1px solid ${({ theme }) => theme.colors.border};
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: ${({ theme }) => theme.spacing.xl};
   box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.4);
 
   @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
