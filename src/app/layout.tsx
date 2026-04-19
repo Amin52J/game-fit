@@ -12,6 +12,29 @@ export const metadata: Metadata = {
   description:
     "Predict whether you'll actually enjoy a game and at what price point, based on your taste",
   manifest: "/manifest.json",
+  openGraph: {
+    title: "GameOrWait — Personalized Game Analysis",
+    description:
+      "Predict whether you'll actually enjoy a game and at what price point, based on your taste",
+    url: "https://gameorwait.com",
+    siteName: "GameOrWait",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "GameOrWait logo",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "GameOrWait — Personalized Game Analysis",
+    description:
+      "Predict whether you'll actually enjoy a game and at what price point, based on your taste",
+    images: ["/og-image.png"],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
