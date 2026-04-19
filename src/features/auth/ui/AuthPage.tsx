@@ -34,7 +34,15 @@ interface AuthPageProps {
 }
 
 export function AuthPage({ initialMode = "login", onBack }: AuthPageProps) {
-  const { signIn, signUp, signInWithProvider, resetPassword, updatePassword, recoveryMode, clearRecoveryMode } = useAuth();
+  const {
+    signIn,
+    signUp,
+    signInWithProvider,
+    resetPassword,
+    updatePassword,
+    recoveryMode,
+    clearRecoveryMode,
+  } = useAuth();
   const [mode, setMode] = useState<Mode>(recoveryMode ? "recovery" : initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -131,7 +139,7 @@ export function AuthPage({ initialMode = "login", onBack }: AuthPageProps) {
       <Page>
         <Card>
           <LogoRow>
-            <LogoImg src="/icon.svg" alt="" width={40} height={40} />
+            <LogoImg src="/icon.svg" alt="" width={40} height={40} priority />
             <LogoText>GameOrWait</LogoText>
           </LogoRow>
 
@@ -168,13 +176,19 @@ export function AuthPage({ initialMode = "login", onBack }: AuthPageProps) {
         <Card>
           <BackBtn type="button" onClick={() => switchMode("login")}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="m15 18-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path
+                d="m15 18-6-6 6-6"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
             Back to Log In
           </BackBtn>
 
           <LogoRow>
-            <LogoImg src="/icon.svg" alt="" width={40} height={40} />
+            <LogoImg src="/icon.svg" alt="" width={40} height={40} priority />
             <LogoText>GameOrWait</LogoText>
           </LogoRow>
 
@@ -210,7 +224,13 @@ export function AuthPage({ initialMode = "login", onBack }: AuthPageProps) {
         {onBack && (
           <BackBtn type="button" onClick={onBack}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="m15 18-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path
+                d="m15 18-6-6 6-6"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
             Back
           </BackBtn>

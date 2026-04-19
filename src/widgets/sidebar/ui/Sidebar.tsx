@@ -81,7 +81,7 @@ export function Sidebar() {
       <Backdrop $visible={mobileOpen} aria-hidden onClick={closeMobile} />
       <SidebarRoot $open={mobileOpen} aria-label="Main navigation">
         <LogoBlock href="/analyze" onClick={closeMobile}>
-          <LogoIcon src="/icon.svg" alt="" width={32} height={32} aria-hidden />
+          <LogoIcon src="/icon.svg" alt="" width={32} height={32} aria-hidden priority />
           <LogoText>GameOrWait</LogoText>
         </LogoBlock>
         <Nav>

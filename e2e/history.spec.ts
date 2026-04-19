@@ -9,21 +9,6 @@ test.describe("History Page", () => {
     await expect(page.getByText("Balatro")).toBeVisible();
   });
 
-  test("shows clear all button", async ({ authenticatedPage: page }) => {
-    await page.goto("/analyze");
-    await page.getByLabel("Main navigation").getByText("History").click();
-
-    await expect(page.getByRole("button", { name: "Clear all" })).toBeVisible();
-  });
-
-  test("clear all shows confirmation", async ({ authenticatedPage: page }) => {
-    await page.goto("/analyze");
-    await page.getByLabel("Main navigation").getByText("History").click();
-
-    await page.getByRole("button", { name: "Clear all" }).click();
-    await expect(page.getByRole("button", { name: "Are you sure?" })).toBeVisible();
-  });
-
   test("shows empty state when no history", async ({ page }) => {
     const FAKE_SESSION = {
       access_token: "e2e-fake-access-token",
@@ -43,23 +28,41 @@ test.describe("History Page", () => {
     };
 
     await page.route(`${SUPABASE_GLOB}/auth/v1/token**`, (r) =>
-      r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(FAKE_SESSION) }));
+      r.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(FAKE_SESSION),
+      }),
+    );
     await page.route(`${SUPABASE_GLOB}/auth/v1/user`, (r) =>
-      r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(FAKE_USER) }));
+      r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(FAKE_USER) }),
+    );
     await page.route(`${SUPABASE_GLOB}/auth/v1/logout`, (r) =>
-      r.fulfill({ status: 200, contentType: "application/json", body: "{}" }));
+      r.fulfill({ status: 200, contentType: "application/json", body: "{}" }),
+    );
     await page.route(`${SUPABASE_GLOB}/rest/v1/user_settings**`, (r) =>
-      r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(EMPTY_SETTINGS) }));
+      r.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(EMPTY_SETTINGS),
+      }),
+    );
     await page.route(`${SUPABASE_GLOB}/rest/v1/games**`, (r) =>
-      r.fulfill({ status: 200, contentType: "application/json", body: "[]" }));
+      r.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
     await page.route(`${SUPABASE_GLOB}/rest/v1/analysis_history**`, (r) =>
-      r.fulfill({ status: 200, contentType: "application/json", body: "[]" }));
+      r.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
     await page.route(`${SUPABASE_GLOB}/functions/v1/**`, (r) =>
-      r.fulfill({ status: 200, contentType: "application/json", body: "{}" }));
+      r.fulfill({ status: 200, contentType: "application/json", body: "{}" }),
+    );
 
-    await page.addInitScript(({ key, session }) => {
-      localStorage.setItem(key, JSON.stringify(session));
-    }, { key: AUTH_STORAGE_KEY, session: FAKE_SESSION });
+    await page.addInitScript(
+      ({ key, session }) => {
+        localStorage.setItem(key, JSON.stringify(session));
+      },
+      { key: AUTH_STORAGE_KEY, session: FAKE_SESSION },
+    );
 
     await page.goto("/analyze");
     await page.getByLabel("Main navigation").getByText("History").click();

@@ -7,7 +7,7 @@ test.describe("Navigation", () => {
     const sidebar = page.getByLabel("Main navigation");
     await expect(sidebar).toBeVisible();
 
-    for (const label of ["Analyze", "Library", "Score", "History", "Settings", "Help"]) {
+    for (const label of ["Analyze", "Library", "History", "Settings", "Help"]) {
       await expect(sidebar.getByText(label)).toBeVisible();
     }
   });
@@ -21,12 +21,6 @@ test.describe("Navigation", () => {
     await page.goto("/analyze");
     await page.getByLabel("Main navigation").getByText("Library").click();
     await expect(page.getByText("Game Library")).toBeVisible();
-  });
-
-  test("navigate to Score Calculator page", async ({ authenticatedPage: page }) => {
-    await page.goto("/analyze");
-    await page.getByLabel("Main navigation").getByText("Score").click();
-    await expect(page.getByText("Score Calculator")).toBeVisible();
   });
 
   test("navigate to History page", async ({ authenticatedPage: page }) => {

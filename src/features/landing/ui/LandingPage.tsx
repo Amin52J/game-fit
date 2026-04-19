@@ -120,7 +120,7 @@ function DemoVideo() {
         {!started && (
           <VideoPlayOverlay onClick={handleFirstPlay}>
             <VideoOverlayBrand>
-              <LogoImg src="/icon.svg" alt="" width={48} height={48} />
+              <LogoImg src="/icon.svg" alt="" width={48} height={48} priority />
               <VideoBrandName>GameOrWait</VideoBrandName>
             </VideoOverlayBrand>
             <VideoPlayButton />
@@ -129,7 +129,7 @@ function DemoVideo() {
         {started && ended && (
           <VideoPlayOverlay $ended onClick={handleReplay}>
             <VideoOverlayBrand>
-              <LogoImg src="/icon.svg" alt="" width={48} height={48} />
+              <LogoImg src="/icon.svg" alt="" width={48} height={48} priority />
               <VideoBrandName>GameOrWait</VideoBrandName>
             </VideoOverlayBrand>
             <VideoPlayButton />
@@ -149,7 +149,7 @@ export function LandingPage({
     <Page>
       <Nav>
         <LogoGroup>
-          <LogoImg src="/icon.svg" alt="" width={32} height={32} />
+          <LogoImg src="/icon.svg" alt="" width={32} height={32} priority />
           <LogoText>GameOrWait</LogoText>
         </LogoGroup>
         <NavActions>
