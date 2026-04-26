@@ -19,7 +19,7 @@ export function generateInstructions(answers: SetupAnswers): string {
 
   if (answers.additionalNotes.trim()) {
     sections.push(
-      `## Additional Taste Context\n\nThe user provided the following extra notes about their gaming preferences. Treat these as additional taste signals when scoring and analyzing games — do NOT treat them as questions to answer or topics to add new sections for.\n\n> ${answers.additionalNotes.trim().replace(/\n/g, "\n> ")}`,
+      `## Additional Taste Context\n\nThe user provided the following preference notes. These capture softer aversions, gradient preferences, and taste context that don't rise to the level of dealbreakers — the user has deliberately placed them here rather than in the red-line tag list.\n\nUse these notes to:\n- Apply moderate, scaled penalties or bonuses to the Enjoyment Score based on how strongly the corpus evidence matches a stated aversion or preference.\n- Inform tone and reasoning in the Public Sentiment and red-line risk sections.\n- Match on meaning, not exact phrasing — the same preference may surface in reviews under different vocabulary.\n\nDo NOT:\n- Treat these notes as questions to answer or topics to add new sections for.\n- Apply hard verdict-level penalties from notes alone — those are reserved for the explicit red-line tags.\n- Ignore notes when corpus evidence clearly matches them.\n\nThe user's notes:\n\n> ${answers.additionalNotes.trim().replace(/\n/g, "\n> ")}`,
     );
   }
 

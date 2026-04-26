@@ -58,7 +58,7 @@ export class AIClient {
   ): Promise<string> {
     const libraryData = this.formatLibrary(games);
     const systemPrompt = instructions;
-    const userMessage = `Here is my game library:\n\n${libraryData}\n\n---\n\nAnalyze this game for me: **${gameName}** at **${currencySymbol}${price}**\n\nIMPORTANT: Search the web for "${gameName} Steam reviews" to find the current Steam review rating (e.g. Very Positive, Mixed), total review count, and the most common praise/complaints. Use ONLY factual review statistics — do not change your scoring based on individual reviewer opinions. Review data informs the Public Sentiment section and penalty evidence, but anchor games and the scoring procedure drive the Enjoyment Score.`;
+    const userMessage = `Here is my game library:\n\n${libraryData}\n\n---\n\nAnalyze this game for me: **${gameName}** at **${currencySymbol}${price}**\n\nSearch "${gameName} Steam reviews" to find current Steam rating, total review count, and the most-cited praise and complaints in the current corpus. This is a point-in-time snapshot — read the corpus as it stands today, do not speculate about future patches.\n\nRED-LINE APPLICATION:\n- Red-lines test whether the underlying issue exists in the game's current state, not whether the majority of reviewers complain about it. A consistent minority signal in user reviews is sufficient evidence.\n- Match on meaning, not exact phrasing. Reviewers describe the same issue using varied vocabulary — for example, "floaty combat" may appear as "no weight to attacks", "weak hit feedback", "animation lock", "unresponsive swings", or "attacks feel weightless"; "overacted dialogue" may appear as "cringe writing", "NPCs overreact", "soap opera", or "awkward voice acting"; "MMO bloat" may appear as "too many systems", "chore simulator", "busywork", "fishing/cooking/farming filler", or "live-service feel".\n- For each red-line, before checking the corpus, briefly list 3-5 phrasings reviewers might plausibly use to describe that issue. Then check whether any of those concepts (not the exact words) appear in the review evidence.\n- For each red-line you apply, quote the specific review snippet that triggers it.\n- If a red-line has no supporting evidence in the corpus after the semantic check, do not apply it and note "no evidence found" so the gap is visible.\n\nNEGATIVE FACTORS (non-red-line) require broad reviewer agreement.\n\nUse review data factually — don't be swayed by individual emotional outbursts, but do weight clearly articulated complaints appropriately. Anchor games and the scoring procedure drive the Enjoyment Score; review data informs Public Sentiment and penalty evidence only.`;
 
     if (onStream) {
       return this.streamRequest(systemPrompt, userMessage, onStream, signal, onThinking);
@@ -178,7 +178,7 @@ export class AIClient {
       model: this.config.model,
       system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
       messages: [{ role: "user", content: user }],
-      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 1 }],
+      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
       temperature: 0,
     };
 
@@ -598,7 +598,9 @@ export async function trialAnalyze(
   const userMessage = `Here is my game library:\n\n${libraryData}\n\n---\n\nAnalyze this game for me: **${gameName}** at **${currencySymbol}${price}**\n\nIMPORTANT: Search the web for "${gameName} Steam reviews" to find the current Steam review rating (e.g. Very Positive, Mixed), total review count, and the most common praise/complaints. Use ONLY factual review statistics — do not change your scoring based on individual reviewer opinions. Review data informs the Public Sentiment section and penalty evidence, but anchor games and the scoring procedure drive the Enjoyment Score.`;
 
   const sb = getSupabase();
-  const { data: { session } } = await sb.auth.getSession();
+  const {
+    data: { session },
+  } = await sb.auth.getSession();
   if (!session) throw new Error("Not authenticated");
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

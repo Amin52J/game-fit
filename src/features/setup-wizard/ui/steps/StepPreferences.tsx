@@ -285,7 +285,7 @@ export function StepPreferences({
         <TextAreaField
           id="gf-notes"
           rows={3}
-          placeholder="Anything else the assistant should know about your taste…"
+          placeholder="Anything else the assistant should know about your taste, your likes and dislikes... Use this for soft preferences, context, and 'I'd rather not' items. For absolute dealbreakers, use the tag list above."
           value={answers.additionalNotes}
           onChange={(e) => setAnswers((a) => ({ ...a, additionalNotes: e.target.value }))}
         />
