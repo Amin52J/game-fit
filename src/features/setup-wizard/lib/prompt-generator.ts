@@ -242,10 +242,21 @@ Note: Taste-note penalties (−3/−5/−8) alone do not trigger High risk — H
 function buildRefundGuard(_a: SetupAnswers): string {
   return `## Refund Guard
 Always include this section. The refund guard does NOT change the target price — it is advisory only.
-**Recommended if ANY**: R=High | R=Medium | C=Low/Very Low | Steam reviews are Mixed or worse | RQD ≥ 10 | GQP ≥ 5.
-**Not required if ALL**: R=None AND C≥Medium AND Steam reviews are Mostly Positive or better AND GQP < 5.
-When recommended: State "Recommended". Briefly mention the review-based concern if that was the trigger. Suggest buying on Steam for the 2h/14d refund policy. Recommend testing for 60–90 min; if core gameplay feels wrong → refund.
-When not required: State "Not required" with brief reason.
+
+**Trigger logic (mechanical — apply each condition independently)**:
+The refund guard is **Recommended** if ANY ONE of these conditions is true. Check each in order:
+1. The Red-Line Risk section above states "High" or "Medium" → Recommended.
+2. Confidence is "Low" or "Very Low" → Recommended.
+3. Steam reviews are "Mixed", "Mostly Negative", or worse → Recommended.
+4. Review Quality Discount (RQD) was ≥ 10 AND General Quality Penalty (GQP) was ≥ 5 → Recommended.
+
+If you wrote "Medium" or "High" in the Red-Line Risk section above, you MUST mark the refund guard as Recommended. There is no scenario where Red-Line Risk is Medium/High and the refund guard is Not required — these two judgments must be consistent.
+
+The refund guard is **Not required** ONLY if ALL of these are true: Red-Line Risk is "None", Confidence is "Medium" or higher, Steam reviews are "Mostly Positive" or better, and GQP < 5.
+
+When Recommended: State "Recommended". Briefly mention the specific trigger (e.g. "Medium red-line risk on slow-start dealbreaker"). Suggest buying on Steam for the 2h/14d refund policy. Recommend testing for 60–90 min; if core gameplay feels wrong → refund.
+When Not required: State "Not required" with brief reason.
+
 **Early Access override**: If the game is in Early Access, always recommend the refund guard regardless of other conditions. Mention the game is unfinished and advise testing within the Steam refund window.`;
 }
 
