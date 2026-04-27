@@ -19,7 +19,7 @@ export function generateInstructions(answers: SetupAnswers): string {
 
   if (answers.additionalNotes.trim()) {
     sections.push(
-      `## Additional Taste Context\n\nThe user provided the following preference notes. These capture softer aversions, gradient preferences, and taste context that don't rise to the level of dealbreakers — the user has deliberately placed them here rather than in the red-line tag list.\n\nUse these notes to:\n- Apply moderate, scaled penalties or bonuses to the Enjoyment Score based on how strongly the corpus evidence matches a stated aversion or preference.\n- Inform tone and reasoning in the Public Sentiment and red-line risk sections.\n- Match on meaning, not exact phrasing — the same preference may surface in reviews under different vocabulary.\n\nDo NOT:\n- Treat these notes as questions to answer or topics to add new sections for.\n- Apply hard verdict-level penalties from notes alone — those are reserved for the explicit red-line tags.\n- Ignore notes when corpus evidence clearly matches them.\n\nThe user's notes:\n\n> ${answers.additionalNotes.trim().replace(/\n/g, "\n> ")}`,
+      `## Additional Taste Context\n\nThe user provided the following preference notes. These capture softer aversions, gradient preferences, and taste context that don't rise to the level of dealbreakers — the user has deliberately placed them here rather than in the red-line tag list.\n\nUse these notes to:\n- Apply scaled penalties based on corpus evidence. For penalties derived from these notes (and only these notes — NOT from the dealbreaker rules above), use one of three fixed magnitudes: −3 (mild match — single source or weak signal), −5 (clear match — multiple sources confirm), or −8 (strong match — broadly cited across critic and user reviews). Do not use intermediate values. The dealbreaker rules above use their own magnitudes (−10, −12, −15) and are not affected by this scale.\n- Inform tone and reasoning in the Public Sentiment and red-line risk sections.\n- Match on meaning, not exact phrasing — the same preference may surface in reviews under different vocabulary.\n\nFor each note-derived penalty, quote the specific review snippet that supports it. If you cannot find a clear corpus match for a note, do not apply a penalty and briefly note 'no clear corpus match' for that preference, so the gap is visible.\n\nDo NOT:\n- Treat these notes as questions to answer or topics to add new sections for.\n- Apply hard verdict-level penalties from notes alone — those are reserved for the explicit red-line tags.\n- Ignore notes when corpus evidence clearly matches them.\n- Apply note-derived magnitudes (−3/−5/−8) to dealbreaker penalties, or dealbreaker magnitudes (−10/−12/−15) to note-derived penalties. The two scales are independent.\n\nThe user's notes:\n\n> ${answers.additionalNotes.trim().replace(/\n/g, "\n> ")}`,
     );
   }
 
@@ -48,6 +48,7 @@ function buildCorePrinciples(): string {
 - **No Assumptions**: Never assume the user has played a game unless it appears with a score. Treat the target game as unplayed.
 - **Score-Based Modeling**: Use the Scoring Procedure below. Base scores from the most relevant library titles (typically >75). Match on genre, gameplay, tone, mechanics, atmosphere.
 - **Dealbreaker Evidence Standard**: Apply a dealbreaker penalty ONLY if it matches a dealbreaker the user selected AND multiple Steam/critic reviews consistently report it as a significant issue. If evidence is mixed or unclear, do NOT apply the penalty.
+- **Dealbreaker Magnitudes**: Dealbreaker penalties use fixed magnitudes (−8, −12, −15) defined in each rule below. These are SEPARATE from the −3/−5/−8 scale used for taste-note penalties (see Additional Taste Context, when present). Do not apply taste-note magnitudes to dealbreakers, and do not apply dealbreaker magnitudes to taste notes — the two scoring systems are independent and the magnitudes must not be confused.
 - **Review Quality Matters**: Anchor similarity sets the *ceiling* for the base score; the game's actual review reception determines how close it gets. A game with "Mixed" or "Mostly Negative" reviews should score meaningfully lower than a "Very Positive" game with the same anchors — even if no specific dealbreaker applies. Apply the Review Quality Discount in the Scoring Procedure.
 - **Library Context**: The base score (from anchor games) is the starting point. Review quality adjustments, general quality penalties, and dealbreaker penalties refine it downward when warranted. Strong library similarity is a positive signal but does not override poor game quality established by broad review consensus.`;
 }
@@ -78,7 +79,7 @@ Perform this calculation internally before writing any output sections. Do NOT i
    - The worse the target's reviews relative to the anchors, the larger the discount.
 4. **General quality penalty (GQP)**: If Steam/critic reviews broadly report significant issues NOT covered by the user's dealbreakers (e.g. bugs, poor optimization, bad value for money, unfinished content, predatory monetization), apply GQP = 3–10 based on severity and breadth of complaints.
 5. **Dealbreaker penalty checklist**: For each penalty rule below, decide YES (apply fixed value) or NO (skip). YES only if the user's dealbreakers include it AND reviews consistently confirm it.
-6. **Sum**: totalP = RQD + GQP + sum of all YES dealbreaker penalties. totalB = sum of any bonuses.
+6. **Sum**: totalP = RQD + GQP + sum of all YES dealbreaker penalties (using −8/−12/−15 magnitudes) + sum of all note-derived taste penalties (using −3/−5/−8 magnitudes, when Additional Taste Context is present). totalB = sum of any bonuses.
 7. **Raw score**: R = B − totalP + totalB.
 8. **Clamp**: totalP ≥ 25 → cap R at 69. totalP = 0 AND reviews positive → floor R at (lowest anchor − 10). Clamp to [0, 100].
 9. **Final**: Enjoyment Score = clamped R.
@@ -89,7 +90,8 @@ The Enjoyment Score MUST equal the calculated value. Do not adjust it.
 **Early Access adjustment** (apply only if the game is currently in Early Access on Steam):
 11. **Categorize penalties**: Mark each applied penalty as "fixable" (bugs, poor optimization, missing content, balance issues, UI/UX rough edges, incomplete voice acting, lack of polish) or "fundamental" (genre mismatch, core gameplay loop design, GAAS/live-service model, always-online, core movement/combat feel, fundamental design philosophy).
 12. **Potential score**: potentialP = sum of fundamental penalty values + (sum of fixable penalty values × 0.4). Potential = B − potentialP + totalB. Clamp to [0, 100].
-13. Output both the regular Enjoyment Score (step 9) as Current and the Potential score.`;
+13. Output both the regular Enjoyment Score (step 9) as Current and the Potential score.
+Note: When in doubt about whether a borderline penalty applies, default to not applying it. Conservative scoring is preferable to inconsistent scoring.`;
 }
 
 function buildPlayStyleRules(a: SetupAnswers): string {
@@ -230,9 +232,11 @@ function buildRedLineRisk(a: SetupAnswers): string {
 
   return `## Red-Line Risk
 Determined by which penalties were applied:
-* **High**: ANY penalty ≥ 15 was applied. Triggers: ${highItems.length ? highItems.join("; ") : "core gameplay widely broken"}.
-* **Medium**: ANY penalty of 10–14 was applied (but none ≥ 15). Triggers: ${mediumItems.length ? mediumItems.join("; ") : "moderate thematic/mechanical mismatch"}.
-* **None**: No penalties ≥ 10, or no penalties at all.`;
+* **High**: ANY dealbreaker penalty ≥ 15 was applied. Triggers: ${highItems.length ? highItems.join("; ") : "core gameplay widely broken"}.
+* **Medium**: ANY dealbreaker penalty of 10–14 was applied (but none ≥ 15), OR multiple penalties (dealbreaker + note-derived) stack to a meaningful friction load. Triggers: ${mediumItems.length ? mediumItems.join("; ") : "moderate thematic/mechanical mismatch"}.
+* **None**: No dealbreaker penalties applied and no significant taste-note matches.
+
+Note: Taste-note penalties (−3/−5/−8) alone do not trigger High risk — High is reserved for explicit dealbreaker matches at the −15 magnitude. Notes can contribute to Medium when stacking with other penalties.`;
 }
 
 function buildRefundGuard(_a: SetupAnswers): string {
