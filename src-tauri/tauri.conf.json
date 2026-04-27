@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "GameOrWait",
-  "version": "1.20.3",
+  "version": "1.21.0",
   "identifier": "com.GameOrWait.app",
   "build": {
     "frontendDist": "../out",
