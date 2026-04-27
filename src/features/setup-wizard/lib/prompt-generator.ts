@@ -299,7 +299,7 @@ Use ## headings for every section. You MUST output sections in exactly this orde
 6. **Enjoyment Score** — format as "**X/100** | Confidence: Y". One line only — no calculation breakdown. For Early Access games, format as "**X/100 (Current) → Y/100 (Potential)** | Confidence: Z".
 7. **Score Summary** — one or two sentences explaining the score. For Early Access games, briefly note which penalties are fixable vs fundamental.
 
-CRITICAL: Complete sections 1–5 BEFORE writing the Enjoyment Score. The score must be consistent with the evidence you already wrote.
+CRITICAL: Complete sections 1–5 BEFORE writing the Enjoyment Score. The score must be consistent with the evidence you already wrote. The Refund Guard (section 5) MUST be consistent with the Red-Line Risk (section 4) — Medium or High risk requires "Recommended"; "Not required" is only valid when risk is None.
 Do NOT output a "Scoring Procedure", "Internal Calculation", or "Methodology" section. Do NOT include calculation tables, formulas, or step-by-step math.
 Do NOT include a Target Price section — pricing is computed separately.
 Tone: clear, analytical, no filler. Keep each section concise.`;
