@@ -178,7 +178,7 @@ export class AIClient {
       model: this.config.model,
       system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
       messages: [{ role: "user", content: user }],
-      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 1 }],
+      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 2 }],
       temperature: 0,
     };
 
@@ -598,7 +598,9 @@ export async function trialAnalyze(
   const userMessage = `Here is my game library:\n\n${libraryData}\n\n---\n\nAnalyze this game for me: **${gameName}** at **${currencySymbol}${price}**\n\nIMPORTANT: Search the web for "${gameName} Steam reviews" to find the current Steam review rating (e.g. Very Positive, Mixed), total review count, and the most common praise/complaints. Use ONLY factual review statistics — do not change your scoring based on individual reviewer opinions. Review data informs the Public Sentiment section and penalty evidence, but anchor games and the scoring procedure drive the Enjoyment Score.`;
 
   const sb = getSupabase();
-  const { data: { session } } = await sb.auth.getSession();
+  const {
+    data: { session },
+  } = await sb.auth.getSession();
   if (!session) throw new Error("Not authenticated");
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
