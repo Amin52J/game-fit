@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">83.78% </span>
+                <span class="strong">79.48% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>31/37</span>
+                <span class='fraction'>31/39</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">85.71% </span>
+                <span class="strong">75% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>12/14</span>
+                <span class='fraction'>12/16</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">80.64% </span>
+                <span class="strong">78.12% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>25/31</span>
+                <span class='fraction'>25/32</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -196,7 +196,28 @@
 <a name='L131'></a><a href='#L131'>131</a>
 <a name='L132'></a><a href='#L132'>132</a>
 <a name='L133'></a><a href='#L133'>133</a>
-<a name='L134'></a><a href='#L134'>134</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a>
+<a name='L144'></a><a href='#L144'>144</a>
+<a name='L145'></a><a href='#L145'>145</a>
+<a name='L146'></a><a href='#L146'>146</a>
+<a name='L147'></a><a href='#L147'>147</a>
+<a name='L148'></a><a href='#L148'>148</a>
+<a name='L149'></a><a href='#L149'>149</a>
+<a name='L150'></a><a href='#L150'>150</a>
+<a name='L151'></a><a href='#L151'>151</a>
+<a name='L152'></a><a href='#L152'>152</a>
+<a name='L153'></a><a href='#L153'>153</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -282,7 +303,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">168x</span>
+<span class="cline-any cline-yes">140x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -309,6 +330,23 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -343,6 +381,7 @@ import {
   LogoText,
   Nav,
   NavLink,
+  ExternalNavLink,
   NavIcon,
   NavLabel,
   Footer,
@@ -362,6 +401,7 @@ import {
   MenuToggle,
   MenuBar,
 } from "./Sidebar.styles";
+import { BottomNav } from "./BottomNav";
 &nbsp;
 export function Sidebar() {
   const { activePath, setIntent } = useNavigation();
@@ -410,8 +450,8 @@ export function Sidebar() {
       &lt;Backdrop $visible={mobileOpen} aria-hidden onClick={closeMobile} /&gt;
       &lt;SidebarRoot $open={mobileOpen} aria-label="Main navigation"&gt;
         &lt;LogoBlock href="/analyze" onClick={closeMobile}&gt;
-          &lt;LogoIcon src="/icon.svg" alt="" width={32} height={32} aria-hidden /&gt;
-          &lt;LogoText&gt;GameFit&lt;/LogoText&gt;
+          &lt;LogoIcon src="/icon.svg" alt="" width={32} height={32} aria-hidden priority /&gt;
+          &lt;LogoText&gt;GameOrWait&lt;/LogoText&gt;
         &lt;/LogoBlock&gt;
         &lt;Nav&gt;
           {NAV_ITEMS.map(({ href, label, icon }) =&gt; (
@@ -424,10 +464,23 @@ export function Sidebar() {
                 closeMobile();
               }}
             &gt;
-              &lt;NavIcon&gt;&lt;Icon name={icon} size={18} /&gt;&lt;/NavIcon&gt;
+              &lt;NavIcon&gt;
+                &lt;Icon name={icon} size={18} /&gt;
+              &lt;/NavIcon&gt;
               &lt;NavLabel&gt;{label}&lt;/NavLabel&gt;
             &lt;/NavLink&gt;
           ))}
+          &lt;ExternalNavLink
+            href="https://github.com/Amin52J/game-or-wait/discussions"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Opens in a new tab"
+          &gt;
+            &lt;NavIcon&gt;
+              &lt;Icon name="message-circle" size={18} /&gt;
+            &lt;/NavIcon&gt;
+            &lt;NavLabel&gt;Feedback&lt;/NavLabel&gt;
+          &lt;/ExternalNavLink&gt;
         &lt;/Nav&gt;
         &lt;Footer&gt;
           {user &amp;&amp; (
@@ -437,17 +490,21 @@ export function Sidebar() {
             &lt;/UserBlock&gt;
           )}
           &lt;FooterBtn type="button" onClick={handleLogoutClick}&gt;
-            &lt;LogoutIcon&gt;&lt;Icon name="log-out" size={18} /&gt;&lt;/LogoutIcon&gt;
+            &lt;LogoutIcon&gt;
+              &lt;Icon name="log-out" size={18} /&gt;
+            &lt;/LogoutIcon&gt;
             &lt;FooterBtnText&gt;Log Out&lt;/FooterBtnText&gt;
           &lt;/FooterBtn&gt;
         &lt;/Footer&gt;
       &lt;/SidebarRoot&gt;
 &nbsp;
+      &lt;BottomNav <span class="fstat-no" title="function not covered" >onMenuClick={() =&gt; <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >s</span>etMobileOpen((o</span>) =&gt; <span class="cstat-no" title="statement not covered" >!o)}</span></span> /&gt;
+&nbsp;
       {showLogoutModal &amp;&amp; (
         &lt;ModalOverlay <span class="fstat-no" title="function not covered" >onClick={() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etShowLogoutModal(false)}</span>&gt;
           &lt;ModalCard onClick={(e) =&gt; e.stopPropagation()}&gt;
             &lt;ModalTitle&gt;Log out?&lt;/ModalTitle&gt;
-            &lt;ModalDesc&gt;Are you sure you want to log out of GameFit?&lt;/ModalDesc&gt;
+            &lt;ModalDesc&gt;Are you sure you want to log out of GameOrWait?&lt;/ModalDesc&gt;
             &lt;ModalActions&gt;
               &lt;ModalBtn type="button" onClick={() =&gt; setShowLogoutModal(false)}&gt;
                 Cancel
@@ -469,7 +526,7 @@ export function Sidebar() {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-16T19:26:09.198Z
+                at 2026-05-01T18:34:09.599Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

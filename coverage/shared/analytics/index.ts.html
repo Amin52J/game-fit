@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/13</span>
+                <span class='fraction'>0/11</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>0/12</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>0/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/11</span>
+                <span class='fraction'>0/9</span>
             </div>
         
             
@@ -118,17 +118,7 @@
 <a name='L53'></a><a href='#L53'>53</a>
 <a name='L54'></a><a href='#L54'>54</a>
 <a name='L55'></a><a href='#L55'>55</a>
-<a name='L56'></a><a href='#L56'>56</a>
-<a name='L57'></a><a href='#L57'>57</a>
-<a name='L58'></a><a href='#L58'>58</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<a name='L56'></a><a href='#L56'>56</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -137,10 +127,16 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -178,15 +174,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { User } from "@supabase/supabase-js";
-import { getSupabase, isTauri } from "@/shared/api/supabase";
-&nbsp;
-function <span class="fstat-no" title="function not covered" >apiUrl(p</span>ath: string): string {
-<span class="cstat-no" title="statement not covered" >  if (typeof window === "undefined") <span class="cstat-no" title="statement not covered" >return path;</span></span>
-<span class="cstat-no" title="statement not covered" >  if (isTauri() &amp;&amp; process.env.NEXT_PUBLIC_APP_URL) {</span>
-<span class="cstat-no" title="statement not covered" >    return `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "")}${path}`;</span>
-  }
-<span class="cstat-no" title="statement not covered" >  return path;</span>
-}
+import { getSupabase } from "@/shared/api/supabase";
 &nbsp;
 async function <span class="fstat-no" title="function not covered" >postTrack(</span>
   event: string,
@@ -194,14 +182,20 @@ async function <span class="fstat-no" title="function not covered" >postTrack(</
   insertId: string,
 ): Promise&lt;void&gt; {
   const <span class="cstat-no" title="statement not covered" >sb = getSupabase();</span>
-  const { data: { session } } = <span class="cstat-no" title="statement not covered" >await sb.auth.getSession();</span>
+  const {
+    data: { session },
+  } = <span class="cstat-no" title="statement not covered" >await sb.auth.getSession();</span>
 <span class="cstat-no" title="statement not covered" >  if (!session) <span class="cstat-no" title="statement not covered" >return;</span></span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  await fetch(apiUrl("/api/analytics/track"), {</span>
+  const supabaseUrl = <span class="cstat-no" title="statement not covered" >process.env.NEXT_PUBLIC_SUPABASE_URL;</span>
+<span class="cstat-no" title="statement not covered" >  if (!supabaseUrl) <span class="cstat-no" title="statement not covered" >return;</span></span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >  await fetch(`${supabaseUrl}/functions/v1/track-event`, {</span>
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${session.access_token}`,
+      apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
     },
     body: JSON.stringify({
       event,
@@ -211,7 +205,7 @@ async function <span class="fstat-no" title="function not covered" >postTrack(</
   });
 }
 &nbsp;
-/** Server-side Mixpanel via Next.js API (same-origin; avoids ad blockers). */
+/** Server-side Mixpanel via Supabase Edge Function (avoids ad blockers). */
 export async function <span class="fstat-no" title="function not covered" >trackSignup(u</span>ser: User, properties?: Record&lt;string, unknown&gt;): Promise&lt;void&gt; {
 <span class="cstat-no" title="statement not covered" >  await postTrack("signup", properties, `${user.id}-signup`);</span>
 }
@@ -241,7 +235,7 @@ export async function <span class="fstat-no" title="function not covered" >track
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-16T19:26:09.286Z
+                at 2026-05-01T18:34:09.681Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
