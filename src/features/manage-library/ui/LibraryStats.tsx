@@ -4,7 +4,8 @@ import React from "react";
 import type { Game } from "@/shared/types";
 import { Stats, StatCard, StatValue, StatLabel } from "./GameLibrary.styles";
 
-export function LibraryStats({ games, scored, avgScore }: { games: Game[]; scored: Game[]; avgScore: number }) {
+export function LibraryStats({ games, scored }: { games: Game[]; scored: Game[] }) {
+  const unscoredCount = games.length - scored.length;
   return (
     <Stats>
       <StatCard>
@@ -16,12 +17,12 @@ export function LibraryStats({ games, scored, avgScore }: { games: Game[]; score
         <StatLabel>Scored</StatLabel>
       </StatCard>
       <StatCard>
-        <StatValue>{avgScore}</StatValue>
-        <StatLabel>Average score</StatLabel>
+        <StatValue>{unscoredCount}</StatValue>
+        <StatLabel>Unscored</StatLabel>
       </StatCard>
       <StatCard>
-        <StatValue>{games.filter((g) => (g.score || 0) >= 85).length}</StatValue>
-        <StatLabel>Top rated (85+)</StatLabel>
+        <StatValue>{games.filter((g) => (g.score || 0) >= 76).length}</StatValue>
+        <StatLabel>Top rated (76+)</StatLabel>
       </StatCard>
     </Stats>
   );

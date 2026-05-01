@@ -29,6 +29,7 @@ export type IconName =
   | "sort-desc"
   | "view-list"
   | "view-detail"
+  | "view-grid"
   | "message-circle"
   | "external-link"
   | "log-out"
@@ -254,6 +255,16 @@ const paths: Record<IconName, React.ReactNode> = {
   "view-detail": (
     <path
       d="M3 3h18v8H3zM3 14h18v7H3z"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="none"
+    />
+  ),
+  "view-grid": (
+    <path
+      d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"
       stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"

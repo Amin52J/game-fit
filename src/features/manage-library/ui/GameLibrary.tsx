@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useRef, useState } from "react";
+import type { Game } from "@/shared/types";
 import {
   Button,
   PageWrapper,
@@ -10,17 +11,16 @@ import {
   HashLink,
   GuidanceBanner,
 } from "@/shared/ui";
+import { AddGameModal } from "./AddGameModal";
+import { GameGrid } from "./GameGrid";
 import { useGameLibrary } from "./GameLibrary.hooks";
+import { AddGameButtonRow } from "./GameLibrary.styles";
+import { GameTable } from "./GameTable";
 import { ImportSection } from "./ImportSection";
+import { LibraryPagination } from "./LibraryPagination";
 import { LibraryStats } from "./LibraryStats";
 import { LibraryToolbar } from "./LibraryToolbar";
-import { GameTable } from "./GameTable";
-import { AddGameModal } from "./AddGameModal";
 import { ScoreCalcModal } from "./ScoreCalcModal";
-import { LibraryPagination } from "./LibraryPagination";
-
-import { AddGameButtonRow } from "./GameLibrary.styles";
-import type { Game } from "@/shared/types";
 
 function LibraryBanners({ games, scored }: { games: Game[]; scored: number }) {
   const unscoredCount = useMemo(() => games.length - scored, [games.length, scored]);
@@ -126,35 +126,45 @@ export function GameLibrary() {
 
       <ImportSection handleImport={lib.handleImport} />
 
-      <LibraryStats games={lib.games} scored={lib.scored} avgScore={lib.avgScore} />
+      <LibraryStats games={lib.games} scored={lib.scored} />
 
       <LibraryToolbar
         inputValue={lib.inputValue}
         setSearch={lib.setSearch}
         activeRanges={lib.activeRanges}
         toggleRange={lib.toggleRange}
+        viewMode={lib.viewMode}
+        setViewMode={lib.setViewMode}
       />
 
-      <GameTable
-        tableRef={tableRef}
-        pageGames={lib.pageGames}
-        totalGames={lib.games.length}
-        sortField={lib.sortField}
-        sortDir={lib.sortDir}
-        toggleSort={lib.toggleSort}
-        editingId={lib.editingId}
-        editName={lib.editName}
-        setEditName={lib.setEditName}
-        editScore={lib.editScore}
-        setEditScore={lib.setEditScore}
-        confirmDeleteId={lib.confirmDeleteId}
-        saveEdit={lib.saveEdit}
-        setEditingId={lib.setEditingId}
-        startEdit={lib.startEdit}
-        handleDeleteGame={lib.handleDeleteGame}
-        setConfirmDeleteId={lib.setConfirmDeleteId}
-        onCalcScore={(g) => setCalcGame({ id: g.id, name: g.name })}
-      />
+      {lib.viewMode === "grid" ? (
+        <GameGrid
+          gridRef={tableRef}
+          pageGames={lib.pageGames}
+          totalGames={lib.games.length}
+        />
+      ) : (
+        <GameTable
+          tableRef={tableRef}
+          pageGames={lib.pageGames}
+          totalGames={lib.games.length}
+          sortField={lib.sortField}
+          sortDir={lib.sortDir}
+          toggleSort={lib.toggleSort}
+          editingId={lib.editingId}
+          editName={lib.editName}
+          setEditName={lib.setEditName}
+          editScore={lib.editScore}
+          setEditScore={lib.setEditScore}
+          confirmDeleteId={lib.confirmDeleteId}
+          saveEdit={lib.saveEdit}
+          setEditingId={lib.setEditingId}
+          startEdit={lib.startEdit}
+          handleDeleteGame={lib.handleDeleteGame}
+          setConfirmDeleteId={lib.setConfirmDeleteId}
+          onCalcScore={(g) => setCalcGame({ id: g.id, name: g.name })}
+        />
+      )}
 
       <LibraryPagination
         clampedPage={lib.clampedPage}

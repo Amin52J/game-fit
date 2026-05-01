@@ -1,7 +1,12 @@
 "use client";
 
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { ButtonRow } from "@/shared/ui/Layout";
+
+const shimmer = keyframes`
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+`;
 
 export const Toolbar = styled.div`
   display: flex;
@@ -22,6 +27,49 @@ export const ToolbarSearchWrap = styled.div`
   max-width: min(400px, 100%);
   width: 100%;
   min-width: 0;
+`;
+
+export const ToolbarSearchRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+  flex: 1 1 auto;
+  max-width: min(400px, 100%);
+  width: 100%;
+  min-width: 0;
+`;
+
+export const ViewToggle = styled.div`
+  display: flex;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  overflow: hidden;
+  flex-shrink: 0;
+`;
+
+export const ViewBtn = styled.button<{ $active: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: none;
+  cursor: pointer;
+  transition:
+    background ${({ theme }) => theme.transition.fast},
+    color ${({ theme }) => theme.transition.fast};
+  background: ${({ theme, $active }) =>
+    $active ? theme.colors.accentMuted : theme.colors.surface};
+  color: ${({ theme, $active }) => ($active ? theme.colors.accent : theme.colors.textMuted)};
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.text};
+    background: ${({ theme }) => theme.colors.surfaceHover};
+  }
+
+  & + & {
+    border-left: 1px solid ${({ theme }) => theme.colors.border};
+  }
 `;
 
 export const TableHeaderActionsLabel = styled.span`
@@ -293,6 +341,123 @@ export const Empty = styled.div`
   text-align: center;
   padding: ${({ theme }) => theme.spacing.xxl};
   color: ${({ theme }) => theme.colors.textMuted};
+`;
+
+export const Grid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: ${({ theme }) => theme.spacing.md};
+  width: 100%;
+
+  @media (min-width: 480px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    grid-template-columns: repeat(4, 1fr);
+    gap: ${({ theme }) => theme.spacing.lg};
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.desktop}) {
+    grid-template-columns: repeat(5, 1fr);
+  }
+`;
+
+export const Card = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.sm};
+  min-width: 0;
+`;
+
+export const CardCover = styled.div`
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: ${({ theme }) => theme.radius.md};
+  overflow: hidden;
+  background: ${({ theme }) => theme.colors.surfaceElevated};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  box-shadow: ${({ theme }) => theme.shadow.sm};
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+`;
+
+export const CardSkeleton = styled.div`
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    ${({ theme }) => theme.colors.surfaceElevated} 0%,
+    ${({ theme }) => theme.colors.surfaceHover} 50%,
+    ${({ theme }) => theme.colors.surfaceElevated} 100%
+  );
+  background-size: 200% 100%;
+  animation: ${shimmer} 1.6s ease-in-out infinite;
+`;
+
+export const CardFallback = styled.div<{ $seed: number }>`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: ${({ theme }) => theme.font.sans};
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+  letter-spacing: 0.04em;
+  background: ${({ $seed }) => {
+    const hue1 = $seed % 360;
+    const hue2 = (hue1 + 40) % 360;
+    return `linear-gradient(135deg, hsl(${hue1} 55% 32%) 0%, hsl(${hue2} 50% 22%) 100%)`;
+  }};
+`;
+
+export const CardScoreBadge = styled.span<{ $score: number | null }>`
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: ${({ theme }) => theme.radius.md};
+  font-family: ${({ theme }) => theme.font.sans};
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: ${({ theme, $score }) => {
+    if ($score === null) return "rgba(0, 0, 0, 0.55)";
+    if ($score >= 80) return theme.colors.success;
+    if ($score >= 60) return theme.colors.warning;
+    return theme.colors.error;
+  }};
+  color: ${({ $score }) => ($score === null ? "rgba(255, 255, 255, 0.85)" : "#fff")};
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+`;
+
+export const CardTitle = styled.div`
+  font-family: ${({ theme }) => theme.font.sans};
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.text};
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
 `;
 
 export const ImportPanel = styled.div`
