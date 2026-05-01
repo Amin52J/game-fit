@@ -6,10 +6,12 @@ import { parseResponseSections } from "@/features/analyze-game/lib/response-pars
 
 export function ExpandedContent({
   response,
+  gameName,
   fullPrice,
   currencyCode,
 }: {
   response: string;
+  gameName?: string;
   fullPrice?: number;
   currencyCode?: string;
 }) {
@@ -17,7 +19,15 @@ export function ExpandedContent({
   const hasStructure = sections.filter((s) => s.key !== "preamble").length >= 3;
 
   if (hasStructure) {
-    return <ThemedStructuredResult sections={sections} isStreaming={false} fullPrice={fullPrice} currencyCode={currencyCode} />;
+    return (
+      <ThemedStructuredResult
+        sections={sections}
+        isStreaming={false}
+        fullPrice={fullPrice}
+        currencyCode={currencyCode}
+        coverName={gameName}
+      />
+    );
   }
   return <AnalysisMarkdown source={response} />;
 }

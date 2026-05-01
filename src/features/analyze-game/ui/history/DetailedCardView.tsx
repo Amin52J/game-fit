@@ -79,7 +79,7 @@ export function DetailedCardView({
             {!expanded ? (
               <CardMain type="button" onClick={() => toggle(item.id)}>
                 <PreviewContent>
-                  <HistoryPreview response={item.response} fullPrice={item.price} currencyCode={currency} />
+                  <HistoryPreview response={item.response} gameName={item.gameName} fullPrice={item.price} currencyCode={currency} />
                 </PreviewContent>
                 <PreviewBody>
                   <ExpandHint>Click to view full analysis</ExpandHint>
@@ -87,7 +87,7 @@ export function DetailedCardView({
               </CardMain>
             ) : (
               <ExpandedSection>
-                <ExpandedContent response={item.response} fullPrice={item.price} currencyCode={currency} />
+                <ExpandedContent response={item.response} gameName={item.gameName} fullPrice={item.price} currencyCode={currency} />
               </ExpandedSection>
             )}
           </HistoryCard>

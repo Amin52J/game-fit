@@ -5,6 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useApp } from "@/app/providers/AppProvider";
 import { Icon } from "@/shared/ui";
+import { GameCover } from "@/entities/game";
 import { parseResponseSections, extractMetrics, isInternalSection } from "@/features/analyze-game/lib/response-parser";
 import type { ParsedSection } from "@/features/analyze-game/lib/response-parser";
 import { renderScoreHero } from "./result/ScoreHero";
@@ -14,6 +15,8 @@ import { formatPrice, FALLBACK_THEME } from "./ResultCard.utils";
 import {
   Card,
   Header,
+  HeaderRow,
+  HeaderText,
   GameTitle,
   GameMeta,
   EarlyAccessBadge,
@@ -72,11 +75,13 @@ export function ThemedStructuredResult({
   isStreaming,
   fullPrice,
   currencyCode,
+  coverName,
 }: {
   sections: ParsedSection[];
   isStreaming: boolean;
   fullPrice?: number;
   currencyCode?: string;
+  coverName?: string;
 }) {
   const metrics = extractMetrics(sections);
 
@@ -98,7 +103,7 @@ export function ThemedStructuredResult({
 
   return (
     <>
-      {renderScoreHero(sections, metrics, isStreaming)}
+      {renderScoreHero(sections, metrics, isStreaming, { coverName, compact: !!coverName })}
       {renderMetricsRow(sections, metrics, FALLBACK_THEME, isStreaming, fullPrice, currencyCode)}
       {refundSection
         ? renderSection(refundSection, metrics, false, isStreaming, FALLBACK_THEME)
@@ -147,11 +152,16 @@ export function ResultCard({ response, gameName, price, isStreaming, thinkingTex
   return (
     <Card>
       <Header>
-        <GameTitle>
-          {gameName}
-          {earlyAccess && <EarlyAccessBadge>Early Access</EarlyAccessBadge>}
-        </GameTitle>
-        <GameMeta>{priceLabel}</GameMeta>
+        <HeaderRow>
+          {gameName && <GameCover name={gameName} size="md" />}
+          <HeaderText>
+            <GameTitle>
+              {gameName}
+              {earlyAccess && <EarlyAccessBadge>Early Access</EarlyAccessBadge>}
+            </GameTitle>
+            <GameMeta>{priceLabel}</GameMeta>
+          </HeaderText>
+        </HeaderRow>
       </Header>
 
       {waitingForFirst ? (
@@ -171,7 +181,7 @@ export function ResultCard({ response, gameName, price, isStreaming, thinkingTex
   );
 }
 
-export function HistoryPreview({ response, fullPrice, currencyCode }: { response: string; fullPrice?: number; currencyCode?: string }) {
+export function HistoryPreview({ response, gameName, fullPrice, currencyCode }: { response: string; gameName?: string; fullPrice?: number; currencyCode?: string }) {
   const sections = useMemo(() => parseResponseSections(response), [response]);
   const metrics = useMemo(() => extractMetrics(sections), [sections]);
   const hasStructure = sections.filter((s) => s.key !== "preamble").length >= 3;
@@ -183,7 +193,7 @@ export function HistoryPreview({ response, fullPrice, currencyCode }: { response
 
   return (
     <PreviewWrap>
-      {renderScoreHero(sections, metrics, false)}
+      {renderScoreHero(sections, metrics, false, { coverName: gameName, compact: true, hideTextOnMobile: true })}
       {renderMetricsRow(sections, metrics, FALLBACK_THEME, false, fullPrice, currencyCode)}
       {refundSection && (
         <RefundStrip $required={refundRequired}>

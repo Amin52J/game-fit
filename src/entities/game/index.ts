@@ -3,3 +3,5 @@ export { parseAnyFormat, parseCSV, parseJSON, parsePlainText, gamesToCSV } from 
 export { useGameCover } from "./lib/useGameCover";
 export type { UseGameCoverResult } from "./lib/useGameCover";
 export { clearCoverCache } from "./model/cover-cache";
+export { GameCover } from "./ui/GameCover";
+export type { GameCoverProps, CoverSize } from "./ui/GameCover";

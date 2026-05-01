@@ -164,6 +164,18 @@ export const Header = styled.header`
   }
 `;
 
+export const HeaderRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.md};
+  min-width: 0;
+`;
+
+export const HeaderText = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
 export const GameTitle = styled.h2`
   margin: 0;
   font-family: ${({ theme }) => theme.font.sans};
@@ -200,24 +212,6 @@ export const EarlyAccessBadge = styled.span`
   vertical-align: middle;
 `;
 
-export const ScoreHero = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: ${({ theme }) => theme.spacing.sm};
-  padding: 12px;
-  background: ${({ theme }) => theme.colors.bg};
-  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
-
-  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
-    flex-direction: row;
-    text-align: left;
-    gap: ${({ theme }) => theme.spacing.lg};
-    padding: ${({ theme }) => theme.spacing.lg};
-  }
-`;
-
 export const ScoreRing = styled.div<{ $score: number }>`
   flex-shrink: 0;
   width: 56px;
@@ -229,7 +223,7 @@ export const ScoreRing = styled.div<{ $score: number }>`
   font-family: ${({ theme }) => theme.font.sans};
   font-size: 1.2rem;
   font-weight: 800;
-  color: ${({ theme }) => theme.colors.text};
+  color: #fff;
   background: ${({ theme }) => theme.colors.surface};
   border: 3px solid ${({ $score, theme }) =>
     $score >= 80
@@ -253,6 +247,22 @@ export const ScoreRing = styled.div<{ $score: number }>`
     height: 88px;
     font-size: 1.75rem;
     border-width: 4px;
+  }
+`;
+
+export const InlineScoreRing = styled(ScoreRing)`
+  width: 48px;
+  height: 48px;
+  font-size: 1.05rem;
+  border-width: 3px;
+  margin-bottom: 14px;
+
+  @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
+    width: 56px;
+    height: 56px;
+    font-size: 1.2rem;
+    border-width: 3px;
+    margin-bottom: ${({ theme }) => theme.spacing.md};
   }
 `;
 
@@ -280,6 +290,86 @@ export const ScoreDetails = styled.div`
   @media (min-width: ${({ theme }) => theme.breakpoint.tablet}) {
     width: auto;
   }
+`;
+
+export const ScoreHero = styled.div<{
+  $withCover?: boolean;
+  $compact?: boolean;
+  $hideTextOnMobile?: boolean;
+}>`
+  ${({ $compact, $withCover, $hideTextOnMobile, theme }) =>
+    $compact
+      ? css`
+          display: grid;
+          grid-template-columns: auto auto;
+          grid-template-rows: auto auto;
+          grid-template-areas:
+            "cover ring"
+            "bottom bottom";
+          align-items: center;
+          column-gap: ${theme.spacing.md};
+          row-gap: ${theme.spacing.md};
+          padding: 12px;
+          background: ${theme.colors.bg};
+          border-bottom: 1px solid ${theme.colors.border};
+          text-align: left;
+
+          ${ScoreRingWrap} {
+            grid-area: cover;
+          }
+          ${InlineScoreRing} {
+            grid-area: ring;
+            margin-bottom: 0;
+            align-self: center;
+            justify-self: center;
+          }
+          ${ScoreDetails} {
+            grid-area: bottom;
+            ${$hideTextOnMobile &&
+            css`
+              display: none;
+            `}
+          }
+
+          @media (min-width: ${theme.breakpoint.tablet}) {
+            grid-template-columns: auto 1fr;
+            grid-template-rows: auto 1fr;
+            grid-template-areas:
+              "cover ring"
+              "cover bottom";
+            align-items: start;
+            column-gap: ${theme.spacing.lg};
+            row-gap: ${theme.spacing.md};
+            padding: ${theme.spacing.lg};
+
+            ${InlineScoreRing} {
+              justify-self: start;
+              align-self: start;
+              margin-bottom: 0;
+            }
+            ${ScoreDetails} {
+              display: block;
+            }
+          }
+        `
+      : css`
+          display: flex;
+          flex-direction: ${$withCover ? "row" : "column"};
+          align-items: ${$withCover ? "flex-start" : "center"};
+          text-align: ${$withCover ? "left" : "center"};
+          gap: ${$withCover ? theme.spacing.md : theme.spacing.sm};
+          padding: 12px;
+          background: ${theme.colors.bg};
+          border-bottom: 1px solid ${theme.colors.border};
+
+          @media (min-width: ${theme.breakpoint.tablet}) {
+            flex-direction: row;
+            align-items: flex-start;
+            text-align: left;
+            gap: ${theme.spacing.lg};
+            padding: ${theme.spacing.lg};
+          }
+        `}
 `;
 
 export const ScoreLabel = styled.div`

@@ -97,7 +97,7 @@ export function ListTableView({
                   Analyze Again
                 </ReanalyzeBtn>
               </ListExpandedToolbar>
-              <ExpandedContent response={item.response} fullPrice={item.price} currencyCode={currency} />
+              <ExpandedContent response={item.response} gameName={item.gameName} fullPrice={item.price} currencyCode={currency} />
             </ListExpandedSection>
           )}
         </ListItem>

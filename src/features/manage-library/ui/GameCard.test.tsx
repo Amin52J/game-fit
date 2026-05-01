@@ -6,13 +6,9 @@ import { useGameCover } from "@/entities/game";
 import { renderWithProviders, resetAllMocks } from "@/__tests__/test-utils";
 import { GameCard } from "./GameCard";
 
-vi.mock("@/entities/game", async () => {
-  const actual = await vi.importActual<typeof import("@/entities/game")>("@/entities/game");
-  return {
-    ...actual,
-    useGameCover: vi.fn(),
-  };
-});
+vi.mock("@/entities/game/lib/useGameCover", () => ({
+  useGameCover: vi.fn(),
+}));
 
 const mockedUseGameCover = vi.mocked(useGameCover);
 
